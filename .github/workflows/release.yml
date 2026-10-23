@@ -53,6 +53,11 @@ jobs:
           echo "KEYSTORE_FILE=${KEYSTORE_DIR}/release.keystore" >> "$GITHUB_ENV"
 
       - name: Run unit tests
+        env:
+          HERMIT_KEYSTORE_PATH: ${{ env.KEYSTORE_FILE }}
+          HERMIT_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          HERMIT_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          HERMIT_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Build release APK

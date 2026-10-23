@@ -59,16 +59,19 @@ android {
 
             if (!keystorePath.isNullOrBlank()) {
                 val keystoreFile = file(keystorePath)
-                if (!keystoreFile.exists()) {
-                    throw GradleException("Release keystore not found at specified path: ${keystoreFile.absolutePath}")
+                if (keystoreFile.exists() && !keystorePassword.isNullOrBlank()) {
+                    storeFile = keystoreFile
+                    storePassword = keystorePassword
+                    keyAlias = keyAliasStr
+                    this.keyPassword = if (!keyPass.isNullOrBlank()) keyPass else keystorePassword
+                } else if (gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }) {
+                    if (!keystoreFile.exists()) {
+                        throw GradleException("Release keystore not found at specified path: ${keystoreFile.absolutePath}")
+                    }
+                    if (keystorePassword.isNullOrBlank()) {
+                        throw GradleException("HERMIT_KEYSTORE_PASSWORD is required when HERMIT_KEYSTORE_PATH is set.")
+                    }
                 }
-                if (keystorePassword.isNullOrBlank()) {
-                    throw GradleException("HERMIT_KEYSTORE_PASSWORD is required when HERMIT_KEYSTORE_PATH is set.")
-                }
-                storeFile = keystoreFile
-                storePassword = keystorePassword
-                keyAlias = keyAliasStr
-                this.keyPassword = if (!keyPass.isNullOrBlank()) keyPass else keystorePassword
             }
         }
     }

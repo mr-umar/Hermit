@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Hermit - NFC-powered mindful focus &amp; digital wellbeing</title>
   <meta name="description" content="Open-source Android application for NFC-powered focus sessions. Block distracting apps using genuine AccessibilityService, create custom profiles, and protect your attention.">
   <link rel="canonical" href="https://hermit.umarmohammad.xyz/">
@@ -23,7 +23,9 @@
   <meta name="twitter:description" content="Take back your digital attention with affordable, standard NFC tags and genuine application blocking.">
   <meta name="twitter:image" content="https://hermit.umarmohammad.xyz/assets/mockup-app.svg">
 
-  <meta name="theme-color" content="#191A18">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F3EC">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#151614">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="css/styles.css">
@@ -104,17 +106,19 @@
 
           <div class="hero-action-group">
             <div class="hero-buttons">
-              <a href="https://github.com/mr-umar/Hermit/releases" class="btn btn-primary">
+              <a href="https://github.com/mr-umar/Hermit/releases" class="btn btn-primary btn-hero-download">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span data-i18n="hero.download">Download APK</span>
               </a>
-              <a href="#how-it-works" class="btn btn-secondary">
-                <span data-i18n="nav.how">How it works</span>
-              </a>
-              <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary btn-hero-github" target="_blank" rel="noopener">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                <span data-i18n="hero.source">GitHub repository</span>
-              </a>
+              <div class="hero-secondary-group">
+                <a href="#how-it-works" class="btn btn-secondary">
+                  <span data-i18n="nav.how">How it works</span>
+                </a>
+                <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary btn-hero-github" target="_blank" rel="noopener">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                  <span data-i18n="hero.source">GitHub</span>
+                </a>
+              </div>
             </div>
 
             <dl class="hero-spec-list">
@@ -163,23 +167,31 @@
         <div class="steps-grid">
           <div class="step-card">
             <div class="step-number">1</div>
-            <h3 data-i18n="how.step1.title">1. Configure your profile</h3>
-            <p data-i18n="how.step1.desc">Choose which distracting social, video, or communication apps to silence and set optional session durations.</p>
+            <div class="step-body">
+              <h3 data-i18n="how.step1.title">1. Configure your profile</h3>
+              <p data-i18n="how.step1.desc">Choose which distracting social, video, or communication apps to silence and set optional session durations.</p>
+            </div>
           </div>
           <div class="step-card">
             <div class="step-number">2</div>
-            <h3 data-i18n="how.step2.title">2. Write the physical tag</h3>
-            <p data-i18n="how.step2.desc">Hold any standard NTAG213, NTAG215, or NTAG216 tag to your phone. Hermit writes a verified NDEF message with an Android Application Record.</p>
+            <div class="step-body">
+              <h3 data-i18n="how.step2.title">2. Write the physical tag</h3>
+              <p data-i18n="how.step2.desc">Hold any standard NTAG213, NTAG215, or NTAG216 tag to your phone. Hermit writes a verified NDEF message with an Android Application Record.</p>
+            </div>
           </div>
           <div class="step-card">
             <div class="step-number">3</div>
-            <h3 data-i18n="how.step3.title">3. Tap to engage</h3>
-            <p data-i18n="how.step3.desc">Tap the tag on your desk or doorway. Hermit instantly activates your focus mode, even if the app is closed or running in the background.</p>
+            <div class="step-body">
+              <h3 data-i18n="how.step3.title">3. Tap to engage</h3>
+              <p data-i18n="how.step3.desc">Tap the tag on your desk or doorway. Hermit instantly activates your focus mode, even if the app is closed or running in the background.</p>
+            </div>
           </div>
           <div class="step-card">
             <div class="step-number">4</div>
-            <h3 data-i18n="how.step4.title">4. Genuine app &amp; web blocking</h3>
-            <p data-i18n="how.step4.desc">Opening blocked apps or visiting social media in browsers triggers a mindful breathing pause, requiring your physical tag to exit.</p>
+            <div class="step-body">
+              <h3 data-i18n="how.step4.title">4. Genuine app &amp; web blocking</h3>
+              <p data-i18n="how.step4.desc">Opening blocked apps or visiting social media in browsers triggers a mindful breathing pause, requiring your physical tag to exit.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -198,48 +210,60 @@
             <div class="feature-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10a8 8 0 0 1 16 0v4a8 8 0 0 1-16 0z"/><circle cx="12" cy="12" r="3"/></svg>
             </div>
-            <h3 data-i18n="features.f1.title">Universal NFC compatibility</h3>
-            <p data-i18n="features.f1.desc">Works with standard, inexpensive NFC Forum Type 2 tags (NTAG213, NTAG215, NTAG216) readily available anywhere online.</p>
+            <div class="feature-body">
+              <h3 data-i18n="features.f1.title">Universal NFC compatibility</h3>
+              <p data-i18n="features.f1.desc">Works with standard, inexpensive NFC Forum Type 2 tags (NTAG213, NTAG215, NTAG216) readily available anywhere online.</p>
+            </div>
           </div>
 
           <div class="feature-card">
             <div class="feature-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
-            <h3 data-i18n="features.f2.title">Real accessibility blocking</h3>
-            <p data-i18n="features.f2.desc">A genuine Android AccessibilityService intercepts distracting foreground app launches and browser URLs cleanly without root.</p>
+            <div class="feature-body">
+              <h3 data-i18n="features.f2.title">Real accessibility blocking</h3>
+              <p data-i18n="features.f2.desc">A genuine Android AccessibilityService intercepts distracting foreground app launches and browser URLs cleanly without root.</p>
+            </div>
           </div>
 
           <div class="feature-card">
             <div class="feature-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
-            <h3 data-i18n="features.f3.title">100% local-first &amp; private</h3>
-            <p data-i18n="features.f3.desc">Zero accounts, zero trackers, zero cloud servers, and no internet permission. Your habits and data stay entirely on your phone.</p>
+            <div class="feature-body">
+              <h3 data-i18n="features.f3.title">100% local-first &amp; private</h3>
+              <p data-i18n="features.f3.desc">Zero accounts, zero trackers, zero cloud dependencies. Internet access is strictly used to check and download updates from GitHub Releases; your focus habits and data stay entirely on your phone.</p>
+            </div>
           </div>
 
           <div class="feature-card">
             <div class="feature-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
-            <h3 data-i18n="features.f4.title">Flexible &amp; secure exit behaviors</h3>
-            <p data-i18n="features.f4.desc">Choose between physical NFC tag unlocking (maximum 24 hours for safety), auto-timer release, or emergency reflection countdowns.</p>
+            <div class="feature-body">
+              <h3 data-i18n="features.f4.title">Flexible &amp; secure exit behaviors</h3>
+              <p data-i18n="features.f4.desc">Choose between physical NFC tag unlocking (maximum 24 hours for safety), auto-timer release, or emergency reflection countdowns.</p>
+            </div>
           </div>
 
           <div class="feature-card">
             <div class="feature-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
-            <h3 data-i18n="features.f5.title">Monk sanctuary &amp; custom profiles</h3>
-            <p data-i18n="features.f5.desc">Includes the Monk mode profile (whitelisting only Phone, Camera, WhatsApp, Spotify, and Maps) alongside fully customizable modes.</p>
+            <div class="feature-body">
+              <h3 data-i18n="features.f5.title">Monk sanctuary &amp; custom profiles</h3>
+              <p data-i18n="features.f5.desc">Includes the Monk mode profile (whitelisting only Phone, Camera, WhatsApp, Spotify, and Maps) alongside fully customizable modes.</p>
+            </div>
           </div>
 
           <div class="feature-card">
             <div class="feature-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
             </div>
-            <h3 data-i18n="features.f6.title">Local session metrics &amp; history</h3>
-            <p data-i18n="features.f6.desc">Track your total focus hours, completed sessions, and prevented distraction attempts securely in encrypted local Room storage.</p>
+            <div class="feature-body">
+              <h3 data-i18n="features.f6.title">Local session metrics &amp; history</h3>
+              <p data-i18n="features.f6.desc">Track your total focus hours, completed sessions, and prevented distraction attempts securely in encrypted local Room storage.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -302,18 +326,33 @@
           <p data-i18n="privacy.subtitle">Unlike cloud-connected wellbeing apps, Hermit does not harvest your behavior.</p>
         </div>
 
-        <div class="features-grid">
-          <div class="feature-card">
-            <h3 data-i18n="privacy.card1.title">Zero telemetry</h3>
-            <p data-i18n="privacy.card1.desc">Hermit contains no Google Analytics, no Firebase, no crash trackers, and no ad SDKs. Your phone never communicates with remote servers.</p>
+        <div class="features-grid privacy-grid">
+          <div class="feature-card privacy-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="feature-body">
+              <h3 data-i18n="privacy.card1.title">Zero telemetry</h3>
+              <p data-i18n="privacy.card1.desc">Hermit contains no Google Analytics, no Firebase, no crash trackers, and no ad SDKs. Network access is strictly used to check GitHub Releases for app updates.</p>
+            </div>
           </div>
-          <div class="feature-card">
-            <h3 data-i18n="privacy.card2.title">Responsible accessibility</h3>
-            <p data-i18n="privacy.card2.desc">Hermit's accessibility service respects your privacy: it never inspects personal messages, text, or keystrokes. It only detects blocked packages.</p>
+          <div class="feature-card privacy-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </div>
+            <div class="feature-body">
+              <h3 data-i18n="privacy.card2.title">Responsible accessibility</h3>
+              <p data-i18n="privacy.card2.desc">Hermit's accessibility service respects your privacy: it never inspects personal messages, text, or keystrokes. It only detects blocked packages.</p>
+            </div>
           </div>
-          <div class="feature-card">
-            <h3 data-i18n="privacy.card3.title">Local data portability</h3>
-            <p data-i18n="privacy.card3.desc">Export your profile configurations and session statistics anytime in standard JSON format, or wipe everything with one tap.</p>
+          <div class="feature-card privacy-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+            <div class="feature-body">
+              <h3 data-i18n="privacy.card3.title">Local data portability</h3>
+              <p data-i18n="privacy.card3.desc">Export your profile configurations and session statistics anytime in standard JSON format, or wipe everything with one tap.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -403,7 +442,7 @@ cd Hermit</code></pre>
             </button>
             <div class="faq-answer" id="faq-ans-3">
               <div class="faq-answer-inner">
-                <p data-i18n="faq.a3">No. Hermit does not even declare the INTERNET permission in its AndroidManifest. It is physically impossible for the app to send data to any remote server.</p>
+                <p data-i18n="faq.a3">Only to check for updates and download new APK releases directly from GitHub Releases with SHA-256 verification. None of the core focus features, NFC tag management, or session statistics require internet access. Hermit has zero telemetry, zero analytics, and all your focus data stays 100% on your device.</p>
               </div>
             </div>
           </div>

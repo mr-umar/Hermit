@@ -38,7 +38,7 @@ const translations = {
     "features.f2.title": "Real accessibility blocking",
     "features.f2.desc": "A genuine Android AccessibilityService intercepts distracting foreground app launches and browser URLs cleanly without root.",
     "features.f3.title": "100% local-first & private",
-    "features.f3.desc": "Zero accounts, zero trackers, zero cloud servers, and no internet permission. Your habits and data stay entirely on your phone.",
+    "features.f3.desc": "Zero accounts, zero trackers, zero cloud dependencies. Internet access is strictly used to check and download updates from GitHub Releases; your focus habits and data stay entirely on your phone.",
     "features.f4.title": "Flexible & secure exit behaviors",
     "features.f4.desc": "Choose between physical NFC tag unlocking (maximum 24 hours for safety), auto-timer release, or emergency reflection countdowns.",
     "features.f5.title": "Monk sanctuary & custom profiles",
@@ -58,7 +58,7 @@ const translations = {
     "privacy.title": "A transparent digital wellbeing shield",
     "privacy.subtitle": "Unlike cloud-connected wellbeing apps, Hermit does not harvest your behavior.",
     "privacy.card1.title": "Zero telemetry",
-    "privacy.card1.desc": "Hermit contains no Google Analytics, no Firebase, no crash trackers, and no ad SDKs. Your phone never communicates with remote servers.",
+    "privacy.card1.desc": "Hermit contains no Google Analytics, no Firebase, no crash trackers, and no ad SDKs. Network access is strictly used to check GitHub Releases for app updates.",
     "privacy.card2.title": "Responsible accessibility",
     "privacy.card2.desc": "Hermit's accessibility service respects your privacy: it never inspects personal messages, text, or keystrokes. It only detects blocked packages.",
     "privacy.card3.title": "Local data portability",
@@ -75,7 +75,7 @@ const translations = {
     "faq.q2": "Why does Hermit require Accessibility permission?",
     "faq.a2": "Android requires an AccessibilityService to reliably detect when a foreground application opens or when social media is visited in browsers. Hermit only observes package names to show the focus screen. It never inspects screen text, keystrokes, or personal data.",
     "faq.q3": "Does Hermit require internet access?",
-    "faq.a3": "No. Hermit does not even declare the INTERNET permission in its AndroidManifest. It is physically impossible for the app to send data to any remote server.",
+    "faq.a3": "Only to check for updates and download new APK releases directly from GitHub Releases with SHA-256 verification. None of the core focus features, NFC tag management, or session statistics require internet access. Hermit has zero telemetry, zero analytics, and all your focus data stays 100% on your device.",
     "faq.q4": "Does the app open automatically when tapping the tag while closed?",
     "faq.a4": "Yes. Every tag written with Hermit includes an Android Application Record (AAR) and a high-priority NDEF filter. Tapping the tag brings Hermit to the foreground automatically, even if the app was completely closed.",
     "faq.q5": "Can I unlock my phone if I lose my NFC tag?",
@@ -118,7 +118,7 @@ const translations = {
     "features.f2.title": "Bloqueo por accesibilidad real",
     "features.f2.desc": "Un genuino servicio de accesibilidad de Android detecta lanzamientos de apps distractoras y URLs de redes sociales de forma limpia y sin necesidad de root.",
     "features.f3.title": "100 % local y privado",
-    "features.f3.desc": "Sin cuentas, sin rastreadores, sin servidores remotos y sin permiso de internet innecesario. Todo se queda en tu dispositivo.",
+    "features.f3.desc": "Sin cuentas, sin rastreadores y sin servidores en la nube. La conexión a internet solo se utiliza para buscar y descargar actualizaciones desde GitHub Releases; tus hábitos y datos se quedan íntegramente en tu dispositivo.",
     "features.f4.title": "Salida flexible y segura",
     "features.f4.desc": "Elige entre desbloqueo exclusivo por etiqueta NFC física (máximo 24 h por seguridad), temporizador o salida de emergencia con cuenta atrás reflexiva.",
     "features.f5.title": "Santuario Monk y perfiles a medida",
@@ -138,7 +138,7 @@ const translations = {
     "privacy.title": "Un escudo de bienestar digital transparente",
     "privacy.subtitle": "A diferencia de las aplicaciones conectadas a la nube, Hermit no recopila tu comportamiento.",
     "privacy.card1.title": "Cero telemetría",
-    "privacy.card1.desc": "Hermit no incluye Google Analytics, Firebase ni librerías de publicidad. Tu teléfono nunca se comunica con servidores externos.",
+    "privacy.card1.desc": "Hermit no incluye Google Analytics, Firebase ni librerías de publicidad. La única conexión de red que realiza la app es consultar GitHub Releases al comprobar actualizaciones.",
     "privacy.card2.title": "Accesibilidad responsable",
     "privacy.card2.desc": "El servicio de accesibilidad opera con estricto respeto a tu privacidad: jamás lee textos privados, mensajes ni contraseñas. Solo detecta paquetes bloqueados.",
     "privacy.card3.title": "Portabilidad local",
@@ -155,7 +155,7 @@ const translations = {
     "faq.q2": "¿Por qué Hermit necesita permiso de accesibilidad?",
     "faq.a2": "Android requiere un servicio de accesibilidad para detectar con fiabilidad cuándo se abre una aplicación en primer plano o se navega por redes sociales. Hermit solo revisa el paquete o dominio para mostrar la pantalla de enfoque. Nunca lee contenidos privados, pulsaciones ni datos personales.",
     "faq.q3": "¿Requiere Hermit conexión a internet?",
-    "faq.a3": "No. Hermit ni siquiera declara el permiso INTERNET en su AndroidManifest. Es técnicamente imposible que envíe información fuera de tu dispositivo.",
+    "faq.a3": "Únicamente para comprobar e instalar actualizaciones de la aplicación directamente desde GitHub Releases con verificación de integridad SHA-256. Ninguna de las funciones de concentración, lectura/grabación NFC o estadísticas requiere conexión. Hermit tiene cero telemetría, cero analítica y todos tus datos se procesan 100 % en local en tu dispositivo.",
     "faq.q4": "¿Se abre la app automáticamente al acercar la etiqueta si está cerrada?",
     "faq.a4": "Sí. Todas las etiquetas grabadas con Hermit incluyen un registro AAR (Android Application Record) y un filtro prioritario NDEF. Al acercar la etiqueta, incluso con la app cerrada o en segundo plano, Android abre Hermit automáticamente y gestiona tu sesión.",
     "faq.q5": "¿Puedo desbloquear mi teléfono si pierdo la etiqueta NFC?",
@@ -191,12 +191,25 @@ function applyLanguage(lang) {
     : "Hermit - NFC-powered mindful focus & digital wellbeing";
 }
 
+function updateMetaThemeColor(theme) {
+  document.documentElement.style.colorScheme = theme;
+  let dynamicMeta = document.querySelector('meta[name="theme-color"][data-dynamic]');
+  if (!dynamicMeta) {
+    dynamicMeta = document.createElement('meta');
+    dynamicMeta.setAttribute('name', 'theme-color');
+    dynamicMeta.setAttribute('data-dynamic', 'true');
+    document.head.appendChild(dynamicMeta);
+  }
+  dynamicMeta.setAttribute('content', theme === 'light' ? '#F6F3EC' : '#151614');
+}
+
 function initTheme() {
   const savedTheme = localStorage.getItem('hermit_theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const theme = savedTheme || (prefersDark ? 'dark' : 'light');
   document.documentElement.setAttribute('data-theme', theme);
   updateThemeIcon(theme);
+  updateMetaThemeColor(theme);
 }
 
 function toggleTheme() {
@@ -205,6 +218,7 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', target);
   localStorage.setItem('hermit_theme', target);
   updateThemeIcon(target);
+  updateMetaThemeColor(target);
 }
 
 function updateThemeIcon(theme) {
@@ -213,6 +227,7 @@ function updateThemeIcon(theme) {
     btn.innerHTML = theme === 'dark'
       ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
       : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
   }
 }
 

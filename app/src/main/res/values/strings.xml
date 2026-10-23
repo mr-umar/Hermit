@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Identity -->
+    <string name="app_name">Hermit</string>
+    <string name="app_tagline">NFC-powered mindful focus and digital wellbeing</string>
+    <string name="accessibility_service_name">Hermit Focus Guardian</string>
+    <string name="accessibility_service_description">Hermit monitors foreground application changes solely to enforce your configured focus profiles and block distracting apps. No keystrokes, personal content, or private data are ever read, stored, or transmitted.</string>
+
+    <!-- Navigation -->
+    <string name="nav_focus">Focus</string>
+    <string name="nav_profiles">Profiles</string>
+    <string name="nav_tags">Tags</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home / Active Session -->
+    <string name="home_status_idle">Ready to Focus</string>
+    <string name="home_status_active">Focus Active</string>
+    <string name="home_prompt_scan">Scan your NFC tag to begin</string>
+    <string name="home_active_desc">Apps are blocked according to %1$s</string>
+    <string name="home_time_remaining">Time remaining: %1$s</string>
+    <string name="home_time_elapsed">Focus time: %1$s</string>
+    <string name="home_btn_start_quick">Start Focus</string>
+    <string name="home_btn_end_session">End Session</string>
+    <string name="home_select_profile_label">Active Profile</string>
+    <string name="home_card_nfc_tip">Physical Tag Ready</string>
+    <string name="home_card_nfc_tip_desc">Tap your configured NFC tag on the back of your phone to toggle focus at any time.</string>
+    <string name="home_recent_tags_title">Registered Tags</string>
+    <string name="home_no_tags_yet">No NFC tags registered yet</string>
+
+    <!-- Focus Profiles -->
+    <string name="profiles_title">Focus Profiles</string>
+    <string name="profiles_add">New Profile</string>
+    <string name="profiles_edit">Edit Profile</string>
+    <string name="profiles_delete_confirm_title">Delete Profile?</string>
+    <string name="profiles_delete_confirm_desc">Are you sure you want to delete \"%1$s\"? Associated NFC tags will become unlinked.</string>
+    <string name="profile_name_label">Profile Name</string>
+    <string name="profile_desc_label">Description (optional)</string>
+    <string name="profile_icon_label">Icon</string>
+    <string name="profile_duration_label">Session Duration (minutes)</string>
+    <string name="profile_duration_unlimited">No timer (manual stop or NFC tap)</string>
+    <string name="profile_duration_minutes">%1$d minutes</string>
+    <string name="profile_blocked_apps_label">Blocked Applications</string>
+    <string name="profile_blocked_count">%1$d apps selected</string>
+    <string name="profile_select_apps">Select Apps</string>
+    <string name="profile_strict_mode">Strict Mode</string>
+    <string name="profile_strict_mode_desc">Requires a 60-second reflection delay before emergency exit is allowed.</string>
+    <string name="profile_exit_behavior">Exit Behavior</string>
+    <string name="profile_exit_nfc_only">NFC tag only</string>
+    <string name="profile_exit_allow_emergency">Allow emergency button</string>
+    <string name="profile_exit_timed_only">Ends when timer expires</string>
+
+    <!-- Default Profiles -->
+    <string name="default_profile_deep_work">Deep Work</string>
+    <string name="default_profile_deep_work_desc">Zero distractions for intense creative and analytical tasks.</string>
+    <string name="default_profile_study">Study</string>
+    <string name="default_profile_study_desc">Block social media, streaming, and games while learning.</string>
+    <string name="default_profile_rest">Rest &amp; Unwind</string>
+    <string name="default_profile_rest_desc">Keep work communications away during personal hours.</string>
+    <string name="default_profile_evening">Mindful Evening</string>
+    <string name="default_profile_evening_desc">Wind down before bed without screen addiction triggers.</string>
+
+    <!-- Application Selection -->
+    <string name="app_select_title">Select Blocked Apps</string>
+    <string name="app_select_search_hint">Search installed apps…</string>
+    <string name="app_select_all">Select All</string>
+    <string name="app_select_clear">Clear All</string>
+    <string name="app_select_empty">No applications match your search</string>
+    <string name="app_select_save">Done (%1$d selected)</string>
+    <string name="app_select_system_excluded">System dialer, home launcher, and settings are preserved for safety.</string>
+
+    <!-- Tag Manager -->
+    <string name="tags_title">NFC Tags</string>
+    <string name="tags_add">Register New Tag</string>
+    <string name="tags_empty_title">No NFC Tags Registered</string>
+    <string name="tags_empty_desc">Write a compatible NFC tag (NTAG213, NTAG215, NTAG216, or Type 2) to physically control your focus sessions.</string>
+    <string name="tags_btn_write_new">Write a Tag</string>
+    <string name="tags_btn_read">Read &amp; Inspect Tag</string>
+    <string name="tag_detail_name">Tag Name</string>
+    <string name="tag_detail_action">Action</string>
+    <string name="tag_detail_profile">Associated Profile</string>
+    <string name="tag_detail_last_scanned">Last scanned: %1$s</string>
+    <string name="tag_detail_never_scanned">Never scanned</string>
+    <string name="tag_action_toggle">Toggle Focus (Start / Stop)</string>
+    <string name="tag_action_activate">Activate Profile</string>
+    <string name="tag_action_deactivate">Deactivate Focus</string>
+    <string name="tag_action_switch">Switch to Profile</string>
+    <string name="tag_disable">Disable Tag</string>
+    <string name="tag_enable">Enable Tag</string>
+    <string name="tag_delete">Delete Tag Record</string>
+    <string name="tag_rewrite">Rewrite Physical Tag</string>
+    <string name="tag_status_disabled">Disabled</string>
+
+    <!-- Write NFC Tag -->
+    <string name="write_tag_title">Write NFC Tag</string>
+    <string name="write_tag_step1">1. Choose Tag Behavior</string>
+    <string name="write_tag_step2">2. Hold Phone Near Tag</string>
+    <string name="write_tag_ready_prompt">Place your phone against the NFC tag and hold still…</string>
+    <string name="write_tag_writing">Writing focus configuration…</string>
+    <string name="write_tag_verifying">Verifying written data…</string>
+    <string name="write_tag_success">Tag written and verified successfully!</string>
+    <string name="write_tag_error_title">Write Failed</string>
+    <string name="write_tag_error_lost">Tag moved out of range during writing. Please hold steady and try again.</string>
+    <string name="write_tag_error_readonly">This tag is locked or read-only. Writable NFC tags are required.</string>
+    <string name="write_tag_error_capacity">Tag storage is too small. Need at least %1$d bytes, available %2$d bytes.</string>
+    <string name="write_tag_error_unsupported">Tag does not support NDEF format. Compatible tags: NTAG213, NTAG215, NTAG216, or NFC Forum Type 2.</string>
+    <string name="write_tag_error_format">Tag requires formatting before writing. Format attempt failed.</string>
+    <string name="write_tag_overwrite_warning">This tag already contains data (%1$s). Do you want to overwrite it?</string>
+    <string name="write_tag_overwrite_confirm">Overwrite Tag</string>
+    <string name="write_tag_retry">Try Again</string>
+    <string name="write_tag_btn_finish">Done</string>
+
+    <!-- Read & Inspect NFC Tag -->
+    <string name="read_tag_title">Inspect NFC Tag</string>
+    <string name="read_tag_prompt">Hold an NFC tag to the back of your phone to inspect its details…</string>
+    <string name="read_tag_scanned_title">Tag Information</string>
+    <string name="read_tag_serial">Serial Number (UID)</string>
+    <string name="read_tag_tech">Technologies</string>
+    <string name="read_tag_type">Tag Type</string>
+    <string name="read_tag_writable">Writable Status</string>
+    <string name="read_tag_writable_yes">Writable</string>
+    <string name="read_tag_writable_no">Read-Only</string>
+    <string name="read_tag_capacity">Max NDEF Capacity</string>
+    <string name="read_tag_hermit_detected">Hermit Tag Detected</string>
+    <string name="read_tag_hermit_unrecognized">Hermit Tag (from another installation)</string>
+    <string name="read_tag_generic_detected">Standard NDEF Record</string>
+    <string name="read_tag_empty">Empty or Unformatted Tag</string>
+    <string name="read_tag_action_import">Register Tag in Hermit</string>
+    <string name="read_tag_action_rescan">Scan Another Tag</string>
+
+    <!-- Blocking Overlay / Screen -->
+    <string name="block_screen_title">Stay Mindful</string>
+    <string name="block_screen_subtitle">\"%1$s\" is blocked during %2$s.</string>
+    <string name="block_screen_calm_quote">Take a breath. You chose to protect this moment for what truly matters.</string>
+    <string name="block_screen_nfc_instruction">Tap your NFC tag to unlock</string>
+    <string name="block_screen_btn_home">Return to Home</string>
+    <string name="block_screen_btn_emergency">Emergency Exit</string>
+    <string name="block_screen_emergency_countdown">Reflect for %1$d seconds…</string>
+    <string name="block_screen_emergency_confirm">Exit Focus Session</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Focus Statistics</string>
+    <string name="stats_total_time">Total Focus</string>
+    <string name="stats_completed_sessions">Completed Sessions</string>
+    <string name="stats_blocks_prevented">Distractions Prevented</string>
+    <string name="stats_recent_history">Session History</string>
+    <string name="stats_empty">No focus sessions recorded yet. Start your first session by tapping a tag!</string>
+    <string name="stats_duration_format">%1$dh %2$dm</string>
+    <string name="stats_duration_min">%1$dm</string>
+
+    <!-- Settings & Diagnostics -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System Default</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_es">Español</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System Default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_section_diagnostics">System Diagnostics</string>
+    <string name="settings_nfc_status">NFC Hardware</string>
+    <string name="settings_nfc_available">Available &amp; Enabled</string>
+    <string name="settings_nfc_disabled">Disabled in Android Settings</string>
+    <string name="settings_nfc_unavailable">Hardware Not Supported</string>
+    <string name="settings_btn_open_nfc_settings">Open NFC Settings</string>
+    <string name="settings_accessibility_status">Accessibility Service</string>
+    <string name="settings_accessibility_enabled">Active &amp; Monitoring</string>
+    <string name="settings_accessibility_disabled">Disabled (Blocking Inactive)</string>
+    <string name="settings_btn_open_accessibility">Enable in Settings</string>
+    <string name="settings_battery_status">Battery Optimization</string>
+    <string name="settings_battery_optimized">Standard (OS may restrict background)</string>
+    <string name="settings_battery_exempted">Unrestricted (Recommended)</string>
+    <string name="settings_btn_battery_opt">Request Unrestricted</string>
+    <string name="settings_section_privacy">Privacy &amp; Data</string>
+    <string name="settings_privacy_summary">Hermit is 100% local-first. We do not use telemetry, analytics, remote servers, or accounts. All data stays entirely on your device.</string>
+    <string name="settings_export_data">Export Backup (JSON)</string>
+    <string name="settings_export_success">Backup exported successfully</string>
+    <string name="settings_reset_data">Clear All Data</string>
+    <string name="settings_reset_confirm_title">Reset Hermit?</string>
+    <string name="settings_reset_confirm_desc">This permanently deletes all profiles, NFC tag mappings, and session statistics. This action cannot be undone.</string>
+    <string name="settings_version">Version %1$s</string>
+
+    <!-- First Run Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to Hermit</string>
+    <string name="onboarding_welcome_desc">A tranquil, physical sanctuary from digital distractions. Control your phone\'s focus with real NFC tags.</string>
+    <string name="onboarding_step1_title">1. Physical Anchor</string>
+    <string name="onboarding_step1_desc">Write any affordable NFC tag (NTAG213, NTAG215, NTAG216) to act as your physical focus key. Leave it on your desk or another room.</string>
+    <string name="onboarding_step2_title">2. Genuine App Blocking</string>
+    <string name="onboarding_step2_desc">Hermit uses Android\'s Accessibility Service to reliably detect when a blocked app opens and gently guide you back to focus.</string>
+    <string name="onboarding_step3_title">3. Privacy First</string>
+    <string name="onboarding_step3_desc">No accounts, no cloud sync, no tracking. Your app list and habits remain strictly private on this device.</string>
+    <string name="onboarding_btn_enable_service">Grant Accessibility Permission</string>
+    <string name="onboarding_btn_continue">Get Started</string>
+    <string name="onboarding_permission_banner">Accessibility Service is required for app blocking to function.</string>
+
+    <!-- General / Actions -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_close">Close</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="dialog_error_title">Notice</string>
+</resources>

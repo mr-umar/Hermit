@@ -1,0 +1,17 @@
+{
+  "name": "Hermit",
+  "short_name": "Hermit",
+  "description": "NFC-Powered Mindful Focus & Digital Wellbeing",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0D9488",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermit - NFC-Powered Mindful Focus &amp; Digital Wellbeing</title>
+  <meta name="description" content="Open-source Android application for NFC-powered focus sessions. Block distracting apps using genuine AccessibilityService, create custom profiles, and protect your attention.">
+  <link rel="canonical" href="https://hermit.umarmohammad.xyz/">
+  <link rel="alternate" hreflang="en" href="https://hermit.umarmohammad.xyz/">
+  <link rel="alternate" hreflang="es" href="https://hermit.umarmohammad.xyz/?lang=es">
+  <link rel="alternate" hreflang="x-default" href="https://hermit.umarmohammad.xyz/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hermit.umarmohammad.xyz/">
+  <meta property="og:title" content="Hermit - NFC-Powered Mindful Focus &amp; Digital Wellbeing">
+  <meta property="og:description" content="Take back your digital attention with affordable, standard NFC tags and genuine application blocking. Open source, 100% local, zero tracking.">
+  <meta property="og:image" content="https://hermit.umarmohammad.xyz/assets/mockup-app.svg">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Hermit - NFC-Powered Mindful Focus">
+  <meta name="twitter:description" content="Take back your digital attention with affordable, standard NFC tags and genuine application blocking.">
+  <meta name="twitter:image" content="https://hermit.umarmohammad.xyz/assets/mockup-app.svg">
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="#" class="logo-link">
+        <img src="assets/favicon.svg" alt="Hermit Emblem" class="logo-icon">
+        <span>Hermit</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#how-it-works" data-i18n="nav.how">How It Works</a></li>
+          <li><a href="#features" data-i18n="nav.features">Features</a></li>
+          <li><a href="#hardware" data-i18n="nav.hardware">NFC Hardware</a></li>
+          <li><a href="#privacy" data-i18n="nav.privacy">Privacy</a></li>
+          <li><a href="#faq" data-i18n="nav.faq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-controls">
+        <button id="lang-toggle" class="btn-icon-toggle" aria-label="Switch language">ES</button>
+        <button id="theme-toggle" class="btn-icon-toggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+        <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-pill" data-i18n="hero.pill">Open Source &amp; Local First</div>
+      <h1 class="hero-title" data-i18n="hero.title">Mindful focus, anchored by physical NFC.</h1>
+      <p class="hero-subtitle" data-i18n="hero.subtitle">
+        Take back your digital attention with affordable, standard NFC tags. Create focus profiles, block distracting applications through genuine Android Accessibility, and keep your data 100% private.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://github.com/mr-umar/Hermit/releases" class="btn btn-primary" data-i18n="hero.download">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download Debug APK</span>
+        </a>
+        <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary" target="_blank" rel="noopener" data-i18n="hero.source">
+          View on GitHub
+        </a>
+      </div>
+
+      <!-- App Interface Showcase -->
+      <div class="showcase-grid">
+        <div class="mockup-wrapper">
+          <img src="assets/mockup-app.svg" alt="Hermit Active Focus Interface" class="mockup-img" width="320" height="568">
+        </div>
+        <div class="mockup-wrapper">
+          <img src="assets/mockup-block.svg" alt="Hermit Mindful Block Screen Barrier" class="mockup-img" width="320" height="568">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="how.title">How Hermit Works</h2>
+        <p data-i18n="how.subtitle">Transform an inexpensive NFC tag into a physical sanctuary from digital distractions.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3 data-i18n="how.step1.title">1. Configure Profile</h3>
+          <p data-i18n="how.step1.desc">Choose which distracting social, video, or communication apps to silence and set optional session durations.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3 data-i18n="how.step2.title">2. Write Physical Tag</h3>
+          <p data-i18n="how.step2.desc">Hold any standard NTAG213, NTAG215, or NTAG216 tag to your phone. Hermit writes a compact, verified NDEF record.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3 data-i18n="how.step3.title">3. Tap to Engage</h3>
+          <p data-i18n="how.step3.desc">Tap the tag on your desk or door. Hermit instantly activates your focus mode and raises the distraction barrier.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <h3 data-i18n="how.step4.title">4. Genuine App Blocking</h3>
+          <p data-i18n="how.step4.desc">Opening blocked apps brings you to a calm breathing pause, requiring a physical tag scan or strict reflection to exit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="features.title">Built for Intention, Not Addiction</h2>
+        <p data-i18n="features.subtitle">Everything you need to protect your deep work sessions without proprietary hardware or recurring subscriptions.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10a8 8 0 0 1 16 0v4a8 8 0 0 1-16 0z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h3 data-i18n="features.f1.title">Standard NFC Compatibility</h3>
+          <p data-i18n="features.f1.desc">Works with standard, inexpensive NFC Forum Type 2 tags (NTAG213, NTAG215, NTAG216) readily available anywhere.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 data-i18n="features.f2.title">Real Accessibility Blocking</h3>
+          <p data-i18n="features.f2.desc">Genuine Android AccessibilityService intercepts distracting foreground app launches cleanly and reliably without root.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3 data-i18n="features.f3.title">100% Local-First &amp; Private</h3>
+          <p data-i18n="features.f3.desc">Zero accounts, zero trackers, zero cloud servers, and no unnecessary internet permissions. Your habits stay on your phone.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3 data-i18n="features.f4.title">Flexible Exit Behaviors</h3>
+          <p data-i18n="features.f4.desc">Choose between NFC-only unlocking, timed auto-release, or emergency override with a 60-second reflection timer in strict mode.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3 data-i18n="features.f5.title">Custom Focus Profiles</h3>
+          <p data-i18n="features.f5.desc">Create dedicated profiles like Deep Work, Study, Rest, or Mindful Evening with tailored app selection.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3 data-i18n="features.f6.title">Session Metrics &amp; History</h3>
+          <p data-i18n="features.f6.desc">Track your total focus hours, completed sessions, and prevented distraction attempts securely in local Room storage.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hardware Compatibility Section -->
+  <section id="hardware" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="hw.title">Hardware Compatibility</h2>
+        <p data-i18n="hw.subtitle">Hermit avoids vendor lock-in. Use affordable, standard NFC tags rather than proprietary pucks.</p>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="hw.col.chip">Chip / Standard</th>
+              <th data-i18n="hw.col.capacity">Usable Capacity</th>
+              <th data-i18n="hw.col.status">Compatibility</th>
+              <th data-i18n="hw.col.notes">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>NTAG213</strong></td>
+              <td>144 bytes</td>
+              <td><span class="badge-tag badge-success">Fully Supported</span></td>
+              <td data-i18n="hw.row1.notes">144 bytes user memory. Perfect for Hermit's compact payload (&lt;120 bytes). Highly affordable.</td>
+            </tr>
+            <tr>
+              <td><strong>NTAG215</strong></td>
+              <td>504 bytes</td>
+              <td><span class="badge-tag badge-success">Fully Supported</span></td>
+              <td data-i18n="hw.row2.notes">504 bytes user memory. Widely available and fully tested with read-back verification.</td>
+            </tr>
+            <tr>
+              <td><strong>NTAG216</strong></td>
+              <td>888 bytes</td>
+              <td><span class="badge-tag badge-success">Fully Supported</span></td>
+              <td data-i18n="hw.row3.notes">888 bytes user memory. Maximum capacity for Type 2 tags.</td>
+            </tr>
+            <tr>
+              <td><strong>ISO 14443-4 / Type 4</strong></td>
+              <td>Variable</td>
+              <td><span class="badge-tag badge-warning">Conditional</span></td>
+              <td data-i18n="hw.row4.notes">Standard NDEF tags supported subject to phone NFC controller compatibility.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy & Architecture Section -->
+  <section id="privacy" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="privacy.title">A Transparent Digital Wellbeing Shield</h2>
+        <p data-i18n="privacy.subtitle">Unlike cloud-connected wellbeing apps, Hermit does not harvest your behavior.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <h3 data-i18n="privacy.card1.title">Zero Telemetry</h3>
+          <p data-i18n="privacy.card1.desc">Hermit contains no Google Analytics, no Firebase, no crash trackers, and no ad SDKs. Your phone never pings remote servers.</p>
+        </div>
+        <div class="feature-card">
+          <h3 data-i18n="privacy.card2.title">Responsible Accessibility</h3>
+          <p data-i18n="privacy.card2.desc">Hermit's Accessibility Service disables window content retrieval. It only checks the top-level package name to protect your attention.</p>
+        </div>
+        <div class="feature-card">
+          <h3 data-i18n="privacy.card3.title">Local Data Portability</h3>
+          <p data-i18n="privacy.card3.desc">Export your profile configurations and session statistics anytime in standard JSON format, or wipe everything with one tap.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Installation & Source Section -->
+  <section id="installation" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="install.title">Installation &amp; Source Code</h2>
+        <p data-i18n="install.subtitle">Hermit is free, open source, and built entirely with native Kotlin &amp; Jetpack Compose.</p>
+      </div>
+
+      <div class="step-card" style="max-width: 760px; margin: 0 auto;">
+        <h3 data-i18n="install.build.title">Build from Source</h3>
+        <p data-i18n="install.build.step1" style="margin-top: 1rem;">Clone the repository from GitHub:</p>
+        <pre style="background: var(--color-bg); padding: 0.85rem; border-radius: 8px; margin: 0.5rem 0 1rem; overflow-x: auto;"><code>git clone https://github.com/mr-umar/Hermit.git
+cd Hermit</code></pre>
+
+        <p data-i18n="install.build.step2">Build debug APK with Gradle:</p>
+        <pre style="background: var(--color-bg); padding: 0.85rem; border-radius: 8px; margin: 0.5rem 0 1rem; overflow-x: auto;"><code>./gradlew assembleDebug</code></pre>
+
+        <p data-i18n="install.build.step3">Install directly via ADB to your device:</p>
+        <pre style="background: var(--color-bg); padding: 0.85rem; border-radius: 8px; margin: 0.5rem 0 1rem; overflow-x: auto;"><code>adb install -r app/build/outputs/apk/debug/app-debug.apk</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="faq.title">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item active">
+          <button class="faq-question">
+            <span data-i18n="faq.q1">What NFC tags should I buy?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a1">Any standard NTAG213, NTAG215, or NTAG216 sticker or card will work. NTAG215 cards/stickers are widely available, inexpensive (often under $0.50 each), and fully supported.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span data-i18n="faq.q2">Why does Hermit require Accessibility permission?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a2">Android requires an AccessibilityService to reliably detect when a foreground application opens. Hermit only observes application package names to know when to show the focus screen. It never inspects screen text, keystrokes, or personal data.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span data-i18n="faq.q3">Does Hermit require internet access?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a3">No. Hermit does not even declare the INTERNET permission in its AndroidManifest. It is physically impossible for the app to send data to any remote server.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span data-i18n="faq.q4">Can I unlock my phone if I lose my NFC tag?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a4">Yes. Each focus profile can be configured with an Emergency Exit option. In strict mode, a 60-second reflection countdown prevents impulsive unlocking while ensuring you are never permanently locked out.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div>
+          <a href="#" class="logo-link" style="margin-bottom: 0.5rem;">
+            <img src="assets/favicon.svg" alt="Hermit" class="logo-icon">
+            <span>Hermit</span>
+          </a>
+          <p class="footer-copy" data-i18n="footer.desc">Open-source Android application for NFC-powered mindful focus.</p>
+        </div>
+        <div>
+          <p class="footer-copy"><a href="https://github.com/mr-umar/Hermit" target="_blank" rel="noopener">https://github.com/mr-umar/Hermit</a></p>
+          <p class="footer-copy" data-i18n="footer.license">Licensed under GNU AGPLv3.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

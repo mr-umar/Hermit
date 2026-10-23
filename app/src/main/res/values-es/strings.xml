@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Identity -->
+    <string name="app_name">Hermit</string>
+    <string name="app_tagline">Concentración consciente y bienestar digital mediante NFC</string>
+    <string name="accessibility_service_name">Guardián de Enfoque Hermit</string>
+    <string name="accessibility_service_description">Hermit supervisa únicamente los cambios de aplicación en primer plano para aplicar tus perfiles de concentración y bloquear apps distractoras. Nunca se leen, almacenan ni transmiten pulsaciones, contenidos ni datos privados.</string>
+
+    <!-- Navigation -->
+    <string name="nav_focus">Enfoque</string>
+    <string name="nav_profiles">Perfiles</string>
+    <string name="nav_tags">Etiquetas</string>
+    <string name="nav_stats">Estadísticas</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Home / Active Session -->
+    <string name="home_status_idle">Listo para concentrarte</string>
+    <string name="home_status_active">Modo Enfoque Activo</string>
+    <string name="home_prompt_scan">Escanea tu etiqueta NFC para comenzar</string>
+    <string name="home_active_desc">Aplicaciones bloqueadas según %1$s</string>
+    <string name="home_time_remaining">Tiempo restante: %1$s</string>
+    <string name="home_time_elapsed">Tiempo de enfoque: %1$s</string>
+    <string name="home_btn_start_quick">Iniciar Enfoque</string>
+    <string name="home_btn_end_session">Finalizar Sesión</string>
+    <string name="home_select_profile_label">Perfil Activo</string>
+    <string name="home_card_nfc_tip">Etiqueta Física Lista</string>
+    <string name="home_card_nfc_tip_desc">Acerca tu etiqueta NFC configurada a la parte trasera de tu teléfono para activar o desactivar la sesión en cualquier momento.</string>
+    <string name="home_recent_tags_title">Etiquetas Registradas</string>
+    <string name="home_no_tags_yet">Aún no hay etiquetas NFC registradas</string>
+
+    <!-- Focus Profiles -->
+    <string name="profiles_title">Perfiles de Enfoque</string>
+    <string name="profiles_add">Nuevo Perfil</string>
+    <string name="profiles_edit">Editar Perfil</string>
+    <string name="profiles_delete_confirm_title">¿Eliminar Perfil?</string>
+    <string name="profiles_delete_confirm_desc">¿Seguro que deseas eliminar \"%1$s\"? Las etiquetas NFC asociadas quedarán desvinculadas.</string>
+    <string name="profile_name_label">Nombre del Perfil</string>
+    <string name="profile_desc_label">Descripción (opcional)</string>
+    <string name="profile_icon_label">Icono</string>
+    <string name="profile_duration_label">Duración de la sesión (minutos)</string>
+    <string name="profile_duration_unlimited">Sin temporizador (parada manual o toque NFC)</string>
+    <string name="profile_duration_minutes">%1$d minutos</string>
+    <string name="profile_blocked_apps_label">Aplicaciones Bloqueadas</string>
+    <string name="profile_blocked_count">%1$d aplicaciones seleccionadas</string>
+    <string name="profile_select_apps">Seleccionar Aplicaciones</string>
+    <string name="profile_strict_mode">Modo Estricto</string>
+    <string name="profile_strict_mode_desc">Requiere una pausa reflexiva de 60 segundos antes de permitir la salida de emergencia.</string>
+    <string name="profile_exit_behavior">Comportamiento de Salida</string>
+    <string name="profile_exit_nfc_only">Solo etiqueta NFC</string>
+    <string name="profile_exit_allow_emergency">Permitir botón de emergencia</string>
+    <string name="profile_exit_timed_only">Termina al expirar el tiempo</string>
+
+    <!-- Default Profiles -->
+    <string name="default_profile_deep_work">Trabajo Profundo</string>
+    <string name="default_profile_deep_work_desc">Cero distracciones para tareas creativas y analíticas exigentes.</string>
+    <string name="default_profile_study">Estudio</string>
+    <string name="default_profile_study_desc">Bloquea redes sociales, streaming y juegos mientras aprendes.</string>
+    <string name="default_profile_rest">Descanso y Desconexión</string>
+    <string name="default_profile_rest_desc">Mantén las comunicaciones laborales lejos durante tu tiempo personal.</string>
+    <string name="default_profile_evening">Tarde Consciente</string>
+    <string name="default_profile_evening_desc">Desconéctate antes de dormir sin estímulos que generen dependencia.</string>
+
+    <!-- Application Selection -->
+    <string name="app_select_title">Seleccionar Apps Bloqueadas</string>
+    <string name="app_select_search_hint">Buscar aplicaciones instaladas…</string>
+    <string name="app_select_all">Seleccionar Todas</string>
+    <string name="app_select_clear">Limpiar Todo</string>
+    <string name="app_select_empty">Ninguna aplicación coincide con la búsqueda</string>
+    <string name="app_select_save">Listo (%1$d seleccionadas)</string>
+    <string name="app_select_system_excluded">El teléfono de emergencia, iniciador de inicio y ajustes se preservan por seguridad.</string>
+
+    <!-- Tag Manager -->
+    <string name="tags_title">Etiquetas NFC</string>
+    <string name="tags_add">Registrar Nueva Etiqueta</string>
+    <string name="tags_empty_title">Sin Etiquetas NFC Registradas</string>
+    <string name="tags_empty_desc">Graba una etiqueta NFC compatible (NTAG213, NTAG215, NTAG216 o Tipo 2) para controlar físicamente tus sesiones de enfoque.</string>
+    <string name="tags_btn_write_new">Grabar una Etiqueta</string>
+    <string name="tags_btn_read">Leer e Inspeccionar Etiqueta</string>
+    <string name="tag_detail_name">Nombre de la Etiqueta</string>
+    <string name="tag_detail_action">Acción</string>
+    <string name="tag_detail_profile">Perfil Asociado</string>
+    <string name="tag_detail_last_scanned">Último escaneo: %1$s</string>
+    <string name="tag_detail_never_scanned">Nunca escaneada</string>
+    <string name="tag_action_toggle">Alternar Enfoque (Iniciar / Detener)</string>
+    <string name="tag_action_activate">Activar Perfil</string>
+    <string name="tag_action_deactivate">Desactivar Enfoque</string>
+    <string name="tag_action_switch">Cambiar a Perfil</string>
+    <string name="tag_disable">Desactivar Etiqueta</string>
+    <string name="tag_enable">Activar Etiqueta</string>
+    <string name="tag_delete">Eliminar Registro de Etiqueta</string>
+    <string name="tag_rewrite">Regrabar Etiqueta Física</string>
+    <string name="tag_status_disabled">Desactivada</string>
+
+    <!-- Write NFC Tag -->
+    <string name="write_tag_title">Grabar Etiqueta NFC</string>
+    <string name="write_tag_step1">1. Elegir Comportamiento</string>
+    <string name="write_tag_step2">2. Acercar Teléfono a la Etiqueta</string>
+    <string name="write_tag_ready_prompt">Coloca tu teléfono sobre la etiqueta NFC y mantenlo quieto…</string>
+    <string name="write_tag_writing">Escribiendo configuración de enfoque…</string>
+    <string name="write_tag_verifying">Verificando datos grabados…</string>
+    <string name="write_tag_success">¡Etiqueta grabada y verificada con éxito!</string>
+    <string name="write_tag_error_title">Error al Grabar</string>
+    <string name="write_tag_error_lost">La etiqueta se movió fuera del alcance durante la grabación. Mantenla fija e inténtalo de nuevo.</string>
+    <string name="write_tag_error_readonly">Esta etiqueta está bloqueada o es de solo lectura. Se requieren etiquetas NFC grabables.</string>
+    <string name="write_tag_error_capacity">La memoria de la etiqueta es insuficiente. Requiere al menos %1$d bytes, disponible %2$d bytes.</string>
+    <string name="write_tag_error_unsupported">La etiqueta no admite formato NDEF. Etiquetas compatibles: NTAG213, NTAG215, NTAG216 o NFC Forum Tipo 2.</string>
+    <string name="write_tag_error_format">La etiqueta requiere formateo antes de escribir. El formateo no fue posible.</string>
+    <string name="write_tag_overwrite_warning">Esta etiqueta ya contiene datos (%1$s). ¿Deseas sobrescribirla?</string>
+    <string name="write_tag_overwrite_confirm">Sobrescribir Etiqueta</string>
+    <string name="write_tag_retry">Reintentar</string>
+    <string name="write_tag_btn_finish">Terminar</string>
+
+    <!-- Read & Inspect NFC Tag -->
+    <string name="read_tag_title">Inspeccionar Etiqueta NFC</string>
+    <string name="read_tag_prompt">Acerca una etiqueta NFC a la parte trasera de tu teléfono para ver sus detalles…</string>
+    <string name="read_tag_scanned_title">Información de la Etiqueta</string>
+    <string name="read_tag_serial">Número de Serie (UID)</string>
+    <string name="read_tag_tech">Tecnologías</string>
+    <string name="read_tag_type">Tipo de Etiqueta</string>
+    <string name="read_tag_writable">Estado de Grabación</string>
+    <string name="read_tag_writable_yes">Grabable</string>
+    <string name="read_tag_writable_no">Solo Lectura</string>
+    <string name="read_tag_capacity">Capacidad NDEF Máxima</string>
+    <string name="read_tag_hermit_detected">Etiqueta Hermit Detectada</string>
+    <string name="read_tag_hermit_unrecognized">Etiqueta Hermit (de otra instalación)</string>
+    <string name="read_tag_generic_detected">Registro NDEF Estándar</string>
+    <string name="read_tag_empty">Etiqueta Vacía o Sin Formato</string>
+    <string name="read_tag_action_import">Registrar Etiqueta en Hermit</string>
+    <string name="read_tag_action_rescan">Escanear Otra Etiqueta</string>
+
+    <!-- Blocking Overlay / Screen -->
+    <string name="block_screen_title">Mantén la Calma</string>
+    <string name="block_screen_subtitle">\"%1$s\" está bloqueada durante %2$s.</string>
+    <string name="block_screen_calm_quote">Toma una respiración. Decidiste proteger este momento para lo verdaderamente importante.</string>
+    <string name="block_screen_nfc_instruction">Acerca tu etiqueta NFC para desbloquear</string>
+    <string name="block_screen_btn_home">Volver al Inicio</string>
+    <string name="block_screen_btn_emergency">Salida de Emergencia</string>
+    <string name="block_screen_emergency_countdown">Reflexiona durante %1$d segundos…</string>
+    <string name="block_screen_emergency_confirm">Salir de la Sesión</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Estadísticas de Enfoque</string>
+    <string name="stats_total_time">Tiempo Total</string>
+    <string name="stats_completed_sessions">Sesiones Completadas</string>
+    <string name="stats_blocks_prevented">Distracciones Evitadas</string>
+    <string name="stats_recent_history">Historial de Sesiones</string>
+    <string name="stats_empty">No hay sesiones registradas aún. ¡Inicia tu primera sesión acercando una etiqueta!</string>
+    <string name="stats_duration_format">%1$dh %2$dm</string>
+    <string name="stats_duration_min">%1$dm</string>
+
+    <!-- Settings & Diagnostics -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_system">Predeterminado del Sistema</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_es">Español</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Predeterminado del Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_section_diagnostics">Diagnósticos del Sistema</string>
+    <string name="settings_nfc_status">Hardware NFC</string>
+    <string name="settings_nfc_available">Disponible y Activado</string>
+    <string name="settings_nfc_disabled">Desactivado en los Ajustes de Android</string>
+    <string name="settings_nfc_unavailable">Hardware no compatible</string>
+    <string name="settings_btn_open_nfc_settings">Abrir Ajustes de NFC</string>
+    <string name="settings_accessibility_status">Servicio de Accesibilidad</string>
+    <string name="settings_accessibility_enabled">Activo y Supervisando</string>
+    <string name="settings_accessibility_disabled">Desactivado (Bloqueo inactivo)</string>
+    <string name="settings_btn_open_accessibility">Activar en Ajustes</string>
+    <string name="settings_battery_status">Optimización de Batería</string>
+    <string name="settings_battery_optimized">Estándar (el sistema puede suspender el servicio)</string>
+    <string name="settings_battery_exempted">Sin Restricciones (Recomendado)</string>
+    <string name="settings_btn_battery_opt">Solicitar Sin Restricciones</string>
+    <string name="settings_section_privacy">Privacidad y Datos</string>
+    <string name="settings_privacy_summary">Hermit es 100% local. No utilizamos telemetría, analíticas, servidores remotos ni cuentas de usuario. Todos tus datos permanecen exclusivamente en tu dispositivo.</string>
+    <string name="settings_export_data">Exportar Copia de Seguridad (JSON)</string>
+    <string name="settings_export_success">Copia de seguridad exportada correctamente</string>
+    <string name="settings_reset_data">Borrar Todos los Datos</string>
+    <string name="settings_reset_confirm_title">¿Restablecer Hermit?</string>
+    <string name="settings_reset_confirm_desc">Esto eliminará permanentemente todos los perfiles, asignaciones de etiquetas NFC y estadísticas de sesión. Esta acción no se puede deshacer.</string>
+    <string name="settings_version">Versión %1$s</string>
+
+    <!-- First Run Onboarding -->
+    <string name="onboarding_welcome_title">Bienvenido a Hermit</string>
+    <string name="onboarding_welcome_desc">Un santuario físico y tranquilo frente a las distracciones digitales. Controla el enfoque de tu teléfono con etiquetas NFC reales.</string>
+    <string name="onboarding_step1_title">1. Ancla Física</string>
+    <string name="onboarding_step1_desc">Graba cualquier etiqueta NFC accesible (NTAG213, NTAG215, NTAG216) para que funcione como tu llave física de concentración. Déjala en tu escritorio o en otra habitación.</string>
+    <string name="onboarding_step2_title">2. Bloqueo Real de Apps</string>
+    <string name="onboarding_step2_desc">Hermit utiliza el Servicio de Accesibilidad de Android para detectar con fiabilidad cuando se abre una app bloqueada y guiarte con serenidad de regreso a tu objetivo.</string>
+    <string name="onboarding_step3_title">3. Privacidad Absoluta</string>
+    <string name="onboarding_step3_desc">Sin cuentas, sin sincronización en la nube, sin rastreo. Tu lista de aplicaciones y tus hábitos permanecen estrictamente privados en este dispositivo.</string>
+    <string name="onboarding_btn_enable_service">Conceder Permiso de Accesibilidad</string>
+    <string name="onboarding_btn_continue">Comenzar</string>
+    <string name="onboarding_permission_banner">El Servicio de Accesibilidad es indispensable para que funcione el bloqueo de aplicaciones.</string>
+
+    <!-- General / Actions -->
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="dialog_error_title">Aviso</string>
+</resources>

@@ -4,25 +4,23 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraManager
 import android.os.Build
+import android.provider.MediaStore
 import android.telecom.TelecomManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import xyz.umarmohammad.hermit.session.SessionManager
 import xyz.umarmohammad.hermit.ui.blocking.BlockOverlayActivity
 
 /**
  * Genuine AccessibilityService that monitors foreground application changes to enforce
- * active focus profiles.
- *
- * Privacy guarantee:
- * Window content inspection is disabled. Only the top-level package name of foreground
- * windows is checked against the user's explicitly configured block list.
+ * active focus profiles, Monk mode whitelist restrictions, and browser social media blocks.
  */
 class HermitAccessibilityService : AccessibilityService() {
 
@@ -50,6 +48,47 @@ class HermitAccessibilityService : AccessibilityService() {
             "com.android.phone",
             "com.google.android.dialer"
         )
+
+        // Monk Mode Allowed Essentials Whitelist (Phone, Camera, Essential Communication & Tools)
+        private val MONK_ALLOWED_PACKAGES = setOf(
+            "xyz.umarmohammad.hermit",
+            "com.android.systemui",
+            "com.android.settings",
+            "com.google.android.dialer",
+            "com.android.dialer",
+            "com.samsung.android.dialer",
+            "com.google.android.GoogleCamera",
+            "com.android.camera",
+            "com.android.camera2",
+            "com.sec.android.app.camera",
+            "com.whatsapp",
+            "com.spotify.music",
+            "com.google.android.apps.youtube.music",
+            "com.google.android.apps.maps"
+        )
+
+        // Common Android Web Browsers for intercepting social media websites
+        private val BROWSER_PACKAGES = setOf(
+            "com.android.chrome",
+            "org.mozilla.firefox",
+            "com.sec.android.app.sbrowser",
+            "com.microsoft.emmx",
+            "com.brave.browser",
+            "com.opera.browser",
+            "com.duckduckgo.mobile.android"
+        )
+
+        // Social media domains to block inside web browsers
+        private val SOCIAL_MEDIA_DOMAINS = listOf(
+            "instagram.com",
+            "tiktok.com",
+            "twitter.com",
+            "x.com",
+            "facebook.com",
+            "reddit.com",
+            "threads.net",
+            "snapchat.com"
+        )
     }
 
     override fun onServiceConnected() {
@@ -61,8 +100,12 @@ class HermitAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
 
-        // We only care about window state changes (foreground app switches)
-        if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        val eventType = event.eventType
+        if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+        ) {
+            return
+        }
 
         val rawPkg = event.packageName?.toString() ?: return
         if (isExemptPackage(rawPkg)) return
@@ -70,23 +113,95 @@ class HermitAccessibilityService : AccessibilityService() {
         val state = sessionManager.sessionState.value
         if (!state.isActive || state.activeProfile == null) return
 
-        val blockedPackages = state.activeProfile.blockedPackages
-        if (blockedPackages.contains(rawPkg)) {
-            val now = System.currentTimeMillis()
-            // Avoid tight trigger loops if the blocking overlay or launcher transition takes a frame
+        val profile = state.activeProfile
+        val now = System.currentTimeMillis()
+
+        // 1. Monk Mode Check (Strict Whitelist: Phone, Camera, WhatsApp, Spotify, YT Music, Maps only)
+        if (profile.isMonkMode || profile.name.equals("Monk", ignoreCase = true)) {
+            if (!isMonkAllowed(rawPkg)) {
+                if (rawPkg == lastBlockedPackage && (now - lastBlockTimestamp) < BLOCK_DEBOUNCE_WINDOW_MS) {
+                    return
+                }
+                lastBlockedPackage = rawPkg
+                lastBlockTimestamp = now
+                sessionManager.recordBlockedAttempt(rawPkg)
+                triggerBlockExperience(rawPkg, profile.name)
+                return
+            }
+        }
+
+        // 2. Standard App Blocking Check
+        if (profile.blockedPackages.contains(rawPkg)) {
             if (rawPkg == lastBlockedPackage && (now - lastBlockTimestamp) < BLOCK_DEBOUNCE_WINDOW_MS) {
                 return
             }
-
             lastBlockedPackage = rawPkg
             lastBlockTimestamp = now
-
-            // Record blocked attempt for session metrics
             sessionManager.recordBlockedAttempt(rawPkg)
-
-            // Trigger the blocking barrier
-            triggerBlockExperience(rawPkg, state.activeProfile.name)
+            triggerBlockExperience(rawPkg, profile.name)
+            return
         }
+
+        // 3. Browser Social Media Website Blocking Check
+        if (profile.blockWebSocial && BROWSER_PACKAGES.contains(rawPkg)) {
+            if (isSocialWebDetected()) {
+                if (rawPkg == lastBlockedPackage && (now - lastBlockTimestamp) < (BLOCK_DEBOUNCE_WINDOW_MS * 2)) {
+                    return
+                }
+                lastBlockedPackage = rawPkg
+                lastBlockTimestamp = now
+                sessionManager.recordBlockedAttempt(rawPkg)
+                performGlobalAction(GLOBAL_ACTION_BACK)
+                triggerBlockExperience(rawPkg, profile.name)
+            }
+        }
+    }
+
+    private fun isSocialWebDetected(): Boolean {
+        return try {
+            val rootNode = rootInActiveWindow ?: return false
+            val textList = mutableListOf<String>()
+            collectNodeTexts(rootNode, textList, depth = 0, maxDepth = 4)
+            textList.any { text ->
+                val lower = text.lowercase()
+                SOCIAL_MEDIA_DOMAINS.any { domain -> lower.contains(domain) }
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun collectNodeTexts(node: AccessibilityNodeInfo?, outList: MutableList<String>, depth: Int, maxDepth: Int) {
+        if (node == null || depth > maxDepth || outList.size > 25) return
+        val text = node.text?.toString()
+        if (!text.isNullOrBlank()) {
+            outList.add(text)
+        }
+        val desc = node.contentDescription?.toString()
+        if (!desc.isNullOrBlank()) {
+            outList.add(desc)
+        }
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i)
+            collectNodeTexts(child, outList, depth + 1, maxDepth)
+        }
+    }
+
+    private fun isMonkAllowed(pkg: String): Boolean {
+        if (MONK_ALLOWED_PACKAGES.contains(pkg)) return true
+        if (isExemptPackage(pkg)) return true
+
+        // Allow system camera intent handler
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val resolveInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.resolveActivity(cameraIntent, PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()))
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY)
+        }
+        if (resolveInfo?.activityInfo?.packageName == pkg) return true
+
+        return false
     }
 
     private fun triggerBlockExperience(blockedPackage: String, profileName: String) {

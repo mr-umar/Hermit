@@ -31,6 +31,10 @@ class PreferenceManager(private val context: Context) {
         // NFC scan debounce protection
         val KEY_LAST_SCANNED_TAG_ID = stringPreferencesKey("key_last_scanned_tag_id")
         val KEY_LAST_SCANNED_TIMESTAMP = longPreferencesKey("key_last_scanned_timestamp")
+
+        // GitHub Release Update Preferences
+        val KEY_AUTO_CHECK_UPDATES = booleanPreferencesKey("key_auto_check_updates")
+        val KEY_LAST_UPDATE_CHECK_TIMESTAMP = longPreferencesKey("key_last_update_check_timestamp")
     }
 
     val isFirstLaunch: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -43,6 +47,14 @@ class PreferenceManager(private val context: Context) {
 
     val themeMode: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[KEY_THEME_MODE] ?: "system"
+    }
+
+    val autoCheckUpdates: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[KEY_AUTO_CHECK_UPDATES] ?: true
+    }
+
+    val lastUpdateCheckTimestamp: Flow<Long> = context.dataStore.data.map { preferences ->
+        preferences[KEY_LAST_UPDATE_CHECK_TIMESTAMP] ?: 0L
     }
 
     val activeSessionId: Flow<String?> = context.dataStore.data.map { preferences ->
@@ -118,6 +130,14 @@ class PreferenceManager(private val context: Context) {
             prefs[KEY_LAST_SCANNED_TAG_ID] = tagId
             prefs[KEY_LAST_SCANNED_TIMESTAMP] = timestamp
         }
+    }
+
+    suspend fun setAutoCheckUpdates(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_AUTO_CHECK_UPDATES] = enabled }
+    }
+
+    suspend fun setLastUpdateCheckTimestamp(timestamp: Long) {
+        context.dataStore.edit { it[KEY_LAST_UPDATE_CHECK_TIMESTAMP] = timestamp }
     }
 
     suspend fun clearAll() {

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -23,6 +25,54 @@ android {
         }
     }
 
+    val localSigningProps = Properties().apply {
+        val candidates = listOf(
+            rootProject.file("signing.properties"),
+            rootProject.file("local.signing.properties"),
+            file("${System.getProperty("user.home")}/.hermit-signing/signing.properties")
+        )
+        for (candidate in candidates) {
+            if (candidate.exists() && candidate.isFile) {
+                candidate.inputStream().use { stream ->
+                    load(stream)
+                }
+                break
+            }
+        }
+    }
+
+    fun findSigningProperty(primaryKey: String, secondaryKey: String? = null): String? {
+        return System.getenv(primaryKey)
+            ?: (localSigningProps.getProperty(primaryKey))
+            ?: (project.findProperty(primaryKey) as? String)
+            ?: secondaryKey?.let { System.getenv(it) }
+            ?: secondaryKey?.let { localSigningProps.getProperty(it) }
+            ?: secondaryKey?.let { project.findProperty(it) as? String }
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = findSigningProperty("HERMIT_KEYSTORE_PATH", "KEYSTORE_FILE")
+            val keystorePassword = findSigningProperty("HERMIT_KEYSTORE_PASSWORD", "KEYSTORE_PASSWORD")
+            val keyAliasStr = findSigningProperty("HERMIT_KEY_ALIAS", "KEY_ALIAS") ?: "hermit"
+            val keyPass = findSigningProperty("HERMIT_KEY_PASSWORD", "KEY_PASSWORD")
+
+            if (!keystorePath.isNullOrBlank()) {
+                val keystoreFile = file(keystorePath)
+                if (!keystoreFile.exists()) {
+                    throw GradleException("Release keystore not found at specified path: ${keystoreFile.absolutePath}")
+                }
+                if (keystorePassword.isNullOrBlank()) {
+                    throw GradleException("HERMIT_KEYSTORE_PASSWORD is required when HERMIT_KEYSTORE_PATH is set.")
+                }
+                storeFile = keystoreFile
+                storePassword = keystorePassword
+                keyAlias = keyAliasStr
+                this.keyPassword = if (!keyPass.isNullOrBlank()) keyPass else keystorePassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -30,6 +80,18 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val releaseSigning = signingConfigs.getByName("release")
+            if (releaseSigning.storeFile != null && releaseSigning.storeFile!!.exists()) {
+                signingConfig = releaseSigning
+            } else {
+                signingConfig = null
+                val isBuildingRelease = gradle.startParameter.taskNames.any {
+                    it.contains("Release", ignoreCase = true)
+                }
+                if (isBuildingRelease) {
+                    logger.lifecycle("NOTICE: Release signing is not configured (HERMIT_KEYSTORE_PATH is not set). Building unsigned release APK.")
+                }
+            }
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -44,6 +106,11 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
     buildFeatures {

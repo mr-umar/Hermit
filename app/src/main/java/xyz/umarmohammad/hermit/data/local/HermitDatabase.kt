@@ -20,7 +20,7 @@ import xyz.umarmohammad.hermit.data.model.NfcTagRecord
         NfcTagRecord::class,
         FocusSessionRecord::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -62,11 +62,26 @@ abstract class HermitDatabase : RoomDatabase() {
         suspend fun populateDefaultProfiles(dao: FocusProfileDao) {
             val defaults = listOf(
                 FocusProfile(
+                    id = "default_monk",
+                    name = "Monk",
+                    description = "Santuario absoluto. Solo teléfono, cámara, mapas y música esencial. Desbloqueo exclusivo con NFC.",
+                    iconName = "spa",
+                    colorHex = "#A5B092",
+                    blockedPackages = emptyList(),
+                    durationMinutes = null,
+                    exitBehavior = ExitBehavior.NFC_ONLY,
+                    strictMode = true,
+                    isDefault = false,
+                    isMonkMode = true,
+                    blockWebSocial = true,
+                    activationType = "NFC"
+                ),
+                FocusProfile(
                     id = "default_deep_work",
                     name = "Deep Work",
                     description = "Zero distractions for intense creative and analytical tasks.",
                     iconName = "work",
-                    colorHex = "#0D9488",
+                    colorHex = "#A5B092",
                     blockedPackages = listOf(
                         "com.instagram.android",
                         "com.twitter.android",

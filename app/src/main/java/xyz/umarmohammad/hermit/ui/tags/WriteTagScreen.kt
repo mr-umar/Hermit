@@ -2,12 +2,14 @@ package xyz.umarmohammad.hermit.ui.tags
 
 import android.nfc.Tag
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,14 +27,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -48,12 +59,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,16 +77,28 @@ import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.data.repository.TagRepository
 import xyz.umarmohammad.hermit.nfc.HermitTagPayload
 import xyz.umarmohammad.hermit.nfc.NfcTagManager
+import xyz.umarmohammad.hermit.ui.components.AppleDivider
+import xyz.umarmohammad.hermit.ui.components.AppleGroupedCard
+import xyz.umarmohammad.hermit.ui.components.AppleListRow
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
 import xyz.umarmohammad.hermit.ui.components.TactileButton
+import xyz.umarmohammad.hermit.ui.theme.Acento
+import xyz.umarmohammad.hermit.ui.theme.Aviso
+import xyz.umarmohammad.hermit.ui.theme.BorderDark
+import xyz.umarmohammad.hermit.ui.theme.Fondo
+import xyz.umarmohammad.hermit.ui.theme.Secundario
+import xyz.umarmohammad.hermit.ui.theme.Superficie
+import xyz.umarmohammad.hermit.ui.theme.SuperficieSubtle
+import xyz.umarmohammad.hermit.ui.theme.Texto
 import java.util.UUID
 
 enum class WriteStage {
     CONFIGURE,
     WAITING_FOR_TAG,
     WRITING,
-    SUCCESS,
+    TEST_PROMPT,
+    TEST_SUCCESS,
     ERROR
 }
 
@@ -98,13 +123,19 @@ fun WriteTagScreen(
     var showOverwriteDialog by remember { mutableStateOf(false) }
     var existingTagSummary by remember { mutableStateOf("") }
 
+    var writtenTagId by remember { mutableStateOf<String?>(null) }
+    var writtenTagUid by remember { mutableStateOf<String?>(null) }
+    var testWarningMessage by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(profiles) {
         if (selectedProfileId == null && profiles.isNotEmpty()) {
             selectedProfileId = profiles.first().id
         }
     }
 
-    // Function to perform real write
+    val selectedProfile = profiles.firstOrNull { it.id == selectedProfileId }
+
+    // Real write operation with pre-flight check and readback
     val performWrite = { targetTag: Tag ->
         stage = WriteStage.WRITING
         val tagId = UUID.randomUUID().toString()
@@ -131,7 +162,11 @@ fun WriteTagScreen(
                 tagRepository.saveTag(record)
 
                 launch(Dispatchers.Main) {
-                    stage = WriteStage.SUCCESS
+                    writtenTagId = tagId
+                    writtenTagUid = physicalUid
+                    testWarningMessage = null
+                    // Move to safe test prompt without triggering sessions
+                    stage = WriteStage.TEST_PROMPT
                     onTagHandled()
                 }
             } else {
@@ -139,7 +174,7 @@ fun WriteTagScreen(
                 launch(Dispatchers.Main) {
                     stage = WriteStage.ERROR
                     errorMessage = when (err?.message) {
-                        "READ_ONLY" -> "Tag is read-only or locked."
+                        "READ_ONLY" -> "This tag is locked or read-only."
                         "VERIFICATION_FAILED" -> "Data verification failed after write. Please try again."
                         "UNSUPPORTED_TAG_TECHNOLOGY" -> "Tag format is unsupported. Standard NDEF tags are required."
                         else -> err?.localizedMessage ?: "Failed to write tag. Make sure it stays in range."
@@ -150,27 +185,48 @@ fun WriteTagScreen(
         }
     }
 
-    // React when physical tag is presented
+    // Physical tag detection dispatcher
     LaunchedEffect(activePhysicalTag) {
-        if (stage == WriteStage.WAITING_FOR_TAG && activePhysicalTag != null) {
-            val info = NfcTagManager.inspectTag(activePhysicalTag)
-            if (!info.isWritable) {
-                stage = WriteStage.ERROR
-                errorMessage = "This tag is locked or read-only."
+        if (activePhysicalTag == null) return@LaunchedEffect
+
+        when (stage) {
+            WriteStage.WAITING_FOR_TAG -> {
+                val info = NfcTagManager.inspectTag(activePhysicalTag)
+                if (!info.isWritable) {
+                    stage = WriteStage.ERROR
+                    errorMessage = "This tag is locked or read-only."
+                    onTagHandled()
+                    return@LaunchedEffect
+                }
+                if (info.hasExistingData) {
+                    existingTagSummary = info.existingSummary ?: "Existing NDEF records"
+                    pendingTagToWrite = activePhysicalTag
+                    showOverwriteDialog = true
+                } else {
+                    performWrite(activePhysicalTag)
+                }
+            }
+            WriteStage.TEST_PROMPT -> {
+                // Safe check without starting or stopping sessions
+                val payload = NfcTagManager.readHermitPayload(activePhysicalTag)
+                val physicalUid = NfcTagManager.bytesToHex(activePhysicalTag.id)
+
+                if (payload != null && (writtenTagId == null || payload.id == writtenTagId || payload.name == tagName.trim())) {
+                    writtenTagUid = physicalUid
+                    testWarningMessage = null
+                    stage = WriteStage.TEST_SUCCESS
+                } else {
+                    val otherSummary = payload?.name ?: physicalUid
+                    testWarningMessage = "Se detectó otra etiqueta ($otherSummary). Acerca la que acabas de configurar."
+                }
                 onTagHandled()
-                return@LaunchedEffect
             }
-            if (info.hasExistingData) {
-                existingTagSummary = info.existingSummary ?: "Existing NDEF records"
-                pendingTagToWrite = activePhysicalTag
-                showOverwriteDialog = true
-            } else {
-                performWrite(activePhysicalTag)
-            }
+            else -> Unit
         }
     }
 
     Scaffold(
+        containerColor = Fondo,
         topBar = {
             HermitTopBar(
                 title = stringResource(R.string.write_tag_title),
@@ -194,7 +250,7 @@ fun WriteTagScreen(
                         Text(
                             text = stringResource(R.string.write_tag_step1),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
+                            color = Acento
                         )
                         Spacer(modifier = Modifier.height(14.dp))
 
@@ -210,11 +266,12 @@ fun WriteTagScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Action selector
-                        GlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column {
+                        AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
                                     text = stringResource(R.string.tag_detail_action),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = Texto
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 TagAction.entries.forEach { action ->
@@ -222,7 +279,7 @@ fun WriteTagScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable { selectedAction = action }
-                                            .padding(vertical = 4.dp),
+                                            .padding(vertical = 6.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         RadioButton(
@@ -232,22 +289,23 @@ fun WriteTagScreen(
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = stringResource(action.titleRes),
-                                            style = MaterialTheme.typography.bodyMedium
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Texto
                                         )
                                     }
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Target Profile selector
+                        // Profile selector if applicable
                         if (selectedAction != TagAction.DEACTIVATE) {
-                            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                                Column {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
                                         text = stringResource(R.string.tag_detail_profile),
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                        color = Texto
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     profiles.forEach { profile ->
@@ -255,7 +313,7 @@ fun WriteTagScreen(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clickable { selectedProfileId = profile.id }
-                                                .padding(vertical = 4.dp),
+                                                .padding(vertical = 6.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             RadioButton(
@@ -263,37 +321,49 @@ fun WriteTagScreen(
                                                 onClick = { selectedProfileId = profile.id }
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = profile.name,
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
+                                            Column {
+                                                Text(
+                                                    text = profile.name,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                                    color = Texto
+                                                )
+                                                if (profile.description.isNotBlank()) {
+                                                    Text(
+                                                        text = profile.description,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = Secundario
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(28.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         TactileButton(
                             onClick = { stage = WriteStage.WAITING_FOR_TAG },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = tagName.isNotBlank()
+                            enabled = tagName.isNotBlank() && (selectedAction == TagAction.DEACTIVATE || selectedProfileId != null),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(imageVector = Icons.Default.Nfc, contentDescription = null)
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(stringResource(R.string.write_tag_step2))
                         }
+
+                        Spacer(modifier = Modifier.height(28.dp))
                     }
                 }
 
-                WriteStage.WAITING_FOR_TAG, WriteStage.WRITING -> {
-                    val pulse = rememberInfiniteTransition(label = "nfc_pulse")
-                    val pulseScale by pulse.animateFloat(
-                        initialValue = 0.9f,
-                        targetValue = 1.15f,
+                WriteStage.WAITING_FOR_TAG -> {
+                    val infiniteTransition = rememberInfiniteTransition(label = "pulse_write")
+                    val pulseScale by infiniteTransition.animateFloat(
+                        initialValue = 0.94f,
+                        targetValue = 1.06f,
                         animationSpec = infiniteRepeatable(
-                            animation = tween(1200),
+                            animation = tween(1100, easing = FastOutSlowInEasing),
                             repeatMode = RepeatMode.Reverse
                         ),
                         label = "pulse_scale"
@@ -308,56 +378,58 @@ fun WriteTagScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(140.dp)
+                                .size(110.dp)
                                 .scale(pulseScale)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
+                                .clip(CircleShape)
+                                .background(Acento.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(90.dp)
-                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                                    .size(76.dp)
+                                    .clip(CircleShape)
+                                    .background(Superficie),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Nfc,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(44.dp)
+                                    tint = Acento,
+                                    modifier = Modifier.size(42.dp)
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(36.dp))
+                        Spacer(modifier = Modifier.height(28.dp))
 
                         Text(
-                            text = if (stage == WriteStage.WRITING) {
-                                stringResource(R.string.write_tag_writing)
-                            } else {
-                                stringResource(R.string.write_tag_ready_prompt)
-                            },
-                            style = MaterialTheme.typography.headlineSmall,
+                            text = stringResource(R.string.write_tag_step2),
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            color = Texto,
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "Keep your device still until write and verification complete.",
+                            text = stringResource(R.string.write_tag_ready_prompt),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Secundario,
                             textAlign = TextAlign.Center
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        TextButton(onClick = { stage = WriteStage.CONFIGURE }) {
-                            Text(stringResource(R.string.action_cancel))
+                        OutlinedButton(
+                            onClick = { stage = WriteStage.CONFIGURE },
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text(stringResource(R.string.action_cancel), color = Secundario)
                         }
                     }
                 }
 
-                WriteStage.SUCCESS -> {
+                WriteStage.WRITING -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -366,36 +438,283 @@ fun WriteTagScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CheckCircle,
+                            imageVector = Icons.Default.Refresh,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(72.dp)
+                            tint = Acento,
+                            modifier = Modifier.size(56.dp)
                         )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
+                        Spacer(modifier = Modifier.height(20.dp))
                         Text(
-                            text = stringResource(R.string.write_tag_success),
-                            style = MaterialTheme.typography.headlineSmall,
+                            text = stringResource(R.string.write_tag_writing),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = Texto,
                             textAlign = TextAlign.Center
                         )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "\"$tagName\" is registered and verified. Tap it anytime to control your focus.",
+                            text = stringResource(R.string.write_tag_verifying),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Secundario,
                             textAlign = TextAlign.Center
                         )
+                    }
+                }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                WriteStage.TEST_PROMPT -> {
+                    val infiniteTransition = rememberInfiniteTransition(label = "pulse_test")
+                    val pulseScale by infiniteTransition.animateFloat(
+                        initialValue = 0.94f,
+                        targetValue = 1.06f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1100, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "pulse_scale"
+                    )
 
-                        TactileButton(
-                            onClick = onBackClick,
-                            modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp, vertical = 20.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .size(110.dp)
+                                    .scale(pulseScale)
+                                    .clip(CircleShape)
+                                    .background(Acento.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(76.dp)
+                                        .clip(CircleShape)
+                                        .background(Superficie),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Nfc,
+                                        contentDescription = null,
+                                        tint = Acento,
+                                        modifier = Modifier.size(42.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = stringResource(R.string.write_tag_test_prompt_title),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = Texto,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Text(
+                                text = stringResource(R.string.write_tag_test_prompt_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Secundario,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Safe note callout: does not start/stop session
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(SuperficieSubtle)
+                                    .border(0.75.dp, Acento.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                                    .padding(16.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Security,
+                                        contentDescription = null,
+                                        tint = Acento,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = stringResource(R.string.write_tag_test_prompt_safe_note),
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp, lineHeight = 18.sp),
+                                        color = Texto
+                                    )
+                                }
+                            }
+
+                            if (testWarningMessage != null) {
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(Superficie)
+                                        .border(0.75.dp, Aviso.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                        .padding(14.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = null,
+                                            tint = Aviso,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            text = testWarningMessage!!,
+                                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.5.sp),
+                                            color = Aviso
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 28.dp, bottom = 16.dp)
                         ) {
-                            Text(stringResource(R.string.write_tag_btn_finish))
+                            OutlinedButton(
+                                onClick = onBackClick,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Text(stringResource(R.string.write_tag_btn_skip_test), color = Secundario)
+                            }
+                        }
+                    }
+                }
+
+                WriteStage.TEST_SUCCESS -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp, vertical = 20.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Acento,
+                                modifier = Modifier.size(68.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(18.dp))
+
+                            Text(
+                                text = stringResource(R.string.write_tag_test_success_title),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = Texto,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = stringResource(R.string.write_tag_test_success_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Secundario,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Apple-style verified configuration summary
+                            AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                                AppleListRow(
+                                    title = stringResource(R.string.tag_detail_name),
+                                    value = tagName,
+                                    icon = Icons.Default.Nfc,
+                                    iconTint = Acento
+                                )
+
+                                AppleDivider(startIndent = true)
+
+                                AppleListRow(
+                                    title = stringResource(R.string.tag_detail_action),
+                                    value = stringResource(selectedAction.titleRes),
+                                    icon = Icons.Default.PlayArrow,
+                                    iconTint = Acento
+                                )
+
+                                if (selectedProfile != null && selectedAction != TagAction.DEACTIVATE) {
+                                    AppleDivider(startIndent = true)
+
+                                    AppleListRow(
+                                        title = stringResource(R.string.tag_detail_profile),
+                                        value = selectedProfile.name,
+                                        icon = Icons.Default.Shield,
+                                        iconTint = Acento
+                                    )
+                                }
+
+                                if (writtenTagUid != null) {
+                                    AppleDivider(startIndent = true)
+
+                                    AppleListRow(
+                                        title = "UID Físico",
+                                        value = writtenTagUid,
+                                        icon = Icons.Default.Fingerprint,
+                                        iconTint = Secundario
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Background opening info callout
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(SuperficieSubtle)
+                                    .border(0.75.dp, BorderDark, RoundedCornerShape(16.dp))
+                                    .padding(16.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = null,
+                                        tint = Acento,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = stringResource(R.string.write_tag_test_background_info),
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.5.sp, lineHeight = 18.sp),
+                                        color = Texto
+                                    )
+                                }
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 28.dp, bottom = 16.dp)
+                        ) {
+                            TactileButton(
+                                onClick = onBackClick,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.write_tag_btn_finish))
+                            }
                         }
                     }
                 }
@@ -411,16 +730,16 @@ fun WriteTagScreen(
                         Icon(
                             imageVector = Icons.Default.Error,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(72.dp)
+                            tint = Aviso,
+                            modifier = Modifier.size(68.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         Text(
                             text = stringResource(R.string.write_tag_error_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            color = Aviso,
                             textAlign = TextAlign.Center
                         )
 
@@ -429,11 +748,11 @@ fun WriteTagScreen(
                         Text(
                             text = errorMessage ?: stringResource(R.string.write_tag_error_lost),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Secundario,
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(28.dp))
 
                         TactileButton(
                             onClick = {
@@ -450,13 +769,13 @@ fun WriteTagScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         TextButton(onClick = onBackClick) {
-                            Text(stringResource(R.string.action_cancel))
+                            Text(stringResource(R.string.action_cancel), color = Secundario)
                         }
                     }
                 }
             }
 
-            // Overwrite safety dialog
+            // Overwrite confirmation dialog
             if (showOverwriteDialog && pendingTagToWrite != null) {
                 AlertDialog(
                     onDismissRequest = {
@@ -464,7 +783,7 @@ fun WriteTagScreen(
                         pendingTagToWrite = null
                         onTagHandled()
                     },
-                    title = { Text("Overwrite Tag Data?") },
+                    title = { Text(stringResource(R.string.dialog_error_title)) },
                     text = { Text(stringResource(R.string.write_tag_overwrite_warning, existingTagSummary)) },
                     confirmButton = {
                         TextButton(
@@ -474,7 +793,7 @@ fun WriteTagScreen(
                                 pendingTagToWrite = null
                             }
                         ) {
-                            Text(stringResource(R.string.write_tag_overwrite_confirm), color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.write_tag_overwrite_confirm), color = Aviso)
                         }
                     },
                     dismissButton = {
@@ -482,7 +801,6 @@ fun WriteTagScreen(
                             onClick = {
                                 showOverwriteDialog = false
                                 pendingTagToWrite = null
-                                stage = WriteStage.CONFIGURE
                                 onTagHandled()
                             }
                         ) {

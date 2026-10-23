@@ -91,8 +91,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             HermitTopBar(
-                title = stringResource(R.string.app_name),
-                subtitle = stringResource(R.string.app_tagline)
+                title = "Hermit"
             )
         }
     ) { innerPadding ->

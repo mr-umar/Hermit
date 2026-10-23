@@ -15,38 +15,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryTealLight,
-    onPrimary = SurfaceDark,
-    primaryContainer = PrimaryTealDark,
-    onPrimaryContainer = TextDarkPrimary,
-    secondary = AccentSage,
-    onSecondary = SurfaceDark,
-    background = SurfaceDark,
-    onBackground = TextDarkPrimary,
-    surface = SurfaceDarkCard,
-    onSurface = TextDarkPrimary,
-    surfaceVariant = SurfaceDarkSubtle,
-    onSurfaceVariant = TextDarkSecondary,
+private val HermitColorScheme = darkColorScheme(
+    primary = Acento,
+    onPrimary = Fondo,
+    primaryContainer = SuperficieSubtle,
+    onPrimaryContainer = Texto,
+    secondary = Secundario,
+    onSecondary = Fondo,
+    secondaryContainer = Superficie,
+    onSecondaryContainer = Texto,
+    background = Fondo,
+    onBackground = Texto,
+    surface = Superficie,
+    onSurface = Texto,
+    surfaceVariant = SuperficieSubtle,
+    onSurfaceVariant = Secundario,
     outline = BorderDark,
-    error = DestructiveRed
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = PrimaryTeal,
-    onPrimary = SurfaceLight,
-    primaryContainer = PrimaryTealLight,
-    onPrimaryContainer = SurfaceLightCard,
-    secondary = AccentSage,
-    onSecondary = SurfaceLightCard,
-    background = SurfaceLight,
-    onBackground = TextLightPrimary,
-    surface = SurfaceLightCard,
-    onSurface = TextLightPrimary,
-    surfaceVariant = SurfaceLightSubtle,
-    onSurfaceVariant = TextLightSecondary,
-    outline = BorderLight,
-    error = DestructiveRed
+    error = Aviso,
+    onError = Fondo
 )
 
 @Composable
@@ -55,14 +41,8 @@ fun HermitTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // Hermit enforces its signature monastic calm palette across all themes for focus purity
+    val colorScheme = HermitColorScheme
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -71,8 +51,8 @@ fun HermitTheme(
             window.statusBarColor = colorScheme.background.toArgb()
             window.navigationBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = !darkTheme
-                isAppearanceLightNavigationBars = !darkTheme
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
             }
         }
     }

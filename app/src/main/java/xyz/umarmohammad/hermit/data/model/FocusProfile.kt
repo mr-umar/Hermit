@@ -15,12 +15,15 @@ data class FocusProfile(
     val name: String,
     val description: String = "",
     val iconName: String = "work",
-    val colorHex: String = "#0D9488",
+    val colorHex: String = "#A5B092",
     val blockedPackages: List<String> = emptyList(),
     val durationMinutes: Int? = null,
     val exitBehavior: ExitBehavior = ExitBehavior.ALLOW_EMERGENCY,
     val strictMode: Boolean = false,
     val isDefault: Boolean = false,
+    val isMonkMode: Boolean = false,
+    val blockWebSocial: Boolean = true,
+    val activationType: String = "BOTH", // "NFC", "TIME", or "BOTH"
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

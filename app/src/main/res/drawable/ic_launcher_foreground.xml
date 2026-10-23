@@ -2,27 +2,181 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
     <group
         android:scaleX="0.75"
         android:scaleY="0.75"
-        android:translateX="13.5"
-        android:translateY="13.5">
-        <!-- Outer peaceful focus ring -->
+        android:pivotX="256"
+        android:pivotY="256"
+        android:translateY="6">
+
+        <!-- Halo circle -->
+        <path
+            android:fillAlpha="0.55"
+            android:fillColor="#EAD9BC"
+            android:pathData="M256,65 C346.02,65 419,137.98 419,228 C419,318.02 346.02,391 256,391 C165.98,391 93,318.02 93,228 C93,137.98 165.98,65 256,65 Z" />
+
+        <!-- Ground shadow -->
+        <path
+            android:fillAlpha="0.12"
+            android:fillColor="#1A1A19"
+            android:pathData="M256,425 C334.42,425 398,430.82 398,438 C398,445.18 334.42,451 256,451 C177.58,451 114,445.18 114,438 C114,430.82 177.58,425 256,425 Z" />
+
+        <!-- Seated robe -->
+        <path
+            android:pathData="M130,384 C139,312 176,264 221,248 L291,248 C336,264 373,312 382,384 L352,414 L160,414 Z">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="512"
+                android:endY="512"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#343432" />
+                <item android:offset="1.0" android:color="#111211" />
+            </gradient>
+        </path>
+
+        <!-- Hood -->
+        <path
+            android:pathData="M122,244 C133,157 191,91 256,70 C321,91 379,157 390,244 L364,326 L148,326 Z">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="512"
+                android:endY="512"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#343432" />
+                <item android:offset="1.0" android:color="#111211" />
+            </gradient>
+        </path>
+
+        <!-- Hood inner edge -->
+        <path
+            android:fillColor="#111211"
+            android:strokeColor="#F5EADB"
+            android:strokeWidth="7"
+            android:strokeLineJoin="round"
+            android:pathData="M151,250 C169,188 211,142 256,125 C301,142 343,188 361,250 C342,297 303,326 256,326 C209,326 170,297 151,250 Z" />
+
+        <!-- Ears -->
+        <path
+            android:fillColor="#FFF8E9"
+            android:pathData="M184,229 C168,221 159,231 165,249 C169,261 177,267 188,265" />
+        <path
+            android:fillColor="#FFF8E9"
+            android:pathData="M328,229 C344,221 353,231 347,249 C343,261 335,267 324,265" />
+
+        <!-- Face -->
+        <path
+            android:pathData="M184,237 C184,195 214,164 256,164 C298,164 328,195 328,237 C328,283 298,311 256,311 C214,311 184,283 184,237 Z">
+            <gradient
+                android:startX="256"
+                android:startY="164"
+                android:endX="256"
+                android:endY="311"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFF8E9" />
+                <item android:offset="1.0" android:color="#EADCC3" />
+            </gradient>
+        </path>
+
+        <!-- Closed eyes -->
         <path
             android:fillColor="#00000000"
-            android:strokeColor="#FFFFFF"
+            android:strokeColor="#1B1B19"
+            android:strokeWidth="7"
+            android:strokeLineCap="round"
+            android:pathData="M211,242 C221,252 236,252 246,242" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#1B1B19"
+            android:strokeWidth="7"
+            android:strokeLineCap="round"
+            android:pathData="M266,242 C276,252 291,252 301,242" />
+
+        <!-- Arms -->
+        <path
+            android:fillColor="#292A28"
+            android:pathData="M160,337 C180,340 198,353 213,373 L191,399 C166,389 148,373 140,352 Z" />
+        <path
+            android:fillColor="#292A28"
+            android:pathData="M352,337 C332,340 314,353 299,373 L321,399 C346,389 364,373 372,352 Z" />
+
+        <!-- Tag -->
+        <path
+            android:fillColor="#FFF8E9"
+            android:strokeColor="#A5B092"
+            android:strokeWidth="2.5"
+            android:pathData="M239,324 L273,324 C281.28,324 288,330.72 288,339 L288,381 C288,389.28 281.28,396 273,396 L239,396 C230.72,396 224,389.28 224,381 L224,339 C224,330.72 230.72,324 239,324 Z" />
+
+        <!-- NFC Waves in Accent #A5B092 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#A5B092"
+            android:strokeWidth="5.5"
+            android:strokeLineCap="round"
+            android:pathData="M246,344 C257,353 257,367 246,376" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#A5B092"
+            android:strokeWidth="5.5"
+            android:strokeLineCap="round"
+            android:pathData="M257,339 C272,351 272,369 257,381" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#A5B092"
+            android:strokeWidth="5.5"
+            android:strokeLineCap="round"
+            android:pathData="M268,334 C287,349 287,371 268,386" />
+
+        <!-- Hands -->
+        <path
+            android:fillColor="#FFF8E9"
+            android:pathData="M214,370 C199,364 188,371 190,383 C192,394 206,403 221,401 L238,394 L233,380 Z" />
+        <path
+            android:fillColor="#FFF8E9"
+            android:pathData="M298,370 C313,364 324,371 322,383 C320,394 306,403 291,401 L274,394 L279,380 Z" />
+
+        <!-- Crossed legs -->
+        <path
+            android:pathData="M155,388 C120,395 103,416 119,436 C133,453 185,460 242,449 L279,437 L252,395 Z">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="512"
+                android:endY="512"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#343432" />
+                <item android:offset="1.0" android:color="#111211" />
+            </gradient>
+        </path>
+        <path
+            android:pathData="M357,388 C392,395 409,416 393,436 C379,453 327,460 270,449 L233,437 L260,395 Z">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="512"
+                android:endY="512"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#343432" />
+                <item android:offset="1.0" android:color="#111211" />
+            </gradient>
+        </path>
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#55534D"
             android:strokeWidth="4"
             android:strokeLineCap="round"
-            android:pathData="M54,20 C72.77,20 88,35.23 88,54 C88,72.77 72.77,88 54,88 C35.23,88 20,72.77 20,54 C20,35.23 35.23,20 54,20 Z" />
-        <!-- Inner calm core -->
+            android:strokeAlpha="0.8"
+            android:pathData="M130,429 C166,441 212,439 251,423" />
         <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M54,34 C65.04,34 74,42.96 74,54 C74,65.04 65.04,74 54,74 C42.96,74 34,65.04 34,54 C34,42.96 42.96,34 54,34 Z" />
-        <!-- Central NFC wave dot -->
-        <path
-            android:fillColor="#0D9488"
-            android:pathData="M54,48 C57.31,48 60,50.69 60,54 C60,57.31 57.31,60 54,60 C50.69,60 48,57.31 48,54 C48,50.69 50.69,48 54,48 Z" />
+            android:fillColor="#00000000"
+            android:strokeColor="#55534D"
+            android:strokeWidth="4"
+            android:strokeLineCap="round"
+            android:strokeAlpha="0.8"
+            android:pathData="M382,429 C346,441 300,439 261,423" />
     </group>
 </vector>

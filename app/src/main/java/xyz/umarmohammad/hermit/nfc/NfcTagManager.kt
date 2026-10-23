@@ -1,6 +1,7 @@
 package xyz.umarmohammad.hermit.nfc
 
 import android.content.Intent
+import android.os.Build
 import android.nfc.FormatException
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
@@ -229,22 +230,56 @@ object NfcTagManager {
     }
 
     /**
-     * Extracts a HermitTagPayload from an incoming Android NFC Intent.
+     * Extracts a HermitTagPayload from an incoming Android NFC Intent, supporting both
+     * direct NDEF message bundles and raw EXTRA_TAG fallbacks.
      */
     fun extractHermitPayload(intent: Intent): HermitTagPayload? {
-        val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES) ?: return null
-        for (rawMsg in rawMessages) {
-            val msg = rawMsg as? NdefMessage ?: continue
-            for (record in msg.records) {
-                if (record.toMimeType() == HermitTagPayload.MIME_TYPE) {
-                    val parsed = HermitTagPayload.parse(record.payload)
-                    if (parsed.isSuccess) {
-                        return parsed.getOrNull()
+        val rawMessages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES, android.os.Parcelable::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+        }
+
+        if (rawMessages != null) {
+            for (rawMsg in rawMessages) {
+                val msg = rawMsg as? NdefMessage ?: continue
+                for (record in msg.records) {
+                    if (record.toMimeType() == HermitTagPayload.MIME_TYPE) {
+                        val parsed = HermitTagPayload.parse(record.payload)
+                        if (parsed.isSuccess) {
+                            return parsed.getOrNull()
+                        }
                     }
                 }
             }
         }
+
+        // Fallback: extract directly from EXTRA_TAG if EXTRA_NDEF_MESSAGES was not delivered
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        }
+        if (tag != null) {
+            return readHermitPayload(tag)
+        }
+
         return null
+    }
+
+    /**
+     * Extracts the physical UID hex string from an incoming NFC Intent if available.
+     */
+    fun extractTagUid(intent: Intent): String {
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        }
+        return bytesToHex(tag?.id)
     }
 
     /**

@@ -1,8 +1,47 @@
-# Hermit
+<p align="center">
+  <a href="https://hermit.umarmohammad.xyz">
+    <img src="website/assets/hermit-icon.svg" width="112" height="112" alt="Hermit app icon" />
+  </a>
+</p>
 
-> **An independent, open-source Android application for NFC-powered focus sessions and mindful digital wellbeing.**
-> 
-> *Leer en español: [README.es.md](README.es.md)*
+<h1 align="center">Hermit</h1>
+
+<p align="center">
+  <b>A tranquil, physical sanctuary from digital distractions powered by standard NFC tags.</b><br>
+  <i>100% local-first • Genuine Android application blocking • Free &amp; Open Source</i>
+</p>
+
+<p align="center">
+  <a href="https://github.com/mr-umar/Hermit/releases/latest">
+    <img src="https://img.shields.io/badge/Download_APK-Latest_Release-A5B092?style=for-the-badge&logo=android&logoColor=191A18" alt="Download APK" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://hermit.umarmohammad.xyz">
+    <img src="https://img.shields.io/badge/Official_Website-hermit.umarmohammad.xyz-242521?style=for-the-badge&logo=googlechrome&logoColor=F0EDE5" alt="Official Website" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/mr-umar/Hermit/releases">
+    <img src="https://img.shields.io/badge/All_Releases-GitHub-242521?style=for-the-badge&logo=github&logoColor=F0EDE5" alt="All Releases" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/mr-umar/Hermit/releases"><img src="https://img.shields.io/badge/Release-v1.0.0-A5B092?style=flat-square" alt="Release v1.0.0"></a>
+  <img src="https://img.shields.io/badge/Android-8.0%2B_(API_26%2B)-343432?style=flat-square" alt="Android 8.0+">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPLv3-343432?style=flat-square" alt="License: AGPLv3"></a>
+  <img src="https://img.shields.io/badge/Privacy-100%25_Local-343432?style=flat-square" alt="Privacy First">
+  <img src="https://img.shields.io/badge/NFC-NTAG213_%7C_215_%7C_216-343432?style=flat-square" alt="NFC Tags">
+</p>
+
+<p align="center">
+  <a href="README.md"><b>English</b></a> • <a href="README.es.md"><b>Español</b></a>
+</p>
+
+<p align="center">
+  <img src="website/assets/mockup-app.svg" width="310" alt="Hermit Active Session Screen" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="website/assets/mockup-block.svg" width="310" alt="Hermit Mindful Block Screen" />
+</p>
 
 Hermit turns affordable, standard NFC tags into physical sanctuaries from digital distractions. By pairing physical gestures with genuine application blocking through Android's `AccessibilityService`, Hermit helps you cultivate deep, intentional focus without proprietary hardware, subscriptions, or cloud trackers.
 
@@ -218,7 +257,7 @@ The repository includes a dedicated static product website located in [`website/
 - **Documentation:**
   - [Website Overview](website/README.md)
   - [DNS Configuration Guide](website/DNS.md)
-  - [Production Nginx Deployment Guide](website/DEPLOY.md)
+  - [GitHub Pages Deployment Guide](website/DEPLOY.md)
 
 ---
 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <group
+        android:scaleX="0.75"
+        android:scaleY="0.75"
+        android:pivotX="256"
+        android:pivotY="256"
+        android:translateY="6">
+
+        <!-- Outer monk robe and hood silhouette -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M130,384 C139,312 176,264 221,248 L291,248 C336,264 373,312 382,384 L352,414 L160,414 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M122,244 C133,157 191,91 256,70 C321,91 379,157 390,244 L364,326 L148,326 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M155,388 C120,395 103,416 119,436 C133,453 185,460 242,449 L279,437 L252,395 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M357,388 C392,395 409,416 393,436 C379,453 327,460 270,449 L233,437 L260,395 Z" />
+
+        <!-- Tag -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="4"
+            android:pathData="M239,324 L273,324 C281.28,324 288,330.72 288,339 L288,381 C288,389.28 281.28,396 273,396 L239,396 C230.72,396 224,389.28 224,381 L224,339 C224,330.72 230.72,324 239,324 Z" />
+
+        <!-- NFC Waves -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:pathData="M246,344 C257,353 257,367 246,376" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:pathData="M257,339 C272,351 272,369 257,381" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:pathData="M268,334 C287,349 287,371 268,386" />
+    </group>
+</vector>

@@ -11,12 +11,14 @@ import xyz.umarmohammad.hermit.data.local.HermitDatabase
 import xyz.umarmohammad.hermit.data.preference.PreferenceManager
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.session.SessionManager
+import xyz.umarmohammad.hermit.updater.UpdateManager
 
 class HermitApplication : Application() {
 
     lateinit var database: HermitDatabase private set
     lateinit var sessionManager: SessionManager private set
     lateinit var preferenceManager: PreferenceManager private set
+    val updateManager: UpdateManager by lazy { UpdateManager(this, preferenceManager) }
 
     override fun onCreate() {
         super.onCreate()

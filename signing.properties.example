@@ -1,0 +1,25 @@
+# ==============================================================================
+# Hermit Release Signing Configuration (TEMPLATE)
+# ==============================================================================
+# INSTRUCTIONS:
+# 1. Do NOT put your real credentials into this example file!
+# 2. Copy this file to 'signing.properties' or 'local.signing.properties'
+#    (both are ignored by Git) in the project root, OR place it at:
+#    ~/.hermit-signing/signing.properties
+# 3. Fill in your actual keystore path, alias, and passwords.
+# 4. NEVER commit signing.properties, keystores, or passwords to Git.
+# ==============================================================================
+
+# Path to your local release keystore (absolute or relative to project root)
+# Windows example: C:/Users/YourUsername/.hermit-signing/hermit-release.jks
+# Linux/macOS example: /home/YourUsername/.hermit-signing/hermit-release.jks
+HERMIT_KEYSTORE_PATH=C:/Users/YourUsername/.hermit-signing/hermit-release.jks
+
+# Password protecting the keystore file
+HERMIT_KEYSTORE_PASSWORD=your_keystore_password_here
+
+# Alias of the release signing key inside the keystore (default is 'hermit')
+HERMIT_KEY_ALIAS=hermit
+
+# Password protecting the private key (often identical to keystore password)
+HERMIT_KEY_PASSWORD=your_key_password_here

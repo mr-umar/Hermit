@@ -1,0 +1,129 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Signed Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Verify release signing configuration
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ] && \
+             [ -n "${{ secrets.KEYSTORE_PASSWORD }}" ] && \
+             [ -n "${{ secrets.KEY_ALIAS }}" ] && \
+             [ -n "${{ secrets.KEY_PASSWORD }}" ]; then
+            echo "signing_configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice ::Release signing secrets are properly configured."
+          else
+            echo "signing_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::error ::Release signing secrets (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) are not configured. Publication is gated to avoid publishing an unsigned or debug APK. See docs/RELEASES.md for setup instructions."
+            exit 1
+          fi
+
+      - name: Decode release keystore
+        if: steps.check-secrets.outputs.signing_configured == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          KEYSTORE_DIR="${RUNNER_TEMP}/keystore"
+          mkdir -p "$KEYSTORE_DIR"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "${KEYSTORE_DIR}/release.keystore"
+          echo "KEYSTORE_FILE=${KEYSTORE_DIR}/release.keystore" >> "$GITHUB_ENV"
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Build release APK
+        if: steps.check-secrets.outputs.signing_configured == 'true'
+        env:
+          HERMIT_KEYSTORE_PATH: ${{ env.KEYSTORE_FILE }}
+          HERMIT_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          HERMIT_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          HERMIT_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_FILE: ${{ env.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Prepare release artifacts and SHA-256 checksums
+        if: steps.check-secrets.outputs.signing_configured == 'true'
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          ARTIFACT_NAME="Hermit-${TAG_NAME}.apk"
+
+          # Locate built release APK
+          RELEASE_APK=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$RELEASE_APK" ] || [ ! -f "$RELEASE_APK" ]; then
+            echo "::error ::Built release APK not found in app/build/outputs/apk/release"
+            exit 1
+          fi
+
+          mkdir -p release-dist
+          cp "$RELEASE_APK" "release-dist/${ARTIFACT_NAME}"
+
+          # Compute SHA-256 checksum
+          cd release-dist
+          sha256sum "${ARTIFACT_NAME}" > SHA256SUMS.txt
+          SHA256_HASH=$(cut -d ' ' -f 1 SHA256SUMS.txt)
+          cd ..
+
+          echo "RELEASE_TAG=${TAG_NAME}" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> "$GITHUB_ENV"
+          echo "SHA256_HASH=${SHA256_HASH}" >> "$GITHUB_ENV"
+
+          echo "### Release Artifact Prepared" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Artifact**: \`${ARTIFACT_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **SHA-256**: \`${SHA256_HASH}\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clean up temporary keystore
+        if: always()
+        run: |
+          if [ -n "${{ env.KEYSTORE_FILE }}" ] && [ -f "${{ env.KEYSTORE_FILE }}" ]; then
+            shred -u "${{ env.KEYSTORE_FILE }}" || rm -f "${{ env.KEYSTORE_FILE }}"
+          fi
+
+      - name: Publish GitHub Release
+        if: steps.check-secrets.outputs.signing_configured == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Hermit ${{ env.RELEASE_TAG }}"
+          tag_name: ${{ env.RELEASE_TAG }}
+          draft: false
+          prerelease: false
+          files: |
+            release-dist/${{ env.ARTIFACT_NAME }}
+            release-dist/SHA256SUMS.txt
+          body: |
+            ## Hermit ${{ env.RELEASE_TAG }}
+
+            ### Release Assets & Integrity
+            - **APK**: `${{ env.ARTIFACT_NAME }}`
+            - **SHA-256 Checksum**:
+              ```
+              ${{ env.SHA256_HASH }}  ${{ env.ARTIFACT_NAME }}
+              ```
+
+            *This release was built and signed automatically with Hermit's secure release key via GitHub Actions.*

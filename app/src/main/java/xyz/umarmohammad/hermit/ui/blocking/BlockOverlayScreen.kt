@@ -46,8 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.ui.components.TactileButton
-import xyz.umarmohammad.hermit.ui.theme.PrimaryTeal
-import xyz.umarmohammad.hermit.ui.theme.SurfaceDark
+import xyz.umarmohammad.hermit.ui.theme.Acento
+import xyz.umarmohammad.hermit.ui.theme.Fondo
+import xyz.umarmohammad.hermit.ui.theme.Secundario
+import xyz.umarmohammad.hermit.ui.theme.Texto
 
 @Composable
 fun BlockOverlayScreen(
@@ -75,7 +77,7 @@ fun BlockOverlayScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = SurfaceDark
+        color = Fondo
     ) {
         Column(
             modifier = Modifier
@@ -87,7 +89,7 @@ fun BlockOverlayScreen(
             // Header: Profile context
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White.copy(alpha = 0.08f),
+                color = Texto.copy(alpha = 0.08f),
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 Row(
@@ -97,13 +99,13 @@ fun BlockOverlayScreen(
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(PrimaryTeal, CircleShape)
+                            .background(Acento, CircleShape)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = profileName,
                         style = MaterialTheme.typography.labelLarge,
-                        color = Color.White.copy(alpha = 0.9f)
+                        color = Texto
                     )
                 }
             }
@@ -117,13 +119,13 @@ fun BlockOverlayScreen(
                     modifier = Modifier
                         .size(130.dp)
                         .scale(pulseScale)
-                        .background(PrimaryTeal.copy(alpha = 0.12f), CircleShape),
+                        .background(Acento.copy(alpha = 0.15f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
                             .size(90.dp)
-                            .background(PrimaryTeal.copy(alpha = 0.25f), CircleShape),
+                            .background(Acento.copy(alpha = 0.30f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         if (blockedAppIcon != null) {
@@ -137,7 +139,7 @@ fun BlockOverlayScreen(
                             Icon(
                                 imageVector = Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = Texto,
                                 modifier = Modifier.size(36.dp)
                             )
                         }
@@ -149,7 +151,7 @@ fun BlockOverlayScreen(
                 Text(
                     text = stringResource(R.string.block_screen_title),
                     style = MaterialTheme.typography.displayMedium,
-                    color = Color.White,
+                    color = Texto,
                     textAlign = TextAlign.Center
                 )
 
@@ -158,7 +160,7 @@ fun BlockOverlayScreen(
                 Text(
                     text = stringResource(R.string.block_screen_subtitle, blockedAppName, profileName),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.75f),
+                    color = Secundario,
                     textAlign = TextAlign.Center
                 )
 
@@ -167,7 +169,7 @@ fun BlockOverlayScreen(
                 Text(
                     text = stringResource(R.string.block_screen_calm_quote),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.55f),
+                    color = Secundario.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -180,12 +182,12 @@ fun BlockOverlayScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color.White.copy(alpha = 0.05f)
+                        color = Texto.copy(alpha = 0.05f)
                     ) {
                         Text(
                             text = stringResource(R.string.home_time_remaining, timeStr),
                             style = MaterialTheme.typography.labelLarge,
-                            color = PrimaryTeal,
+                            color = Acento,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                         )
                     }
@@ -200,7 +202,7 @@ fun BlockOverlayScreen(
                 // NFC Instruction Banner
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.06f),
+                    color = Texto.copy(alpha = 0.06f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -211,14 +213,14 @@ fun BlockOverlayScreen(
                         Icon(
                             imageVector = Icons.Default.Nfc,
                             contentDescription = null,
-                            tint = PrimaryTeal,
+                            tint = Acento,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = stringResource(R.string.block_screen_nfc_instruction),
                             style = MaterialTheme.typography.labelLarge,
-                            color = Color.White
+                            color = Texto
                         )
                     }
                 }
@@ -230,8 +232,8 @@ fun BlockOverlayScreen(
                     onClick = onGoHome,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryTeal,
-                        contentColor = Color.White
+                        containerColor = Acento,
+                        contentColor = Fondo
                     )
                 ) {
                     Icon(imageVector = Icons.Default.Home, contentDescription = null)
@@ -246,7 +248,7 @@ fun BlockOverlayScreen(
                     Text(
                         text = stringResource(R.string.block_screen_emergency_countdown, strictCountdownRemaining),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.4f),
+                        color = Secundario.copy(alpha = 0.6f),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 } else {
@@ -254,7 +256,7 @@ fun BlockOverlayScreen(
                         onClick = onEmergencyExit,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.White.copy(alpha = 0.6f)
+                            contentColor = Secundario
                         )
                     ) {
                         Text(stringResource(R.string.block_screen_btn_emergency))

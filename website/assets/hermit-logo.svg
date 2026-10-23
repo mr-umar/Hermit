@@ -1,9 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" width="200" height="48" fill="none">
   <g transform="translate(4, 4)">
-    <rect width="40" height="40" rx="10" fill="#0D9488" />
-    <circle cx="20" cy="20" r="13" fill="none" stroke="#FFFFFF" stroke-width="2" />
-    <circle cx="20" cy="20" r="8" fill="#FFFFFF" />
-    <circle cx="20" cy="20" r="3" fill="#0D9488" />
+    <rect width="40" height="40" rx="10" fill="#242521" stroke="#353731" stroke-width="1.5" />
+    <g transform="translate(4, 3) scale(0.0625)">
+      <circle cx="256" cy="228" r="160" fill="#EAD9BC" opacity=".55"/>
+      <path d="M130 384c9-72 46-120 91-136h70c45 16 82 64 91 136l-30 30H160z" fill="#111211"/>
+      <path d="M122 244c11-87 69-153 134-174 65 21 123 87 134 174l-26 82H148z" fill="#111211"/>
+      <path d="M151 250c18-62 60-108 105-125 45 17 87 63 105 125-19 47-58 76-105 76s-86-29-105-76z" fill="#111211" stroke="#F5EADB" stroke-width="7"/>
+      <path d="M184 237c0-42 30-73 72-73s72 31 72 73c0 46-30 74-72 74s-72-28-72-74z" fill="#FFF8E9"/>
+      <path d="M211 242c10 10 25 10 35 0M266 242c10 10 25 10 35 0" fill="none" stroke="#1B1B19" stroke-width="8" stroke-linecap="round"/>
+      <rect x="224" y="324" width="64" height="72" rx="15" fill="#FFF8E9" stroke="#A5B092" stroke-width="3"/>
+      <path d="M246 344c11 9 11 23 0 32M257 339c15 12 15 30 0 42M268 334c19 15 19 37 0 52" fill="none" stroke="#A5B092" stroke-width="7" stroke-linecap="round"/>
+      <path d="M155 388c-35 7-52 28-36 48 14 17 66 24 123 13l37-12-27-42zM357 388c35 7 52 28 36 48-14 17-66 24-123 13-37-12 27-42z" fill="#111211"/>
+    </g>
   </g>
-  <text x="56" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700" letter-spacing="-0.5" fill="currentColor">Hermit</text>
+  <text x="54" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700" letter-spacing="-0.5" fill="currentColor">Hermit</text>
 </svg>

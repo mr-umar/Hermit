@@ -66,6 +66,9 @@ fun ProfileEditScreen(
     var isUnlimitedDuration by remember { mutableStateOf(false) }
     var exitBehavior by remember { mutableStateOf(ExitBehavior.ALLOW_EMERGENCY) }
     var strictMode by remember { mutableStateOf(false) }
+    var isMonkMode by remember { mutableStateOf(false) }
+    var blockWebSocial by remember { mutableStateOf(true) }
+    var activationType by remember { mutableStateOf("NFC") }
 
     val icons = listOf("work", "school", "spa", "bedtime", "code", "book")
 
@@ -84,6 +87,9 @@ fun ProfileEditScreen(
                 }
                 exitBehavior = existing.exitBehavior
                 strictMode = existing.strictMode
+                isMonkMode = existing.isMonkMode
+                blockWebSocial = existing.blockWebSocial
+                activationType = existing.activationType
             }
         }
     }
@@ -119,11 +125,14 @@ fun ProfileEditScreen(
                                 name = name.trim(),
                                 description = description.trim(),
                                 iconName = selectedIcon,
-                                colorHex = "#0D9488",
+                                colorHex = "#A5B092",
                                 blockedPackages = selectedBlockedPackages,
                                 durationMinutes = duration,
                                 exitBehavior = exitBehavior,
-                                strictMode = strictMode
+                                strictMode = strictMode,
+                                isMonkMode = isMonkMode,
+                                blockWebSocial = blockWebSocial,
+                                activationType = activationType
                             )
                             CoroutineScope(Dispatchers.IO).launch {
                                 profileRepository.saveProfile(profileToSave)
@@ -318,6 +327,58 @@ fun ProfileEditScreen(
                     Switch(
                         checked = strictMode,
                         onCheckedChange = { strictMode = it }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Web Browser Social Media Blocking Toggle
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Bloqueo en Navegadores",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            text = stringResource(R.string.onboarding_block_web_social),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = blockWebSocial,
+                        onCheckedChange = { blockWebSocial = it }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Monk Mode Toggle
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.onboarding_monk_banner_title),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            text = stringResource(R.string.onboarding_monk_banner_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = isMonkMode,
+                        onCheckedChange = { isMonkMode = it }
                     )
                 }
             }

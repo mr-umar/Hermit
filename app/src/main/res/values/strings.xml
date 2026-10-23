@@ -110,6 +110,16 @@
     <string name="write_tag_retry">Try Again</string>
     <string name="write_tag_btn_finish">Done</string>
 
+    <!-- NFC Tag Post-Write Verification & Testing -->
+    <string name="write_tag_test_prompt_title">Test Your Tag</string>
+    <string name="write_tag_test_prompt_desc">To make sure it works, tap the tag against the back of your phone now.</string>
+    <string name="write_tag_test_prompt_safe_note">This test is safe: it will not start or stop any focus sessions.</string>
+    <string name="write_tag_test_success_title">Tag Perfectly Configured!</string>
+    <string name="write_tag_test_success_desc">The tag responds properly and is ready to anchor your focus.</string>
+    <string name="write_tag_test_diff_tag_warning">A different tag was detected (%1$s). Please tap the tag you just configured.</string>
+    <string name="write_tag_test_background_info">From now on, even if Hermit is closed or in the background, tapping this tag will automatically open the app.</string>
+    <string name="write_tag_btn_skip_test">Finish without testing</string>
+
     <!-- Read & Inspect NFC Tag -->
     <string name="read_tag_title">Inspect NFC Tag</string>
     <string name="read_tag_prompt">Hold an NFC tag to the back of your phone to inspect its details…</string>
@@ -182,6 +192,38 @@
     <string name="settings_reset_confirm_desc">This permanently deletes all profiles, NFC tag mappings, and session statistics. This action cannot be undone.</string>
     <string name="settings_version">Version %1$s</string>
 
+    <!-- Updates Section -->
+    <string name="settings_section_updates">Updates</string>
+    <string name="updates_installed_version">Installed version</string>
+    <string name="updates_latest_version">Latest stable version</string>
+    <string name="updates_last_checked">Last checked</string>
+    <string name="updates_last_checked_never">Never</string>
+    <string name="updates_auto_check">Check on app launch</string>
+    <string name="updates_auto_check_desc">Perform a lightweight update check when opening Hermit, without background polling.</string>
+    <string name="updates_btn_check">Check for updates</string>
+    <string name="updates_status_checking">Checking GitHub Releases…</string>
+    <string name="updates_status_up_to_date">Hermit is up to date</string>
+    <string name="updates_status_available">Update available: %1$s</string>
+    <string name="updates_release_notes">Release notes</string>
+    <string name="updates_btn_view_github">View on GitHub</string>
+    <string name="updates_btn_download">Download &amp; Install</string>
+    <string name="updates_btn_cancel">Cancel</string>
+    <string name="updates_btn_retry">Retry</string>
+    <string name="updates_btn_install">Install update</string>
+    <string name="updates_downloading_format">Downloading: %1$d%% (%2$.1f / %3$.1f MB)</string>
+    <string name="updates_downloading_unknown">Downloading update…</string>
+    <string name="updates_badge_sha256_verified">SHA-256 integrity verified</string>
+    <string name="updates_badge_cert_verified">Security certificate verified</string>
+    <string name="updates_ready_to_install_desc">The APK has been downloaded and verified. Tap below to launch the official Android package installer.</string>
+    <string name="updates_permission_dialog_title">Installation permission required</string>
+    <string name="updates_permission_dialog_desc">To install verified updates directly from GitHub Releases, please allow Hermit to install unknown apps in Android settings. Android\'s installer will always ask for your confirmation before installing.</string>
+    <string name="updates_permission_dialog_open_settings">Open settings</string>
+    <string name="updates_error_rate_limit">GitHub API rate limit exceeded. Please try again later or visit the repository directly.</string>
+    <string name="updates_error_network">Unable to connect to GitHub. Please check your internet connection.</string>
+    <string name="updates_error_missing_asset">No compatible APK asset was found for this release.</string>
+    <string name="updates_error_checksum_mismatch">Integrity check failed: APK SHA-256 does not match the published checksum.</string>
+    <string name="updates_error_security_mismatch">Security verification failed: %1$s</string>
+
     <!-- First Run Onboarding -->
     <string name="onboarding_welcome_title">Welcome to Hermit</string>
     <string name="onboarding_welcome_desc">A tranquil, physical sanctuary from digital distractions. Control your phone\'s focus with real NFC tags.</string>
@@ -194,6 +236,58 @@
     <string name="onboarding_btn_enable_service">Grant Accessibility Permission</string>
     <string name="onboarding_btn_continue">Get Started</string>
     <string name="onboarding_permission_banner">Accessibility Service is required for app blocking to function.</string>
+
+    <!-- Enhanced Onboarding & Permissions Flow -->
+    <string name="onboarding_hours_title">How much time do you spend on your phone?</string>
+    <string name="onboarding_hours_subtitle">Pick an honest daily estimate to begin your journey toward intentional focus.</string>
+    <string name="onboarding_hours_format">%1$d hours a day</string>
+    <string name="onboarding_btn_calc">Calculate Annual Impact</string>
+    <string name="onboarding_calc_title">The Cost of Screen Time</string>
+    <string name="onboarding_calc_days">%1$d full 24h days a year</string>
+    <string name="onboarding_calc_months">%1$.1f months awake each year</string>
+    <string name="onboarding_calc_body">That is the continuous time you will spend looking at your screen this year. Hermit is a physical sanctuary designed to give your real life back.</string>
+    <string name="onboarding_btn_start_setup">Start Setup</string>
+    <string name="onboarding_perm_battery_title">Battery Optimization</string>
+    <string name="onboarding_perm_battery_desc">Allows Hermit to maintain your focus session without Android killing it in the background.</string>
+    <string name="onboarding_perm_battery_btn">Disable Optimization</string>
+    <string name="onboarding_perm_access_title">Accessibility Service</string>
+    <string name="onboarding_perm_access_desc">Detects when you open a distracting app to show the mindful pause. 100% private: never reads messages or personal data.</string>
+    <string name="onboarding_perm_access_restricted_tip">Restricted settings on Android 13+: If the toggle is greyed out, go to Settings > Apps > Hermit > tap the three dots ⋮ in the top right and select \'Allow restricted settings\'.</string>
+    <string name="onboarding_perm_access_btn">Enable Accessibility</string>
+    <string name="onboarding_perm_overlay_title">Display Over Other Apps</string>
+    <string name="onboarding_perm_overlay_desc">Shows the mindful breathing barrier the moment you tap a blocked app.</string>
+    <string name="onboarding_perm_overlay_btn">Allow Overlay</string>
+    <string name="onboarding_perm_usage_title">Usage Data Access</string>
+    <string name="onboarding_perm_usage_desc">Tracks your local focus metrics and counts prevented distractions.</string>
+    <string name="onboarding_perm_usage_btn">Grant Usage Access</string>
+    <string name="onboarding_perm_status_granted">Granted ✓</string>
+    <string name="onboarding_perm_status_pending">Pending</string>
+    <string name="onboarding_btn_next">Continue</string>
+    <string name="onboarding_nfc_title">Your First NFC Tag</string>
+    <string name="onboarding_nfc_desc">The secret to Hermit is the physical barrier. To end your focus session, you must physically get up and tap an NFC tag.</string>
+    <string name="onboarding_nfc_compatible_box">Compatible tags: NTAG213, NTAG215, or NTAG216 (universal stickers or keychains, readily available online).</string>
+    <string name="onboarding_nfc_btn_setup">Set Up Tag Now</string>
+    <string name="onboarding_nfc_btn_skip">I\'ll set it up later</string>
+    <string name="onboarding_profile_title">Create Your First Profile</string>
+    <string name="onboarding_profile_desc">Choose which apps to silence and how you want to exit sessions.</string>
+    <string name="onboarding_filter_social">Social Media</string>
+    <string name="onboarding_filter_work">Work &amp; Comms</string>
+    <string name="onboarding_filter_streaming">Streaming &amp; Games</string>
+    <string name="onboarding_block_web_social">Also block social media websites in browsers (Chrome, Firefox, etc.)</string>
+    <string name="onboarding_unlock_nfc_only">Physical NFC tag unlock only (cannot cancel in app, max 24h)</string>
+    <string name="onboarding_unlock_time_only">Timer or app unlock (up to 24h)</string>
+    <string name="onboarding_monk_banner_title">Monk Mode (Absolute Sanctuary)</string>
+    <string name="onboarding_monk_banner_desc">Only Phone, Camera, Maps, WhatsApp, and Music. Physical NFC unlock only.</string>
+    <string name="onboarding_btn_enter">Enter Hermit</string>
+
+    <!-- Settings Provenance & Links -->
+    <string name="settings_about_domain_title">Official Website</string>
+    <string name="settings_about_domain_val">hermit.umarmohammad.xyz</string>
+    <string name="settings_about_repo_title">Source Code</string>
+    <string name="settings_about_repo_val">github.com/mr-umar/Hermit</string>
+    <string name="settings_about_license_title">License</string>
+    <string name="settings_about_license_val">GNU AGPLv3 (Free &amp; Open Source)</string>
+    <string name="settings_about_version_val">Hermit 1.0.0 (Build 1)</string>
 
     <!-- General / Actions -->
     <string name="action_save">Save</string>

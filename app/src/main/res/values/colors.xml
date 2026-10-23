@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary_teal">#0D9488</color>
-    <color name="primary_teal_light">#14B8A6</color>
-    <color name="primary_teal_dark">#0F766E</color>
-    <color name="surface_light">#F8FAFC</color>
-    <color name="surface_dark">#0F172A</color>
-    <color name="text_light">#0F172A</color>
-    <color name="text_dark">#F8FAFC</color>
-    <color name="accent_warm">#EA580C</color>
+    <!-- Hermit Design Tokens -->
+    <color name="color_fondo">#191A18</color>
+    <color name="color_superficie">#242521</color>
+    <color name="color_texto">#F0EDE5</color>
+    <color name="color_secundario">#B9B8AE</color>
+    <color name="color_acento">#A5B092</color>
+    <color name="color_aviso">#D58B70</color>
+
+    <!-- Semantic and Theme Aliases -->
+    <color name="primary_teal">#A5B092</color>
+    <color name="primary_teal_light">#BAC4A9</color>
+    <color name="primary_teal_dark">#838E71</color>
+    <color name="surface_light">#191A18</color>
+    <color name="surface_dark">#191A18</color>
+    <color name="text_light">#F0EDE5</color>
+    <color name="text_dark">#F0EDE5</color>
+    <color name="accent_warm">#D58B70</color>
 </resources>

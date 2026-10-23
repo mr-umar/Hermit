@@ -21,16 +21,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +47,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import xyz.umarmohammad.hermit.HermitApplication
 import xyz.umarmohammad.hermit.R
@@ -59,6 +58,8 @@ import xyz.umarmohammad.hermit.data.repository.TagRepository
 import xyz.umarmohammad.hermit.nfc.NfcTagManager
 import xyz.umarmohammad.hermit.session.TagScanOutcome
 import xyz.umarmohammad.hermit.ui.apps.AppSelectionScreen
+import xyz.umarmohammad.hermit.ui.components.AppleTabBar
+import xyz.umarmohammad.hermit.ui.components.AppleTabItem
 import xyz.umarmohammad.hermit.ui.home.HomeScreen
 import xyz.umarmohammad.hermit.ui.onboarding.OnboardingScreen
 import xyz.umarmohammad.hermit.ui.profiles.ProfileEditScreen
@@ -71,10 +72,10 @@ import xyz.umarmohammad.hermit.ui.tags.WriteTagScreen
 import xyz.umarmohammad.hermit.ui.theme.HermitTheme
 
 sealed class Screen(val route: String, val titleRes: Int, val icon: ImageVector) {
-    data object Focus : Screen("focus", R.string.nav_focus, Icons.Default.NotificationsActive)
-    data object Profiles : Screen("profiles", R.string.nav_profiles, Icons.Default.AutoAwesome)
+    data object Focus : Screen("focus", R.string.nav_focus, Icons.Default.HourglassEmpty)
+    data object Profiles : Screen("profiles", R.string.nav_profiles, Icons.Default.Shield)
     data object Tags : Screen("tags", R.string.nav_tags, Icons.Default.Nfc)
-    data object Stats : Screen("stats", R.string.nav_stats, Icons.Default.Timeline)
+    data object Stats : Screen("stats", R.string.nav_stats, Icons.Default.BarChart)
     data object Settings : Screen("settings", R.string.nav_settings, Icons.Default.Settings)
 }
 
@@ -82,6 +83,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
     private var nfcAdapter: NfcAdapter? = null
     private var activePhysicalTag by mutableStateOf<Tag?>(null)
+    private var isNfcIntercepted by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,6 +93,18 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
         handleIncomingNfcIntent(intent)
+
+        // Lightweight check for updates on launch (if enabled and > 6 hours since last check)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val autoCheck = app.preferenceManager.autoCheckUpdates.first()
+            if (autoCheck) {
+                val lastChecked = app.preferenceManager.lastUpdateCheckTimestamp.first()
+                val now = System.currentTimeMillis()
+                if (now - lastChecked > 6 * 3600 * 1000L) {
+                    app.updateManager.checkForUpdates(manual = false)
+                }
+            }
+        }
 
         setContent {
             val prefManager = app.preferenceManager
@@ -106,6 +120,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
                 if (isFirstLaunch) {
                     OnboardingScreen(
+                        app = app,
                         onFinishOnboarding = {
                             lifecycleScope.launch {
                                 prefManager.setFirstLaunchCompleted()
@@ -116,7 +131,8 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                     MainAppScaffold(
                         app = app,
                         activePhysicalTag = activePhysicalTag,
-                        onTagHandled = { activePhysicalTag = null }
+                        onTagHandled = { activePhysicalTag = null },
+                        onSetNfcIntercept = { isNfcIntercepted = it }
                     )
                 }
             }
@@ -151,9 +167,10 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     private fun handleIncomingNfcIntent(intent: Intent?) {
         if (intent == null) return
         val payload = NfcTagManager.extractHermitPayload(intent) ?: return
+        val uid = NfcTagManager.extractTagUid(intent)
         val app = application as HermitApplication
         lifecycleScope.launch {
-            val outcome = app.sessionManager.handleTagScan(payload, "INTENT_SCAN")
+            val outcome = app.sessionManager.handleTagScan(payload, uid)
             triggerHapticFeedback()
             showOutcomeToast(outcome)
         }
@@ -163,7 +180,12 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         if (tag == null) return
         activePhysicalTag = tag
 
-        // If not actively handled by sub-screens, check for standard Hermit focus toggling
+        // If a sub-screen (WriteTagScreen or ReadTagScreen) is actively intercepting,
+        // do not trigger session toggle!
+        if (isNfcIntercepted) {
+            return
+        }
+
         val payload = NfcTagManager.readHermitPayload(tag)
         if (payload != null) {
             val app = application as HermitApplication
@@ -208,11 +230,17 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 fun MainAppScaffold(
     app: HermitApplication,
     activePhysicalTag: Tag?,
-    onTagHandled: () -> Unit
+    onTagHandled: () -> Unit,
+    onSetNfcIntercept: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    androidx.compose.runtime.LaunchedEffect(currentRoute) {
+        val isTagScreen = currentRoute == "write_tag" || currentRoute == "read_tag"
+        onSetNfcIntercept(isTagScreen)
+    }
 
     val profileRepo = remember { ProfileRepository(app.database.focusProfileDao()) }
     val tagRepo = remember { TagRepository(app.database.nfcTagDao()) }
@@ -234,16 +262,13 @@ fun MainAppScaffold(
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp
-                ) {
+                AppleTabBar {
                     bottomNavItems.forEach { screen ->
                         val isSelected = currentRoute == screen.route
-                        NavigationBarItem(
-                            icon = { Icon(imageVector = screen.icon, contentDescription = null) },
-                            label = { Text(stringResource(screen.titleRes)) },
+                        AppleTabItem(
                             selected = isSelected,
+                            icon = screen.icon,
+                            label = stringResource(screen.titleRes),
                             onClick = {
                                 if (currentRoute != screen.route) {
                                     navController.navigate(screen.route) {
@@ -254,12 +279,7 @@ fun MainAppScaffold(
                                         restoreState = true
                                     }
                                 }
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            )
+                            }
                         )
                     }
                 }
@@ -346,7 +366,8 @@ fun MainAppScaffold(
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     preferenceManager = app.preferenceManager,
-                    database = app.database
+                    database = app.database,
+                    updateManager = app.updateManager
                 )
             }
         }

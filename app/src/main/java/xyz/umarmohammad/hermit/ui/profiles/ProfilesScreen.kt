@@ -81,6 +81,7 @@ fun ProfilesScreen(
     val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
     val coroutineScope = rememberCoroutineScope()
     var profileToDelete by remember { mutableStateOf<FocusProfile?>(null) }
+    var showFrictionDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -88,7 +89,7 @@ fun ProfilesScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onCreateProfile,
+                onClick = { showFrictionDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
@@ -100,10 +101,10 @@ fun ProfilesScreen(
         if (profiles.isEmpty()) {
             EmptyStateView(
                 icon = Icons.Default.AutoAwesome,
-                title = stringResource(R.string.profiles_title),
-                description = stringResource(R.string.profiles_add),
-                actionButtonText = stringResource(R.string.profiles_add),
-                onActionClick = onCreateProfile,
+                title = stringResource(R.string.home_no_profiles_title),
+                description = stringResource(R.string.home_no_profiles_desc),
+                actionButtonText = stringResource(R.string.home_btn_create_first_profile),
+                onActionClick = { showFrictionDialog = true },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -124,6 +125,30 @@ fun ProfilesScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
+        }
+
+        // Physical Friction Guidance Dialog before creating profile
+        if (showFrictionDialog) {
+            AlertDialog(
+                onDismissRequest = { showFrictionDialog = false },
+                title = { Text(stringResource(R.string.profile_friction_dialog_title)) },
+                text = { Text(stringResource(R.string.profile_friction_dialog_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showFrictionDialog = false
+                            onCreateProfile()
+                        }
+                    ) {
+                        Text(stringResource(R.string.profile_friction_dialog_continue))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showFrictionDialog = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
         }
 
         // Delete Confirmation Dialog
@@ -193,7 +218,10 @@ private fun ProfileCardItem(
                     Text(
                         text = profile.name,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     if (profile.strictMode) {
                         Spacer(modifier = Modifier.width(6.dp))
@@ -211,22 +239,38 @@ private fun ProfileCardItem(
                         text = profile.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row {
-                    val durationText = if (profile.durationMinutes != null) {
-                        stringResource(R.string.profile_duration_minutes, profile.durationMinutes)
+                    val durationText = if (profile.activationType == "NFC") {
+                        "NFC (12h)"
+                    } else if (profile.durationMinutes != null) {
+                        val hours = profile.durationMinutes / 60
+                        val mins = profile.durationMinutes % 60
+                        if (hours > 0 && mins > 0) "${hours}h ${mins}m"
+                        else if (hours > 0) "${hours}h"
+                        else "${mins}m"
                     } else {
-                        stringResource(R.string.profile_duration_unlimited)
+                        stringResource(R.string.profile_duration_unlimited_badge)
                     }
+
+                    val appsCountText = if (profile.isMonkMode || profile.name.equals("Zen", ignoreCase = true)) {
+                        stringResource(R.string.profiles_zen_badge)
+                    } else {
+                        "${profile.blockedPackages.size} apps"
+                    }
+
                     Text(
-                        text = "$durationText • ${stringResource(R.string.profile_blocked_count, profile.blockedPackages.size)}",
+                        text = "$durationText • $appsCountText",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
             }

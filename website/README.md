@@ -31,11 +31,13 @@ website/
 ├── js/
 │   └── app.js           # Bilingual i18n, theme management & accordions
 ├── assets/
-│   ├── favicon.svg      # Monk holding NFC tag circular favicon
-│   ├── hermit-icon.svg  # Master monk vector graphic
-│   ├── hermit-logo.svg  # Header brand logo
-│   ├── mockup-app.svg   # Vector mockup of Active Focus screen
-│   └── mockup-block.svg # Vector mockup of Mindful Block barrier
+│   ├── favicon.svg         # Monk holding NFC tag circular favicon
+│   ├── hermit-icon.svg     # Master monk vector graphic
+│   ├── hermit-logo.svg     # Header brand logo
+│   ├── mockup-app.svg      # Vector mockup of Active Focus screen
+│   ├── mockup-block.svg    # Vector mockup of Mindful Block barrier
+│   ├── mockup-zen.svg      # Vector mockup of OLED Zen Launcher
+│   └── mockup-adaptive.svg # Vector mockup of Adaptive Onboarding Flow
 ├── sitemap.xml          # Search engine sitemap with hreflang tags
 ├── robots.txt           # Crawler instructions
 ├── site.webmanifest     # Web App Manifest for mobile browsers

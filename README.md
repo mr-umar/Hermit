@@ -38,69 +38,111 @@
 </p>
 
 <p align="center">
-  <img src="website/assets/mockup-app.svg" width="310" alt="Hermit Active Session Screen" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="website/assets/mockup-block.svg" width="310" alt="Hermit Mindful Block Screen" />
+  <img src="website/assets/mockup-app.svg" width="240" alt="Hermit Active Session Screen" />
+  &nbsp;&nbsp;
+  <img src="website/assets/mockup-zen.svg" width="240" alt="Hermit Zen Launcher Screen" />
+  &nbsp;&nbsp;
+  <img src="website/assets/mockup-block.svg" width="240" alt="Hermit Mindful Block Screen" />
 </p>
 
-Hermit turns affordable, standard NFC tags into physical sanctuaries from digital distractions. By pairing physical gestures with genuine application blocking through Android's `AccessibilityService`, Hermit helps you cultivate deep, intentional focus without proprietary hardware, subscriptions, or cloud trackers.
+Hermit turns affordable, standard NFC tags into physical sanctuaries from digital distractions. By pairing physical gestures with genuine application blocking through Android's `AccessibilityService` and an integrated OLED **Zen Launcher**, Hermit helps you cultivate deep, intentional focus without proprietary hardware, subscriptions, or cloud surveillance.
 
 ---
 
 ## Table of Contents
 
 1. [Overview & Philosophy](#overview--philosophy)
-2. [Core Features](#core-features)
-3. [Architecture & Technology Stack](#architecture--technology-stack)
-4. [NFC Tag Compatibility & Capabilities](#nfc-tag-compatibility--capabilities)
-5. [Tag Payload Specification](#tag-payload-specification)
-6. [Application Blocking Implementation](#application-blocking-implementation)
-7. [Hardware & Android Manufacturer Limitations](#hardware--android-manufacturer-limitations)
-8. [Permissions & Privacy](#permissions--privacy)
-9. [Build & Installation Guide](#build--installation-guide)
-10. [Automated Testing & Verification](#automated-testing--verification)
-11. [Product Website & Deployment](#product-website--deployment)
-12. [License](#license)
+2. [Adaptive Onboarding & Setup](#adaptive-onboarding--setup)
+3. [Zen Launcher Mode](#zen-launcher-mode)
+4. [Core Features](#core-features)
+5. [Architecture & Technology Stack](#architecture--technology-stack)
+6. [NFC Tag Compatibility & Capabilities](#nfc-tag-compatibility--capabilities)
+7. [Tag Payload Specification](#tag-payload-specification)
+8. [Application Blocking Implementation](#application-blocking-implementation)
+9. [Security & Anti-Tamper Protection](#security--anti-tamper-protection)
+10. [Hardware & Android Manufacturer Limitations](#hardware--android-manufacturer-limitations)
+11. [Permissions & Privacy](#permissions--privacy)
+12. [Build & Installation Guide](#build--installation-guide)
+13. [Automated Testing & Verification](#automated-testing--verification)
+14. [Product Website & Deployment](#product-website--deployment)
+15. [License](#license)
 
 ---
 
 ## Overview & Philosophy
 
-Modern smartphones are engineered for continuous engagement. Digital friction is often too weak to resist automatic muscle memory.
+Modern smartphones are engineered for continuous engagement. Digital friction alone is too fragile to resist automatic muscle memory.
 
-Hermit introduces a **physical barrier**:
-1. You configure a focus profile (e.g., Deep Work, Study, Rest) with a selection of distracting apps to block.
-2. You write an action or profile reference to an inexpensive, standard NFC tag.
-3. Tapping the physical tag initiates your focus session and raises the blocking barrier.
-4. Attempting to open any blocked app immediately presents a calm reflection screen requiring either a physical tag tap or a deliberate delay to exit.
-5. All data, profiles, and history remain strictly local on your device.
+Hermit introduces an unyielding **physical barrier**:
+1. **Clean Slate Philosophy:** No pre-baked clutter or default profiles. You define your focus intentionally.
+2. **Adaptive Configuration:** If you don't have an NFC tag yet, you can create timer-guarded profiles (up to 12h) with optional emergency reflection delays. If you pair an NFC tag, you unlock the universal physical tap switch and the full **Zen Launcher**.
+3. **Physical Anchor:** Tapping your physical tag engages or disengages focus instantly.
+4. **Mindful Reflection & Zen Seclusion:** Opening blocked apps triggers a calm reflection screen. In Zen Mode, your home screen is locked into an ultra-minimalist OLED launcher showing only essentials.
+5. **Privacy First:** 100% of your focus habits, profiles, and statistics remain strictly local on your device.
+
+---
+
+## Adaptive Onboarding & Setup
+
+Hermit greets first-time users with a streamlined two-step onboarding:
+
+- **Step 1: Pair NFC Tag (Skippable):**
+  - Hold any standard NTAG213, NTAG215, or NTAG216 tag to the back of your phone to pair.
+  - If you do not have an NFC tag yet, tap **"Skip for now"** to proceed without friction.
+- **Step 2: Adaptive Profile Creation:**
+  - **Without NFC Tag (Timer Mode):**
+    - Create focus profiles with a countdown timer (up to a strict **12-hour maximum**).
+    - Emergency exit option: enabled by default with a 60-second mindful reflection delay, but can be completely disabled by the user to enforce an unbroken, irrevocable focus commitment until the timer expires.
+    - Zen Launcher mode is disabled (requires physical NFC to exit safely).
+  - **With NFC Tag (Physical Switch & Zen):**
+    - The physical tag acts as a **Universal Physical Switch**: tapping toggles active focus on/off for whichever profile is currently selected.
+    - Option to enable **Zen Mode (Launcher)** with strict physical NFC deactivation.
+    - Protected by an internal 12-hour safety ceiling under all circumstances.
+
+---
+
+## Zen Launcher Mode
+
+Hermit includes an integrated minimal home launcher (`ZenLauncherActivity`) designed for zero-distraction environments:
+
+- **OLED Black Interface:** Pure `#000000` canvas displaying a clean clock, date, active session remaining badge, and an NFC tap-to-exit prompt.
+- **Allowed Essentials:**
+  - Phone (Dialer)
+  - Camera
+  - Spotify (if installed)
+  - YouTube Music (if installed)
+  - Optionally up to 5 user-chosen custom applications.
+  - Hermit (for settings, stats, and adjustments).
+- **Home Redirection via Accessibility:**
+  - When Zen Mode is active, pressing the Android Home button or switching tasks automatically brings `ZenLauncherActivity` back to the front, eliminating accidental escape loops.
+- **Core System Protection:**
+  - Keyboards / Input Method Editors (e.g., Gboard), emergency calls, system UI dialogs, and permission controllers are hard-whitelisted and **never blocked**.
+- **Strict Physical NFC Deactivation:**
+  - Deactivating Zen Launcher early strictly requires scanning your paired physical NFC tag (or reaching the 12-hour internal safety timeout).
 
 ---
 
 ## Core Features
 
-- **NFC Tag Management:**
-  - Create and register tags directly inside the application.
-  - Custom tag labels and behavior assignment: `TOGGLE`, `ACTIVATE`, `DEACTIVATE`, `SWITCH`.
-  - Step-by-step interactive NFC writer with live status and read-back verification.
-  - Overwrite safety warning before erasing existing NDEF records.
-  - Tag inspector that decodes UID, chip type, writable status, and NDEF capacity.
+- **Universal NFC Tag Switch:**
+  - Tap your tag to toggle whichever focus profile is currently active in the app.
+  - Step-by-step interactive NFC writer with read-back verification and overwrite warnings.
+  - Built-in tag inspector decoding UID, chip type, writable status, and NDEF capacity.
 - **Genuine Application Blocking:**
-  - `HermitAccessibilityService` monitors foreground window transitions in real time.
-  - Safe whitelist preserving the system dialer, home launcher, settings, and emergency services.
-  - Prevents tight loop triggers with intelligent debounce windows.
-  - State persistence across process death and device reboots (`BootReceiver`).
-- **Focus Profiles:**
-  - Fully customizable profiles with names, descriptions, icons, and color accents.
-  - Multi-select installed app picker with search and category filtering.
-  - Optional session durations with countdown timers or open-ended focus.
-  - Strict mode requiring a 60-second reflection pause before emergency exits.
+  - `HermitAccessibilityService` monitors foreground window transitions in real time without inspecting personal messages or keystrokes.
+  - Debounce cooldowns and state persistence across reboots (`BootReceiver`).
+- **Customizable Focus Profiles:**
+  - Multi-select installed app picker with search and category filters.
+  - Countdown timers up to 12 hours with optional 60-second emergency reflection delays.
+- **Anti-Tamper & Uninstall Protection:**
+  - Optional Device Administrator privileges disable Android's uninstall button.
+  - Deactivating protection requires completing a mindful cooldown reflection delay.
+- **In-App GitHub Releases Updater:**
+  - Automatic and manual update checking directly against GitHub Releases API with cryptographic SHA-256 verification and in-app APK installer.
 - **Local Metrics & History:**
-  - Track focus duration, completed sessions, and prevented distraction attempts.
-  - Local Room database with zero remote network calls.
+  - Track focus duration, completed sessions, and prevented distraction attempts in local encrypted Room storage.
 - **Bilingual Interface:**
-  - Standard resource-based localization: English (`values/`) and Spanish (`values-es/`).
-  - Automatic system locale detection with manual override in Settings.
+  - Full English (`values/`) and Spanish (`values-es/`) translations with automatic detection and manual override.
 
 ---
 
@@ -177,6 +219,17 @@ Application blocking operates through `HermitAccessibilityService`:
 3. **Safety Whitelist:** The system launcher, dialer, emergency dialer, permission controller, and settings are strictly exempt from interception.
 4. **Debounce Logic:** A 1200ms cooldown prevents repeated triggers and event loops when transitioning between activities.
 5. **Blocking Screen:** Launches `BlockOverlayActivity` (`FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_SINGLE_TOP | FLAG_ACTIVITY_CLEAR_TOP`) presenting the mindful reflection screen, time remaining, and NFC unlock prompt.
+6. **Zen Launcher Home Interception:** When Zen Mode is engaged, navigation back to the system launcher automatically returns to `ZenLauncherActivity`. Keyboards (IMEs), dialer, camera, system UI, and Hermit itself remain 100% exempt.
+
+---
+
+## Security & Anti-Tamper Protection
+
+To prevent impulsive self-sabotage during moments of weakness:
+
+- **Device Administrator Protection:** Users can enable Device Administrator privileges (`HermitDeviceAdminReceiver`). Android disables the direct "Uninstall" button in system settings while active.
+- **Mindful Cooldown Pause:** To deactivate Device Admin protection, the user must navigate a reflection countdown timer, preventing impulsive removal while preserving legitimate user agency.
+- **12-Hour Safety Ceiling:** All active sessions enforce a strict hard-coded 12-hour limit (`SAFETY_12H_TIMEOUT`), ensuring that even in catastrophic hardware failure or lost tag scenarios, the device will never remain permanently locked.
 
 ---
 
@@ -184,7 +237,7 @@ Application blocking operates through `HermitAccessibilityService`:
 
 Different Android original equipment manufacturers (OEMs) implement varying background restrictions and NFC antenna placements:
 
-- **Battery Optimization:** Aggressive task killers (e.g., Xiaomi MIUI/HyperOS, Huawei EMUI, Samsung OneUI) may terminate background accessibility services if left on "Optimized". Hermit provides a direct diagnostic shortcut in **Settings &gt; Battery Optimization** to grant unrestricted background execution.
+- **Battery Optimization:** Aggressive task killers (e.g., Xiaomi MIUI/HyperOS, Huawei EMUI, Samsung OneUI) may terminate background accessibility services if left on "Optimized". Hermit provides a direct diagnostic shortcut in **Settings > Battery Optimization** to grant unrestricted background execution.
 - **NFC Antenna Alignment:** NFC coils vary by device model (e.g., center-back on Pixel, top-right near camera module on Samsung). Ensure steady contact during writing.
 - **Accessibility Service Permissiveness:** On Android 13+, applications sideloaded outside an app store require enabling "Restricted Settings" under App Info before the Accessibility permission can be toggled.
 
@@ -197,12 +250,14 @@ Hermit is committed to privacy and security:
 | Permission | Purpose | Privacy Impact |
 | :--- | :--- | :--- |
 | `android.permission.NFC` | Read and write physical tags | Local hardware only |
-| `android.permission.BIND_ACCESSIBILITY_SERVICE` | Detect when blocked apps launch | Window content is disabled; package names only |
+| `android.permission.BIND_ACCESSIBILITY_SERVICE` | Detect foreground launches & route to Zen Launcher | Window content disabled; package names only |
 | `android.permission.RECEIVE_BOOT_COMPLETED` | Restore active focus session after reboot | Local session state |
 | `android.permission.VIBRATE` | Tactile haptic feedback on NFC scan | Sensory feedback |
 | `android.permission.QUERY_ALL_PACKAGES` | Populate installed app picker | Stored locally in Room |
+| `android.permission.INTERNET` | Check GitHub Releases API & download APK updates | Verified releases only; zero telemetry |
+| `android.permission.REQUEST_INSTALL_PACKAGES` | Install verified in-app APK updates | User-authorized package installation |
 
-**No Network Access:** Hermit does not declare `android.permission.INTERNET`. It is physically incapable of transmitting data off your device.
+**Zero Surveillance:** Network access is strictly restricted to checking and downloading updates from GitHub Releases with SHA-256 verification. Hermit contains zero telemetry, zero analytics SDKs, and zero cloud accounts. 100% of focus data remains on your device.
 
 ---
 

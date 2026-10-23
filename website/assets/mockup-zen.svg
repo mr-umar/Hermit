@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" width="360" height="640" fill="none">
+  <!-- Device Outer Frame -->
+  <rect x="10" y="10" width="340" height="620" rx="36" fill="#050505" stroke="#252624" stroke-width="3" />
+  
+  <!-- Notch / Camera punch-hole -->
+  <rect x="140" y="22" width="80" height="18" rx="9" fill="#000000" />
+
+  <!-- OLED Minimal Clock & Date -->
+  <text x="180" y="96" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="200" letter-spacing="-1.5" fill="#F4F5F2" text-anchor="middle">14:28</text>
+  <text x="180" y="122" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#8E928A" text-anchor="middle">Jueves, 23 de octubre</text>
+  
+  <!-- Zen Status Pill Badge -->
+  <rect x="80" y="142" width="200" height="28" rx="14" fill="rgba(134, 239, 172, 0.12)" stroke="rgba(134, 239, 172, 0.35)" stroke-width="1" />
+  <circle cx="96" cy="156" r="4" fill="#86EFAC" />
+  <text x="110" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#86EFAC">Modo Zen Activo • 11h 42m</text>
+
+  <!-- Physical NFC Exit Requirement Notice -->
+  <rect x="36" y="184" width="288" height="58" rx="16" fill="#121312" stroke="#252624" stroke-width="1" />
+  <circle cx="62" cy="213" r="14" fill="rgba(134, 239, 172, 0.15)" />
+  <path d="M57,208 C62,208 67,213 67,218" stroke="#86EFAC" stroke-width="2" stroke-linecap="round" fill="none" />
+  <path d="M57,212 C60,212 63,215 63,218" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round" fill="none" />
+  <circle cx="57" cy="218" r="2" fill="#86EFAC" />
+  
+  <text x="88" y="207" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#F4F5F2">Desactivación física requerida</text>
+  <text x="88" y="224" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#8E928A">Acerca tu etiqueta NFC para salir</text>
+
+  <!-- Allowed Zen Apps List -->
+  <g transform="translate(36, 256)">
+    <!-- App 1: Phone -->
+    <rect x="0" y="0" width="288" height="52" rx="14" fill="#121312" stroke="#202220" stroke-width="1" />
+    <circle cx="28" cy="26" r="14" fill="rgba(244, 245, 242, 0.06)" />
+    <path d="M23,21 C23,21 24,24 26,25 C28,26 31,27 31,27" stroke="#F4F5F2" stroke-width="2" stroke-linecap="round" fill="none" />
+    <text x="54" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#F4F5F2">Teléfono</text>
+    <text x="272" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#8E928A" text-anchor="end">Esencial</text>
+
+    <!-- App 2: Camera -->
+    <rect x="0" y="60" width="288" height="52" rx="14" fill="#121312" stroke="#202220" stroke-width="1" />
+    <circle cx="28" cy="86" r="14" fill="rgba(244, 245, 242, 0.06)" />
+    <rect x="21" y="80" width="14" height="11" rx="2" stroke="#F4F5F2" stroke-width="1.8" fill="none" />
+    <circle cx="28" cy="85.5" r="3" fill="#F4F5F2" />
+    <text x="54" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#F4F5F2">Cámara</text>
+    <text x="272" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#8E928A" text-anchor="end">Esencial</text>
+
+    <!-- App 3: Spotify -->
+    <rect x="0" y="120" width="288" height="52" rx="14" fill="#121312" stroke="#202220" stroke-width="1" />
+    <circle cx="28" cy="146" r="14" fill="rgba(30, 215, 96, 0.15)" />
+    <circle cx="28" cy="146" r="6" stroke="#1ED760" stroke-width="1.8" fill="none" />
+    <text x="54" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#F4F5F2">Spotify</text>
+    <text x="272" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#8E928A" text-anchor="end">Música</text>
+
+    <!-- App 4: YouTube Music -->
+    <rect x="0" y="180" width="288" height="52" rx="14" fill="#121312" stroke="#202220" stroke-width="1" />
+    <circle cx="28" cy="206" r="14" fill="rgba(255, 0, 0, 0.12)" />
+    <polygon points="26,202 32,206 26,210" fill="#FF4444" />
+    <text x="54" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#F4F5F2">YouTube Music</text>
+    <text x="272" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#8E928A" text-anchor="end">Música</text>
+
+    <!-- App 5: Hermit Settings -->
+    <rect x="0" y="240" width="288" height="52" rx="14" fill="#161816" stroke="rgba(134, 239, 172, 0.25)" stroke-width="1" />
+    <circle cx="28" cy="266" r="14" fill="rgba(134, 239, 172, 0.12)" />
+    <circle cx="28" cy="266" r="5" fill="#86EFAC" />
+    <text x="54" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#86EFAC">Hermit</text>
+    <text x="272" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#86EFAC" text-anchor="end">Ajustes</text>
+  </g>
+
+  <!-- Safe Environment Footer -->
+  <text x="180" y="605" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666A63" text-anchor="middle">Teclado y servicios de emergencia siempre disponibles</text>
+</svg>

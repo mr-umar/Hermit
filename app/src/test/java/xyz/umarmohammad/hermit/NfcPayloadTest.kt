@@ -89,4 +89,10 @@ class NfcPayloadTest {
         val bytes = HermitTagPayload.serialize(typical)
         assertTrue("NDEF payload size (${bytes.size} bytes) must fit inside NTAG213 limit of 144B", bytes.size < 130)
     }
+
+    @Test
+    fun testWebScanUrlConstant() {
+        assertEquals("https://hermit.umarmohammad.xyz/scan.html", xyz.umarmohammad.hermit.nfc.NfcTagManager.WEB_SCAN_URL)
+    }
 }
+

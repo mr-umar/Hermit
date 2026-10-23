@@ -42,9 +42,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.data.model.FocusProfile
@@ -61,12 +63,11 @@ import java.util.Locale
 @Composable
 fun TagListScreen(
     tagRepository: TagRepository,
-    profileRepository: ProfileRepository,
+    profileRepository: ProfileRepository? = null,
     onWriteTagClick: () -> Unit,
     onReadTagClick: () -> Unit
 ) {
     val tags by tagRepository.allTags.collectAsState(initial = emptyList())
-    val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
     var tagToDelete by remember { mutableStateOf<NfcTagRecord?>(null) }
 
     Scaffold(
@@ -136,10 +137,8 @@ fun TagListScreen(
                         .padding(horizontal = 16.dp)
                 ) {
                     items(tags, key = { it.id }) { tag ->
-                        val linkedProfile = profiles.firstOrNull { it.id == tag.targetProfileId }
                         TagCardItem(
                             tag = tag,
-                            linkedProfile = linkedProfile,
                             onToggleDisabled = {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     tagRepository.updateTag(tag.copy(isDisabled = !tag.isDisabled))
@@ -158,12 +157,27 @@ fun TagListScreen(
             AlertDialog(
                 onDismissRequest = { tagToDelete = null },
                 title = { Text(stringResource(R.string.tag_delete)) },
-                text = { Text("Are you sure you want to delete the record for \"${target.name}\"?") },
+                text = { Text(stringResource(R.string.tag_delete_confirm_desc, target.name)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 tagRepository.deleteTag(target)
+                                val remainingTags = tagRepository.allTags.first()
+                                if (remainingTags.isEmpty() && profileRepository != null) {
+                                    val profiles = profileRepository.allProfiles.first()
+                                    for (p in profiles) {
+                                        if (p.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.NFC_ONLY || p.activationType == "NFC") {
+                                            profileRepository.saveProfile(
+                                                p.copy(
+                                                    exitBehavior = xyz.umarmohammad.hermit.data.model.ExitBehavior.ALLOW_EMERGENCY,
+                                                    activationType = "TIME",
+                                                    durationMinutes = if (p.durationMinutes == null || p.durationMinutes >= 720) 60 else p.durationMinutes
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
                             }
                             tagToDelete = null
                         }
@@ -184,7 +198,6 @@ fun TagListScreen(
 @Composable
 private fun TagCardItem(
     tag: NfcTagRecord,
-    linkedProfile: FocusProfile?,
     onToggleDisabled: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -220,13 +233,17 @@ private fun TagCardItem(
                 Text(
                     text = tag.name,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
-                    text = stringResource(tag.action.titleRes) + (if (linkedProfile != null) " • ${linkedProfile.name}" else ""),
+                    text = stringResource(R.string.write_tag_toggle_action),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 val lastScannedText = if (tag.lastScannedAt != null) {
@@ -237,7 +254,9 @@ private fun TagCardItem(
                 Text(
                     text = lastScannedText,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 

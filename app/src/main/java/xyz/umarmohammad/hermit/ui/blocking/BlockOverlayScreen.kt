@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Nfc
@@ -38,10 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import xyz.umarmohammad.hermit.R
@@ -58,6 +62,7 @@ fun BlockOverlayScreen(
     profileName: String,
     remainingSeconds: Long?,
     strictCountdownRemaining: Int?,
+    allowEmergencyExit: Boolean = true,
     onGoHome: () -> Unit,
     onEmergencyExit: () -> Unit
 ) {
@@ -82,7 +87,8 @@ fun BlockOverlayScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 28.dp, vertical = 36.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 28.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -105,7 +111,9 @@ fun BlockOverlayScreen(
                     Text(
                         text = profileName,
                         style = MaterialTheme.typography.labelLarge,
-                        color = Texto
+                        color = Texto,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -118,7 +126,10 @@ fun BlockOverlayScreen(
                 Box(
                     modifier = Modifier
                         .size(130.dp)
-                        .scale(pulseScale)
+                        .graphicsLayer {
+                            scaleX = pulseScale
+                            scaleY = pulseScale
+                        }
                         .background(Acento.copy(alpha = 0.15f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
@@ -243,23 +254,39 @@ fun BlockOverlayScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Emergency Exit Button (Handles strict reflection delay)
-                if (strictCountdownRemaining != null && strictCountdownRemaining > 0) {
-                    Text(
-                        text = stringResource(R.string.block_screen_emergency_countdown, strictCountdownRemaining),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Secundario.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    OutlinedButton(
-                        onClick = onEmergencyExit,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Secundario
+                // Emergency Exit Button (Handles strict 60s reflection delay or locked status)
+                if (allowEmergencyExit) {
+                    if (strictCountdownRemaining != null && strictCountdownRemaining > 0) {
+                        Text(
+                            text = stringResource(R.string.block_screen_emergency_countdown, strictCountdownRemaining),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Secundario.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
+                    } else {
+                        OutlinedButton(
+                            onClick = onEmergencyExit,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Secundario
+                            )
+                        ) {
+                            Text(stringResource(R.string.block_screen_btn_emergency))
+                        }
+                    }
+                } else {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Texto.copy(alpha = 0.04f),
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
                     ) {
-                        Text(stringResource(R.string.block_screen_btn_emergency))
+                        Text(
+                            text = stringResource(R.string.block_screen_no_emergency),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Secundario.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                        )
                     }
                 }
             }

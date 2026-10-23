@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets
 object NfcTagManager {
 
     const val APPLICATION_PACKAGE = "xyz.umarmohammad.hermit"
+    const val WEB_SCAN_URL = "https://hermit.umarmohammad.xyz/scan.html"
 
     /**
      * Converts a raw tag UID byte array into a colon-separated uppercase hex string.
@@ -151,18 +152,18 @@ object NfcTagManager {
 
     /**
      * Safely writes the Hermit configuration to a physical NFC tag.
-     * Includes pre-flight capability checks, NDEF formatting if needed,
-     * writing the application record, and read-back verification.
+     * Uses a Web URI record as Record 1 (so uninstalled devices navigate to the web landing page
+     * rather than Google Play Store) and a custom MIME record as Record 2.
      */
     fun writeTag(tag: Tag, payload: HermitTagPayload): Result<HermitTagPayload> {
         val payloadBytes = HermitTagPayload.serialize(payload)
 
-        // Record 1: Custom MIME type record carrying the Hermit payload
+        // Record 1: Web URI record routing non-Hermit devices directly to the website scan page
+        val uriRecord = NdefRecord.createUri(WEB_SCAN_URL)
+        // Record 2: Custom MIME type record carrying the structured Hermit focus payload
         val mimeRecord = NdefRecord.createMime(HermitTagPayload.MIME_TYPE, payloadBytes)
-        // Record 2: Android Application Record (AAR) to direct Android to Hermit
-        val aarRecord = NdefRecord.createApplicationRecord(APPLICATION_PACKAGE)
 
-        val message = NdefMessage(arrayOf(mimeRecord, aarRecord))
+        val message = NdefMessage(arrayOf(uriRecord, mimeRecord))
         val messageSize = message.byteArrayLength
 
         val ndef = Ndef.get(tag)

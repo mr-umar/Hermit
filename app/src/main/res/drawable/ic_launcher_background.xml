@@ -5,15 +5,6 @@
     android:viewportWidth="512"
     android:viewportHeight="512">
     <path
-        android:pathData="M0,0h512v512h-512z">
-        <gradient
-            android:startX="0"
-            android:startY="0"
-            android:endX="512"
-            android:endY="512"
-            android:type="linear">
-            <item android:offset="0.0" android:color="#FFFDF8" />
-            <item android:offset="1.0" android:color="#F0E5D2" />
-        </gradient>
-    </path>
+        android:fillColor="#F6F0E5"
+        android:pathData="M0,0h512v512h-512z" />
 </vector>

@@ -9,8 +9,10 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -69,6 +71,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.delay
+import xyz.umarmohammad.hermit.util.DeviceProtectionManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,6 +85,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,9 +111,11 @@ import java.util.Date
 fun SettingsScreen(
     preferenceManager: PreferenceManager,
     database: HermitDatabase,
-    updateManager: UpdateManager
+    updateManager: UpdateManager,
+    onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val currentLocale by preferenceManager.appLocale.collectAsState(initial = "system")
     val currentTheme by preferenceManager.themeMode.collectAsState(initial = "system")
     val isAccessibilityRunning by HermitAccessibilityService.isServiceRunning.collectAsState()
@@ -124,9 +136,41 @@ fun SettingsScreen(
         powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: false
     }
 
+    var isDeviceAdminActive by remember { mutableStateOf(DeviceProtectionManager.isDeviceAdminActive(context)) }
+    var showAdminDeactivateDialog by remember { mutableStateOf(false) }
+    var showLicenseDialog by remember { mutableStateOf(false) }
+    var deactivateCountdownRemaining by remember { mutableStateOf(15) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isDeviceAdminActive = DeviceProtectionManager.isDeviceAdminActive(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(showAdminDeactivateDialog) {
+        if (showAdminDeactivateDialog) {
+            deactivateCountdownRemaining = 15
+            for (i in 15 downTo 1) {
+                deactivateCountdownRemaining = i
+                delay(1000L)
+            }
+            deactivateCountdownRemaining = 0
+        }
+    }
+
     Scaffold(
         topBar = {
-            HermitTopBar(title = stringResource(R.string.settings_title))
+            HermitTopBar(
+                title = stringResource(R.string.settings_title),
+                onBackClick = onBackClick
+            )
         }
     ) { innerPadding ->
         Column(
@@ -162,7 +206,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    CoroutineScope(Dispatchers.IO).launch {
+                                    coroutineScope.launch {
                                         preferenceManager.setAppLocale(code)
                                     }
                                     val targetTag = if (code == "system") "" else code
@@ -175,7 +219,7 @@ fun SettingsScreen(
                             RadioButton(
                                 selected = (currentLocale == code),
                                 onClick = {
-                                    CoroutineScope(Dispatchers.IO).launch {
+                                    coroutineScope.launch {
                                         preferenceManager.setAppLocale(code)
                                     }
                                     val targetTag = if (code == "system") "" else code
@@ -215,7 +259,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    CoroutineScope(Dispatchers.IO).launch {
+                                    coroutineScope.launch {
                                         preferenceManager.setThemeMode(themeCode)
                                     }
                                 }
@@ -225,7 +269,7 @@ fun SettingsScreen(
                             RadioButton(
                                 selected = (currentTheme == themeCode),
                                 onClick = {
-                                    CoroutineScope(Dispatchers.IO).launch {
+                                    coroutineScope.launch {
                                         preferenceManager.setThemeMode(themeCode)
                                     }
                                 }
@@ -285,6 +329,33 @@ fun SettingsScreen(
                         context.startActivity(intent)
                     } catch (_: Exception) {
                         context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Anti-Uninstall Device Administrator Diagnostic Card
+            DiagnosticItemCard(
+                icon = Icons.Default.Security,
+                title = stringResource(R.string.settings_device_admin_title),
+                status = if (isDeviceAdminActive) {
+                    stringResource(R.string.settings_device_admin_desc_active)
+                } else {
+                    stringResource(R.string.settings_device_admin_desc_inactive)
+                },
+                isHealthy = isDeviceAdminActive,
+                actionText = if (isDeviceAdminActive) {
+                    stringResource(R.string.settings_device_admin_btn_disable)
+                } else {
+                    stringResource(R.string.settings_device_admin_btn_enable)
+                },
+                onAction = {
+                    if (isDeviceAdminActive) {
+                        showAdminDeactivateDialog = true
+                    } else {
+                        val intent = DeviceProtectionManager.createEnableAdminIntent(context)
+                        context.startActivity(intent)
                     }
                 }
             )
@@ -355,7 +426,7 @@ fun SettingsScreen(
             AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
                 AppleListRow(
                     title = stringResource(R.string.settings_about_domain_title),
-                    value = stringResource(R.string.settings_about_domain_val),
+                    value = null,
                     icon = Icons.Default.Public,
                     showChevron = true,
                     onClick = {
@@ -368,7 +439,7 @@ fun SettingsScreen(
 
                 AppleListRow(
                     title = stringResource(R.string.settings_about_repo_title),
-                    value = stringResource(R.string.settings_about_repo_val),
+                    value = null,
                     icon = Icons.Default.Code,
                     showChevron = true,
                     onClick = {
@@ -381,15 +452,16 @@ fun SettingsScreen(
 
                 AppleListRow(
                     title = stringResource(R.string.settings_about_license_title),
-                    value = stringResource(R.string.settings_about_license_val),
+                    subtitle = stringResource(R.string.settings_about_license_val),
                     icon = Icons.Default.Gavel,
-                    showChevron = false
+                    showChevron = true,
+                    onClick = { showLicenseDialog = true }
                 )
 
                 AppleDivider(startIndent = true)
 
                 AppleListRow(
-                    title = "Versión",
+                    title = stringResource(R.string.settings_about_version_title),
                     value = stringResource(R.string.settings_about_version_val),
                     icon = Icons.Default.Info,
                     showChevron = false
@@ -411,7 +483,6 @@ fun SettingsScreen(
                             CoroutineScope(Dispatchers.IO).launch {
                                 database.clearAllTables()
                                 preferenceManager.clearAll()
-                                HermitDatabase.populateDefaultProfiles(database.focusProfileDao())
                             }
                             showResetDialog = false
                             Toast.makeText(context, "Hermit reset to factory state", Toast.LENGTH_SHORT).show()
@@ -423,6 +494,102 @@ fun SettingsScreen(
                 dismissButton = {
                     TextButton(onClick = { showResetDialog = false }) {
                         Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
+        }
+
+        // Mindful Reflection Delay Dialog for Deactivating Device Admin
+        if (showAdminDeactivateDialog) {
+            AlertDialog(
+                onDismissRequest = { showAdminDeactivateDialog = false },
+                title = { Text(stringResource(R.string.device_admin_deactivate_dialog_title)) },
+                text = {
+                    Column {
+                        Text(stringResource(R.string.device_admin_deactivate_dialog_desc))
+                        if (deactivateCountdownRemaining > 0) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = stringResource(R.string.device_admin_countdown_wait, deactivateCountdownRemaining),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showAdminDeactivateDialog = false
+                            DeviceProtectionManager.removeAdmin(context)
+                            isDeviceAdminActive = DeviceProtectionManager.isDeviceAdminActive(context)
+                        },
+                        enabled = (deactivateCountdownRemaining == 0),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text(stringResource(R.string.device_admin_btn_confirm_deactivate))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAdminDeactivateDialog = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
+        }
+
+        // Full Open Source License Explanation Dialog
+        if (showLicenseDialog) {
+            AlertDialog(
+                onDismissRequest = { showLicenseDialog = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Gavel,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.settings_license_dialog_title),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_about_license_val),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_license_dialog_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showLicenseDialog = false }) {
+                        Text(stringResource(R.string.action_close))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showLicenseDialog = false
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/mr-umar/Hermit/blob/main/LICENSE"))
+                            context.startActivity(intent)
+                        }
+                    ) {
+                        Text(stringResource(R.string.settings_about_repo_title))
                     }
                 }
             )
@@ -529,7 +696,7 @@ private fun UpdatesSection(
         AppleDivider(startIndent = true)
 
         val latestVersionText = when (val s = updateState) {
-            is UpdateState.Checking -> stringResource(R.string.updates_status_checking)
+            is UpdateState.Checking -> null
             is UpdateState.UpToDate -> "v${s.installedVersion}"
             is UpdateState.UpdateAvailable -> "v${s.latestVersion}"
             is UpdateState.Downloading -> "v${s.release.parsedVersion?.toString() ?: s.release.tagName}"
@@ -574,18 +741,29 @@ private fun UpdatesSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = Acento
-                )
-                Spacer(modifier = Modifier.width(14.dp))
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Acento.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = Acento
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = stringResource(R.string.updates_status_checking),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.5.sp
+                    ),
                     color = Secundario
                 )
             }
@@ -604,17 +782,24 @@ private fun UpdatesSection(
     }
 
     // Dynamic State Cards (Up to date / Available / Downloading / Ready / Error)
-    Spacer(modifier = Modifier.height(10.dp))
+    if (updateState !is UpdateState.Idle && updateState !is UpdateState.Checking) {
+        Spacer(modifier = Modifier.height(10.dp))
+    }
 
     when (val state = updateState) {
         is UpdateState.UpToDate -> {
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
+            GlassCard(
+                modifier = Modifier.fillMaxWidth(),
+                backgroundColor = Acento.copy(alpha = 0.08f),
+                borderColor = Acento.copy(alpha = 0.25f),
+                contentPadding = 12.dp
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
                         tint = Acento,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
@@ -866,14 +1051,19 @@ private fun UpdatesSection(
             }
         }
         is UpdateState.Error -> {
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
+            GlassCard(
+                modifier = Modifier.fillMaxWidth(),
+                backgroundColor = Aviso.copy(alpha = 0.08f),
+                borderColor = Aviso.copy(alpha = 0.25f),
+                contentPadding = 12.dp
+            ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Warning,
                             contentDescription = null,
                             tint = Aviso,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         val errorText = when (state.error) {

@@ -39,7 +39,9 @@
     <string name="profile_icon_label">Icon</string>
     <string name="profile_duration_label">Session Duration (minutes)</string>
     <string name="profile_duration_unlimited">No timer (manual stop or NFC tap)</string>
+    <string name="profile_duration_unlimited_badge">No timer</string>
     <string name="profile_duration_minutes">%1$d minutes</string>
+    <string name="profile_block_web_social_title">Browser Web Shield</string>
     <string name="profile_blocked_apps_label">Blocked Applications</string>
     <string name="profile_blocked_count">%1$d apps selected</string>
     <string name="profile_select_apps">Select Apps</string>
@@ -88,6 +90,7 @@
     <string name="tag_disable">Disable Tag</string>
     <string name="tag_enable">Enable Tag</string>
     <string name="tag_delete">Delete Tag Record</string>
+    <string name="tag_delete_confirm_desc">Are you sure you want to delete the record for \"%1$s\"?</string>
     <string name="tag_rewrite">Rewrite Physical Tag</string>
     <string name="tag_status_disabled">Disabled</string>
 
@@ -276,9 +279,51 @@
     <string name="onboarding_block_web_social">Also block social media websites in browsers (Chrome, Firefox, etc.)</string>
     <string name="onboarding_unlock_nfc_only">Physical NFC tag unlock only (cannot cancel in app, max 24h)</string>
     <string name="onboarding_unlock_time_only">Timer or app unlock (up to 24h)</string>
-    <string name="onboarding_monk_banner_title">Monk Mode (Absolute Sanctuary)</string>
-    <string name="onboarding_monk_banner_desc">Only Phone, Camera, Maps, WhatsApp, and Music. Physical NFC unlock only.</string>
+    <string name="onboarding_monk_banner_title">Zen Mode (Absolute Sanctuary)</string>
+    <string name="onboarding_monk_banner_desc">Only Phone, Camera, Maps, WhatsApp, and Music. Physical NFC unlock strictly required.</string>
     <string name="onboarding_btn_enter">Enter Hermit</string>
+
+    <!-- Zen Mode Validation -->
+    <string name="zen_mode_title">Zen Mode</string>
+    <string name="zen_mode_desc">Blocks all applications except phone, camera, maps, WhatsApp, and music. Requires a physical NFC tag to unlock.</string>
+    <string name="zen_mode_requires_tag_title">Zen Mode Requires a Physical Tag</string>
+    <string name="zen_mode_requires_tag_desc">Zen Mode creates an absolute sanctuary and cannot be bypassed from the screen. To prevent getting locked out without an exit key, you must register at least one NFC tag before enabling this mode.</string>
+    <string name="zen_mode_btn_setup_tag">Set Up NFC Tag</string>
+
+    <!-- Profile Friction Guidance Dialog -->
+    <string name="profile_friction_dialog_title">Physical Friction &amp; Focus</string>
+    <string name="profile_friction_dialog_desc">To break unconscious phone habits, physical friction using an NFC tag is the most effective approach. If you don\'t have a physical tag yet, you can still use this profile with scheduled timers or manual duration in the app.</string>
+    <string name="profile_friction_dialog_continue">Continue Creating</string>
+    <string name="profile_friction_dialog_setup_tag">Configure a Tag First</string>
+
+    <!-- Tag Without Specific Profile (Active Profile Toggle) -->
+    <string name="write_tag_profile_none">No specific profile (Toggle active focus)</string>
+    <string name="write_tag_profile_none_desc">Tapping this tag toggles whichever profile is currently selected in the Focus tab.</string>
+    <string name="write_tag_create_profile">+ Create New Profile</string>
+
+    <!-- Dynamic Mindful Greetings -->
+    <string name="home_greeting_1">Ready to Focus</string>
+    <string name="home_greeting_2">Take a Deep Breath</string>
+    <string name="home_greeting_3">Your Calm Sanctuary</string>
+    <string name="home_greeting_4">Disconnect to Reconnect</string>
+    <string name="home_greeting_5">One Step Towards Clarity</string>
+    <string name="home_greeting_6">Protect Your Attention</string>
+    <string name="home_greeting_7">Cultivate Your Peace</string>
+    <string name="home_greeting_8">Space for What Matters</string>
+
+    <!-- Physical Tag Setup Card (Shown when 0 tags) -->
+    <string name="home_card_setup_nfc">Set Up a Physical Tag</string>
+    <string name="home_card_setup_nfc_desc">Physical friction creates lasting habits. Tapping a real tag anchors your intention.</string>
+
+    <!-- Digital Wellbeing Statistics -->
+    <string name="stats_screen_time_title">Digital Wellbeing</string>
+    <string name="stats_screen_time_today">Screen Time Today</string>
+    <string name="stats_focus_ratio">Focus Ratio</string>
+    <string name="stats_focus_ratio_desc">%1$d%% of screen time was intentional focus</string>
+    <string name="stats_top_used_apps">Top Apps Today</string>
+    <string name="stats_usage_perm_title">Enable Screen Time Analytics</string>
+    <string name="stats_usage_perm_desc">Grant usage access to display your daily screen time alongside Hermit focus stats.</string>
+    <string name="stats_usage_perm_btn">Enable Wellbeing Access</string>
 
     <!-- Settings Provenance & Links -->
     <string name="settings_about_domain_title">Official Website</string>
@@ -287,7 +332,26 @@
     <string name="settings_about_repo_val">github.com/mr-umar/Hermit</string>
     <string name="settings_about_license_title">License</string>
     <string name="settings_about_license_val">GNU AGPLv3 (Free &amp; Open Source)</string>
+    <string name="settings_about_version_title">Version</string>
     <string name="settings_about_version_val">Hermit 1.0.0 (Build 1)</string>
+
+    <!-- Uninstall & Tamper Protection -->
+    <string name="settings_section_security">Security &amp; Friction</string>
+    <string name="settings_device_admin_title">Uninstall Protection</string>
+    <string name="settings_device_admin_desc_active">Device Administrator is active. Android blocks direct uninstallation of Hermit.</string>
+    <string name="settings_device_admin_desc_inactive">Enable Device Administrator privileges to disable the system uninstall button and prevent impulsive deletion.</string>
+    <string name="settings_device_admin_btn_enable">Enable protection</string>
+    <string name="settings_device_admin_btn_disable">Deactivate protection</string>
+    <string name="device_admin_description">Hermit uses device administrator privileges solely to prevent the application from being uninstalled during focus sessions or moments of distraction.</string>
+    <string name="device_admin_explanation">Enabling this protection disables the direct uninstall button in Android Settings, helping you maintain your focus commitment.</string>
+    <string name="device_admin_warning">Do you wish to disable Hermit\'s uninstall protection? You will lose the barrier against impulsive habits.</string>
+    <string name="device_admin_enabled_toast">Uninstall protection successfully activated</string>
+    <string name="device_admin_disabled_toast">Uninstall protection deactivated</string>
+    <string name="device_admin_deactivate_dialog_title">Mindful reflection pause</string>
+    <string name="device_admin_deactivate_dialog_desc">To avoid impulsive choices, take a few moments to breathe and reflect on whether you truly need to disable protection.</string>
+    <string name="device_admin_countdown_wait">Wait %1$d seconds…</string>
+    <string name="device_admin_btn_confirm_deactivate">Proceed to deactivation</string>
+    <string name="uninstall_intercept_toast">Hermit: Active focus session. You cannot modify or uninstall the app until your focus period ends.</string>
 
     <!-- General / Actions -->
     <string name="action_save">Save</string>
@@ -298,4 +362,64 @@
     <string name="action_retry">Retry</string>
     <string name="action_confirm">Confirm</string>
     <string name="dialog_error_title">Notice</string>
+
+    <!-- Universal Tag & Zero-Profile Strings -->
+    <string name="home_no_profiles_title">No Focus Profiles</string>
+    <string name="home_no_profiles_desc">Create your first profile to define blocked applications or enable Zen Mode.</string>
+    <string name="home_btn_create_first_profile">Create My First Profile</string>
+    <string name="write_tag_universal_title">Universal Physical Switch</string>
+    <string name="write_tag_universal_desc">This physical tag serves exclusively to toggle (activate or deactivate) whichever profile is currently selected in the app under Focus.</string>
+    <string name="write_tag_toggle_action">Activate / Deactivate Focus</string>
+    <string name="toast_scan_started">Focus session started</string>
+    <string name="toast_scan_stopped">Focus session ended</string>
+    <string name="toast_scan_switched">Focus profile switched</string>
+    <string name="toast_scan_disabled">This NFC tag is disabled</string>
+    <string name="toast_scan_no_profile">Please create a focus profile first</string>
+    <string name="settings_license_dialog_title">Open Source License</string>
+    <string name="settings_license_dialog_desc">Hermit is 100% free and open-source software distributed under the GNU Affero General Public License v3.0 (AGPLv3).\n\nYou have the right to inspect the source code, verify that zero user data is collected, and adapt it freely without hidden commercial restrictions.</string>
+
+    <!-- Zen Launcher & Onboarding Strings -->
+    <string name="zen_launcher_open_launcher_btn">Open Zen Launcher</string>
+    <string name="zen_end_requires_nfc_desc">Deactivation exclusively via physical NFC tag</string>
+    <string name="zen_select_apps_title">Apps in Zen Mode (max 5)</string>
+    <string name="zen_launcher_idle_title">Zen Launcher Idle</string>
+    <string name="zen_launcher_idle_desc">Zen Mode activates when starting a Zen profile or tapping your NFC tag.</string>
+    <string name="zen_launcher_open_hermit">Open Hermit</string>
+    <string name="zen_launcher_go_system_home">Go to system home</string>
+    <string name="zen_launcher_active_badge">Zen Mode • %1$s</string>
+    <string name="zen_launcher_remaining_label">Remaining: %1$s</string>
+    <string name="zen_launcher_nfc_prompt">Tap your NFC tag to exit</string>
+    <string name="zen_launcher_nfc_subprompt">Physical NFC deactivation required</string>
+    <string name="block_screen_no_emergency">Emergency exit unavailable. Unlock exclusively via NFC tag or timer completion.</string>
+    <string name="onboarding_nfc_setup_header">Add Physical NFC Tag</string>
+    <string name="onboarding_nfc_setup_scan_hint">Hold your NFC tag to the back of the phone to pair</string>
+    <string name="onboarding_nfc_setup_success">Tag paired successfully!</string>
+    <string name="onboarding_nfc_setup_skip">Skip for now (Continue without tag)</string>
+    <string name="onboarding_profile_timer_only_badge">Timer Mode (No NFC tag)</string>
+    <string name="onboarding_profile_nfc_badge">Physical NFC tag paired</string>
+
+    <!-- Profile Mode, Timer & Emergency Exit Strings -->
+    <string name="profile_activation_mode">Activation Mode</string>
+    <string name="profile_activation_nfc">NFC Tag</string>
+    <string name="profile_activation_time">By Timer</string>
+    <string name="profile_activation_nfc_desc">Toggles the session with the NFC tag.</string>
+    <string name="profile_activation_time_desc">Ends when the timer expires.</string>
+    <string name="profile_duration_timer_title">Duration</string>
+    <string name="profile_duration_slider_hint"></string>
+    <string name="profile_emergency_exit_title">Emergency exit</string>
+    <string name="profile_emergency_exit_enabled_desc">Allow exit after waiting 60 seconds.</string>
+    <string name="profile_emergency_exit_disabled_desc">Strict lock until timer completes.</string>
+    <string name="profile_zen_minimalist_title">Zen Launcher</string>
+    <string name="profile_zen_minimalist_desc">Phone, Camera, Spotify, and YouTube Music.</string>
+    <string name="profile_zen_add_apps_btn">Add additional apps (up to 5)</string>
+    <string name="profile_zen_apps_added_btn">%1$d/5 additional apps added</string>
+    <string name="app_select_max_allowed">Maximum %1$d apps allowed</string>
+    <string name="app_select_selected_of_max">%1$d / %2$d selected</string>
+    <string name="stats_session_blocked">%1$d blocked</string>
+    <string name="tag_status_active">Active</string>
+    <string name="profiles_zen_badge">Zen Launcher</string>
+    <string name="countdown_starting_title">Starting session</string>
+    <string name="countdown_starting_desc">Focus mode will start in %1$d seconds.</string>
+    <string name="countdown_btn_cancel">Cancel start</string>
+    <string name="profile_apps_locked_during_session">You cannot modify applications during an active session.</string>
 </resources>

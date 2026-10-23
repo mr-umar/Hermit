@@ -19,26 +19,39 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,29 +59,49 @@ import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.data.model.ExitBehavior
 import xyz.umarmohammad.hermit.data.model.FocusProfile
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
+import xyz.umarmohammad.hermit.data.repository.TagRepository
+import xyz.umarmohammad.hermit.ui.components.AppleSegmentedControl
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
 import xyz.umarmohammad.hermit.ui.components.TactileButton
+import xyz.umarmohammad.hermit.ui.theme.Acento
+import xyz.umarmohammad.hermit.ui.theme.Aviso
+import xyz.umarmohammad.hermit.ui.theme.Secundario
+import xyz.umarmohammad.hermit.ui.theme.Superficie
+import xyz.umarmohammad.hermit.ui.theme.Texto
+import java.util.UUID
 
 @Composable
 fun ProfileEditScreen(
     profileId: String?,
     profileRepository: ProfileRepository,
+    tagRepository: TagRepository,
     selectedBlockedPackages: List<String>,
+    selectedZenPackages: List<String> = emptyList(),
+    onSyncBlockedPackages: (List<String>) -> Unit = {},
+    onSyncZenPackages: (List<String>) -> Unit = {},
     onSelectAppsClick: () -> Unit,
+    onSelectZenAppsClick: () -> Unit = {},
     onSaved: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val hermitApp = context.applicationContext as? xyz.umarmohammad.hermit.HermitApplication
+    val sessionState by hermitApp?.sessionManager?.sessionState?.collectAsState() ?: remember { mutableStateOf(xyz.umarmohammad.hermit.session.FocusSessionState()) }
+    val isSessionActive = sessionState.isActive
+    val registeredTags by tagRepository.allTags.collectAsState(initial = emptyList())
+    val hasPhysicalTags = registeredTags.isNotEmpty()
+    val coroutineScope = rememberCoroutineScope()
+
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf("work") }
-    var durationSlider by remember { mutableFloatStateOf(45f) }
-    var isUnlimitedDuration by remember { mutableStateOf(false) }
-    var exitBehavior by remember { mutableStateOf(ExitBehavior.ALLOW_EMERGENCY) }
-    var strictMode by remember { mutableStateOf(false) }
+    // Duration in minutes, max 12 hours (720 min)
+    var durationMinutes by remember { mutableFloatStateOf(60f) }
+    var allowEmergencyExit by remember { mutableStateOf(true) } // Default: allowed after 60s
     var isMonkMode by remember { mutableStateOf(false) }
     var blockWebSocial by remember { mutableStateOf(true) }
-    var activationType by remember { mutableStateOf("NFC") }
+    var activationType by remember { mutableStateOf(if (hasPhysicalTags) "NFC" else "TIME") }
 
     val icons = listOf("work", "school", "spa", "bedtime", "code", "book")
 
@@ -79,17 +112,14 @@ fun ProfileEditScreen(
                 name = existing.name
                 description = existing.description
                 selectedIcon = existing.iconName
-                if (existing.durationMinutes != null) {
-                    durationSlider = existing.durationMinutes.toFloat()
-                    isUnlimitedDuration = false
-                } else {
-                    isUnlimitedDuration = true
-                }
-                exitBehavior = existing.exitBehavior
-                strictMode = existing.strictMode
+                durationMinutes = (existing.durationMinutes ?: 60).toFloat().coerceIn(15f, 720f)
+                allowEmergencyExit = (existing.exitBehavior == ExitBehavior.ALLOW_EMERGENCY)
                 isMonkMode = existing.isMonkMode
                 blockWebSocial = existing.blockWebSocial
-                activationType = existing.activationType
+                activationType = if (hasPhysicalTags) existing.activationType else "TIME"
+
+                onSyncBlockedPackages(existing.blockedPackages)
+                onSyncZenPackages(existing.zenAllowedPackages)
             }
         }
     }
@@ -119,33 +149,65 @@ fun ProfileEditScreen(
                     TactileButton(
                         onClick = {
                             if (name.isBlank()) return@TactileButton
-                            val duration = if (isUnlimitedDuration) null else durationSlider.toInt()
+
+                            val isNfcMode = hasPhysicalTags && (activationType == "NFC")
+                            val finalExitBehavior = if (isNfcMode) {
+                                ExitBehavior.NFC_ONLY
+                            } else if (allowEmergencyExit) {
+                                ExitBehavior.ALLOW_EMERGENCY
+                            } else {
+                                ExitBehavior.TIMED_ONLY
+                            }
+
+                            val finalDuration = if (isNfcMode) {
+                                720
+                            } else {
+                                durationMinutes.toInt().coerceIn(15, 720)
+                            }
+
+                            val effectiveZenPackages = if (isSessionActive && profileId == sessionState.activeProfile?.id) {
+                                sessionState.activeProfile?.zenAllowedPackages?.take(5) ?: emptyList()
+                            } else if (isMonkMode) {
+                                selectedZenPackages.distinct().take(5)
+                            } else {
+                                emptyList()
+                            }
+
+                            val effectiveBlockedPackages = if (isSessionActive && profileId == sessionState.activeProfile?.id) {
+                                sessionState.activeProfile?.blockedPackages ?: emptyList()
+                            } else if (isMonkMode) {
+                                emptyList()
+                            } else {
+                                selectedBlockedPackages
+                            }
+
                             val profileToSave = FocusProfile(
-                                id = if (profileId == null || profileId == "new") java.util.UUID.randomUUID().toString() else profileId,
+                                id = if (profileId == null || profileId == "new") UUID.randomUUID().toString() else profileId,
                                 name = name.trim(),
                                 description = description.trim(),
                                 iconName = selectedIcon,
                                 colorHex = "#A5B092",
-                                blockedPackages = selectedBlockedPackages,
-                                durationMinutes = duration,
-                                exitBehavior = exitBehavior,
-                                strictMode = strictMode,
+                                blockedPackages = effectiveBlockedPackages,
+                                durationMinutes = finalDuration,
+                                exitBehavior = finalExitBehavior,
+                                strictMode = true, // 60s reflection delay when emergency exit allowed
                                 isMonkMode = isMonkMode,
                                 blockWebSocial = blockWebSocial,
-                                activationType = activationType
+                                activationType = if (hasPhysicalTags) activationType else "TIME",
+                                zenAllowedPackages = effectiveZenPackages
                             )
-                            CoroutineScope(Dispatchers.IO).launch {
+
+                            coroutineScope.launch(Dispatchers.IO) {
                                 profileRepository.saveProfile(profileToSave)
+                                val app = context.applicationContext as? xyz.umarmohammad.hermit.HermitApplication
+                                app?.sessionManager?.refreshActiveProfile()
                             }
                             onSaved()
                         },
                         enabled = name.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        androidx.compose.material3.Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null
-                        )
+                        Icon(imageVector = Icons.Default.Check, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.action_save))
                     }
@@ -205,7 +267,7 @@ fun ProfileEditScreen(
                             .clickable { selectedIcon = iconKey }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            androidx.compose.material3.Icon(
+                            Icon(
                                 imageVector = getProfileIcon(iconKey),
                                 contentDescription = iconKey,
                                 tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -218,120 +280,279 @@ fun ProfileEditScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Blocked Applications Card
-            GlassCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelectAppsClick() }
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    androidx.compose.material3.Icon(
-                        imageVector = Icons.Default.Apps,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.profile_blocked_apps_label),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            text = stringResource(R.string.profile_blocked_count, selectedBlockedPackages.size),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.profile_select_apps),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+            // Activation / Unlock Mode Selector (If user has physical tags)
+            if (hasPhysicalTags) {
+                Text(
+                    text = stringResource(R.string.profile_activation_mode),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val nfcLabel = stringResource(R.string.profile_activation_nfc)
+                val timeLabel = stringResource(R.string.profile_activation_time)
+                AppleSegmentedControl(
+                    items = listOf("NFC", "TIME"),
+                    selectedItem = activationType,
+                    onItemSelected = { activationType = it },
+                    labelProvider = { if (it == "NFC") nfcLabel else timeLabel }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = if (activationType == "NFC") {
+                        stringResource(R.string.profile_activation_nfc_desc)
+                    } else {
+                        stringResource(R.string.profile_activation_time_desc)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            // Duration Slider (Shown if activationType is TIME, or if user has no NFC tags)
+            if (!hasPhysicalTags || activationType == "TIME") {
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_duration_timer_title),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                modifier = Modifier.weight(1f, fill = false)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            ) {
+                                val totalMin = durationMinutes.toInt()
+                                val hours = totalMin / 60
+                                val mins = totalMin % 60
+                                val labelText = if (hours > 0 && mins > 0) "${hours}h ${mins}m"
+                                else if (hours > 0) "${hours}h"
+                                else "${mins}m"
 
-            // Duration Slider
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.profile_duration_label),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            text = if (isUnlimitedDuration) {
-                                stringResource(R.string.profile_duration_unlimited)
-                            } else {
-                                "${durationSlider.toInt()} min"
-                            },
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                                Text(
+                                    text = labelText,
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
 
-                    if (!isUnlimitedDuration) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         Slider(
-                            value = durationSlider,
-                            onValueChange = { durationSlider = it },
-                            valueRange = 5f..180f,
-                            steps = 34
+                            value = durationMinutes,
+                            onValueChange = { durationMinutes = it },
+                            valueRange = 15f..720f,
+                            steps = 46 // 15m intervals up to 12h
                         )
                     }
+                }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Emergency Exit Option (Default: allowed after 60s, but user can disable it)
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        androidx.compose.material3.Checkbox(
-                            checked = isUnlimitedDuration,
-                            onCheckedChange = { isUnlimitedDuration = it }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.profile_duration_unlimited),
-                            style = MaterialTheme.typography.bodyMedium
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.profile_emergency_exit_title),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = if (allowEmergencyExit) {
+                                    stringResource(R.string.profile_emergency_exit_enabled_desc)
+                                } else {
+                                    stringResource(R.string.profile_emergency_exit_disabled_desc)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (allowEmergencyExit) MaterialTheme.colorScheme.onSurfaceVariant else Aviso
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Switch(
+                            checked = allowEmergencyExit,
+                            onCheckedChange = { allowEmergencyExit = it }
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Strict Mode Toggle
+            // Zen Mode Card
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.profile_strict_mode),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            text = stringResource(R.string.profile_strict_mode_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.zen_mode_title),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = stringResource(R.string.zen_mode_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Switch(
+                            checked = isMonkMode,
+                            onCheckedChange = { isMonkMode = it }
                         )
                     }
-                    Switch(
-                        checked = strictMode,
-                        onCheckedChange = { strictMode = it }
-                    )
+
+                    if (isMonkMode) {
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = stringResource(R.string.profile_zen_minimalist_title),
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.profile_zen_minimalist_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Up to 5 optional apps in Zen Launcher
+                        OutlinedButton(
+                            onClick = onSelectZenAppsClick,
+                            enabled = !isSessionActive,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Apps, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (selectedZenPackages.isEmpty()) {
+                                    stringResource(R.string.profile_zen_add_apps_btn)
+                                } else {
+                                    stringResource(R.string.profile_zen_apps_added_btn, selectedZenPackages.size.coerceAtMost(5))
+                                }
+                            )
+                        }
+
+                        if (isSessionActive) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(R.string.profile_apps_locked_during_session),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Standard Blocked Apps Card (Only relevant if NOT in Zen Mode, since Zen mode whitelist-blocks everything else)
+            if (!isMonkMode) {
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                    modifier = Modifier.size(38.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.Apps,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = stringResource(R.string.profile_blocked_apps_label),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (selectedBlockedPackages.isNotEmpty()) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Text(
+                                    text = "${selectedBlockedPackages.size}",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = if (selectedBlockedPackages.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        OutlinedButton(
+                            onClick = onSelectAppsClick,
+                            enabled = !isSessionActive,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Apps, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (selectedBlockedPackages.isEmpty()) {
+                                    stringResource(R.string.profile_select_apps)
+                                } else {
+                                    stringResource(R.string.app_select_save, selectedBlockedPackages.size)
+                                }
+                            )
+                        }
+
+                        if (isSessionActive) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(R.string.profile_apps_locked_during_session),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Web Browser Social Media Blocking Toggle
             GlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -341,7 +562,7 @@ fun ProfileEditScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Bloqueo en Navegadores",
+                            text = stringResource(R.string.profile_block_web_social_title),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Text(
@@ -354,65 +575,6 @@ fun ProfileEditScreen(
                         checked = blockWebSocial,
                         onCheckedChange = { blockWebSocial = it }
                     )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Monk Mode Toggle
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.onboarding_monk_banner_title),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            text = stringResource(R.string.onboarding_monk_banner_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = isMonkMode,
-                        onCheckedChange = { isMonkMode = it }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Exit Behavior Radio Options
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.profile_exit_behavior),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ExitBehavior.entries.forEach { option ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { exitBehavior = option }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (exitBehavior == option),
-                                onClick = { exitBehavior = option }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(option.titleRes),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
                 }
             }
 

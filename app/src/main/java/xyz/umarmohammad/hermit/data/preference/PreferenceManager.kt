@@ -35,6 +35,9 @@ class PreferenceManager(private val context: Context) {
         // GitHub Release Update Preferences
         val KEY_AUTO_CHECK_UPDATES = booleanPreferencesKey("key_auto_check_updates")
         val KEY_LAST_UPDATE_CHECK_TIMESTAMP = longPreferencesKey("key_last_update_check_timestamp")
+
+        // Active selected profile in Enfoque home screen
+        val KEY_SELECTED_QUICK_PROFILE_ID = stringPreferencesKey("key_selected_quick_profile_id")
     }
 
     val isFirstLaunch: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -75,6 +78,14 @@ class PreferenceManager(private val context: Context) {
 
     val sessionBlockedCount: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[KEY_BLOCKED_COUNT] ?: 0
+    }
+
+    val selectedQuickProfileId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[KEY_SELECTED_QUICK_PROFILE_ID]
+    }
+
+    suspend fun setSelectedQuickProfileId(profileId: String) {
+        context.dataStore.edit { it[KEY_SELECTED_QUICK_PROFILE_ID] = profileId }
     }
 
     suspend fun setFirstLaunchCompleted() {

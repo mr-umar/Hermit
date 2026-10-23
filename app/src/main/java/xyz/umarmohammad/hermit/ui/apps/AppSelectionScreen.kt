@@ -62,6 +62,8 @@ import xyz.umarmohammad.hermit.ui.components.TactileButton
 @Composable
 fun AppSelectionScreen(
     initiallySelectedPackages: List<String>,
+    title: String? = null,
+    maxSelection: Int? = null,
     onSaveSelection: (List<String>) -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -75,26 +77,61 @@ fun AppSelectionScreen(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             val pm = context.packageManager
+
+            // Exclude Input Method Editors (Keyboards: Gboard, Samsung Keyboard, SwiftKey, etc.)
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            val imePackages = imm?.enabledInputMethodList?.map { it.packageName }?.toSet() ?: emptySet()
+
+            // Exclude all Home Launcher activities
+            val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            val homePackages = pm.queryIntentActivities(homeIntent, PackageManager.MATCH_ALL)
+                .map { it.activityInfo.packageName }
+                .toSet()
+
+            // Exclude critical system packages
+            val systemExempt = setOf(
+                context.packageName,
+                "xyz.umarmohammad.hermit",
+                "android",
+                "com.android.systemui",
+                "com.android.settings",
+                "com.android.phone",
+                "com.google.android.dialer",
+                "com.android.dialer",
+                "com.samsung.android.dialer",
+                "com.google.android.packageinstaller",
+                "com.android.packageinstaller",
+                "com.google.android.permissioncontroller",
+                "com.android.permissioncontroller"
+            )
+
+            val allExcluded = imePackages + homePackages + systemExempt
+
             val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
                 addCategory(Intent.CATEGORY_LAUNCHER)
             }
             val resolveInfos = pm.queryIntentActivities(mainIntent, 0)
             val apps = resolveInfos.mapNotNull { ri ->
                 val pkg = ri.activityInfo.packageName
-                // Filter out Hermit and system safety packages
-                if (pkg == context.packageName || pkg == "com.android.settings") return@mapNotNull null
+                if (allExcluded.contains(pkg)) return@mapNotNull null
                 val label = ri.loadLabel(pm).toString()
                 val icon = try { ri.loadIcon(pm) } catch (_: Exception) { null }
+                val iconBmp = try {
+                    icon?.toBitmap(width = 96, height = 96)?.asImageBitmap()
+                } catch (_: Exception) { null }
                 InstalledAppInfo(
                     packageName = pkg,
                     appName = label,
                     isSystemApp = false,
-                    icon = icon
+                    icon = icon,
+                    iconBitmap = iconBmp
                 )
             }.distinctBy { it.packageName }
                 .sortedBy { it.appName.lowercase() }
 
             withContext(Dispatchers.Main) {
+                // Also clean any previously saved excluded packages from selection
+                selectedPackages.removeAll { allExcluded.contains(it) }
                 installedApps = apps
                 isLoading = false
             }
@@ -115,8 +152,12 @@ fun AppSelectionScreen(
     Scaffold(
         topBar = {
             HermitTopBar(
-                title = stringResource(R.string.app_select_title),
-                subtitle = stringResource(R.string.profile_blocked_count, selectedPackages.size),
+                title = title ?: stringResource(R.string.app_select_title),
+                subtitle = if (maxSelection != null) {
+                    stringResource(R.string.app_select_selected_of_max, selectedPackages.size, maxSelection)
+                } else {
+                    stringResource(R.string.profile_blocked_count, selectedPackages.size)
+                },
                 onBackClick = onBackClick
             )
         },
@@ -183,15 +224,17 @@ fun AppSelectionScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row {
-                    TextButton(
-                        onClick = {
-                            val newToAdd = filteredApps.map { it.packageName }.filter { !selectedPackages.contains(it) }
-                            selectedPackages.addAll(newToAdd)
+                    if (maxSelection == null) {
+                        TextButton(
+                            onClick = {
+                                val newToAdd = filteredApps.map { it.packageName }.filter { !selectedPackages.contains(it) }
+                                selectedPackages.addAll(newToAdd)
+                            }
+                        ) {
+                            Text(stringResource(R.string.app_select_all))
                         }
-                    ) {
-                        Text(stringResource(R.string.app_select_all))
+                        Spacer(modifier = Modifier.width(4.dp))
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
                     TextButton(
                         onClick = {
                             selectedPackages.clear()
@@ -224,7 +267,15 @@ fun AppSelectionScreen(
                                 if (isSelected) {
                                     selectedPackages.remove(app.packageName)
                                 } else {
-                                    selectedPackages.add(app.packageName)
+                                    if (maxSelection != null && selectedPackages.size >= maxSelection) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            context.getString(R.string.app_select_max_allowed, maxSelection),
+                                            android.widget.Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        selectedPackages.add(app.packageName)
+                                    }
                                 }
                             }
                         )
@@ -253,24 +304,12 @@ private fun AppItemRow(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (app.icon != null) {
-                val bitmap = remember(app.icon) {
-                    try { app.icon.toBitmap(width = 96, height = 96) } catch (_: Exception) { null }
-                }
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = app.appName,
-                        modifier = Modifier.size(40.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Apps,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+            if (app.iconBitmap != null) {
+                Image(
+                    bitmap = app.iconBitmap,
+                    contentDescription = app.appName,
+                    modifier = Modifier.size(40.dp)
+                )
             } else {
                 Icon(
                     imageVector = Icons.Default.Apps,

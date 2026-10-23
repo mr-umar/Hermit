@@ -38,73 +38,111 @@
 </p>
 
 <p align="center">
-  <img src="website/assets/mockup-app.svg" width="310" alt="Pantalla de sesión activa de Hermit" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="website/assets/mockup-block.svg" width="310" alt="Pantalla de bloqueo consciente de Hermit" />
+  <img src="website/assets/mockup-app.svg" width="240" alt="Pantalla de sesión activa de Hermit" />
+  &nbsp;&nbsp;
+  <img src="website/assets/mockup-zen.svg" width="240" alt="Pantalla de Launcher Zen de Hermit" />
+  &nbsp;&nbsp;
+  <img src="website/assets/mockup-block.svg" width="240" alt="Pantalla de bloqueo consciente de Hermit" />
 </p>
 
-Hermit convierte etiquetas NFC estándar y económicas en un ancla física frente a las distracciones digitales. Al vincular el gesto tangible de acercar el teléfono con el bloqueo genuino de aplicaciones a través del `AccessibilityService` de Android, Hermit te ayuda a cultivar un estado de concentración profundo y sereno, sin hardware propietario, sin suscripciones y sin rastreadores en la nube.
+Hermit convierte etiquetas NFC estándar y económicas en un ancla física frente a las distracciones digitales. Al vincular el gesto tangible de acercar el teléfono con el bloqueo genuino de aplicaciones a través del `AccessibilityService` de Android y un **Launcher Zen** integrado, Hermit te ayuda a cultivar un estado de concentración profundo y sereno, sin hardware propietario, sin suscripciones y sin vigilancia en la nube.
 
 ---
 
 ## Tabla de Contenidos
 
-1. [Filosofía y Funcionamiento](#filosofía-y-funcionamiento)
-2. [Funcionalidades Principales](#funcionalidades-principales)
-3. [Arquitectura y Tecnologías](#arquitectura-y-tecnologías)
-4. [Compatibilidad de Etiquetas NFC](#compatibilidad-de-etiquetas-nfc)
-5. [Especificación del Payload NDEF](#especificación-del-payload-ndef)
-6. [Implementación del Bloqueo de Aplicaciones](#implementación-del-bloqueo-de-aplicaciones)
-7. [Limitaciones de Fabricantes de Android](#limitaciones-de-fabricantes-de-android)
-8. [Permisos y Privacidad](#permisos-y-privacidad)
-9. [Guía de Compilación e Instalación](#guía-de-compilación-e-instalación)
-10. [Pruebas Automatizadas](#pruebas-automatizadas)
-11. [Sitio Web y Despliegue](#sitio-web-y-despliegue)
-12. [Licencia](#licencia)
+1. [Filosofía y Enfoque](#filosofía-y-enfoque)
+2. [Onboarding Adaptativo y Perfiles](#onboarding-adaptativo-y-perfiles)
+3. [Launcher Zen Integrado (Modo Zen)](#launcher-zen-integrado-modo-zen)
+4. [Funcionalidades Principales](#funcionalidades-principales)
+5. [Arquitectura y Tecnologías](#arquitectura-y-tecnologías)
+6. [Compatibilidad de Etiquetas NFC](#compatibilidad-de-etiquetas-nfc)
+7. [Especificación del Payload NDEF](#especificación-del-payload-ndef)
+8. [Implementación del Bloqueo de Aplicaciones](#implementación-del-bloqueo-de-aplicaciones)
+9. [Seguridad y Protección contra Desinstalación](#seguridad-y-protección-contra-desinstalación)
+10. [Limitaciones de Fabricantes de Android](#limitaciones-de-fabricantes-de-android)
+11. [Permisos y Privacidad](#permisos-y-privacidad)
+12. [Guía de Compilación e Instalación](#guía-de-compilación-e-instalación)
+13. [Pruebas Automatizadas](#pruebas-automatizadas)
+14. [Sitio Web y Despliegue](#sitio-web-y-despliegue)
+15. [Licencia](#licencia)
 
 ---
 
-## Filosofía y Funcionamiento
+## Filosofía y Enfoque
 
 Los teléfonos inteligentes modernos están optimizados para captar la atención de forma constante. La fuerza de voluntad frente a la pantalla suele ser insuficiente para frenar la memoria muscular automática.
 
 Hermit introduce una **fricción física intencionada**:
-1. Creas un perfil de enfoque (por ejemplo, Trabajo Profundo, Estudio o Descanso) seleccionando las aplicaciones que deseas bloquear.
-2. Grabas la acción deseada en una etiqueta NFC física estándar (NTAG213, NTAG215 o NTAG216).
-3. Acercar el teléfono a la etiqueta inicia la sesión de concentración y levanta el escudo protector.
-4. Cualquier intento de abrir una app bloqueada muestra inmediatamente una pantalla de pausa reflexiva que te invita a respirar, exigiendo volver a tocar la etiqueta NFC o cumplir una cuenta atrás para salir.
-5. Todos los datos, perfiles y estadísticas permanecen de forma estrictamente local en tu dispositivo.
+1. **Sin perfiles basura por defecto:** Hermit parte de un lienzo limpio. Tú defines tus perfiles según tus necesidades reales de concentración.
+2. **Configuración adaptativa:** Si aún no tienes una etiqueta NFC, puedes crear perfiles protegidos por temporizador (hasta 12 horas) con salidas de emergencia configurables. Si vinculas una etiqueta NFC, desbloqueas el interruptor físico universal y el **Launcher Zen**.
+3. **Anclaje físico:** Acercar el teléfono a tu etiqueta activa o desactiva la sesión de forma inmediata.
+4. **Pausa consciente y reclusión Zen:** Abrir una app bloqueada muestra una pantalla de respiración consciente. En Modo Zen, tu pantalla de inicio se transforma en un entorno OLED minimalista que solo muestra lo imprescindible.
+5. **Privacidad absoluta:** El 100 % de tus datos, estadísticas y hábitos se procesan y almacenan en local en tu dispositivo.
+
+---
+
+## Onboarding Adaptativo y Perfiles
+
+Hermit guía al usuario con un asistente inicial de dos pasos inteligente y adaptado a su equipamiento:
+
+- **Paso 1: Vincular Etiqueta NFC (Omitible):**
+  - Acerca cualquier etiqueta estándar NTAG213, NTAG215 o NTAG216 para enlazarla de inmediato.
+  - Si no dispones de etiqueta en ese momento, pulsa **"Omitir por ahora"** para continuar sin bloqueos.
+- **Paso 2: Creación Adaptativa del Primer Perfil:**
+  - **Sin Etiqueta NFC (Modo Temporizador):**
+    - Crea perfiles de bloqueo con una cuenta atrás de hasta un **máximo estricto de 12 horas**.
+    - Opción de salida de emergencia: habilitada por defecto tras una pausa reflexiva de 60 segundos, pero completamente desactivable por el usuario para un bloqueo irrevocable hasta el fin del tiempo.
+    - El Modo Launcher Zen permanece desactivado (requiere etiqueta física NFC para salir con seguridad).
+  - **Con Etiqueta NFC (Interruptor Físico y Modo Zen):**
+    - La etiqueta funciona como un **Interruptor Físico Universal**: un toque activa o desactiva la sesión del perfil que tengas seleccionado en la app.
+    - Desbloquea la opción de **Modo Zen (Launcher)** con salida exclusiva mediante etiqueta física NFC.
+    - Todas las sesiones están amparadas por un tope interno de seguridad de 12 horas.
+
+---
+
+## Launcher Zen Integrado (Modo Zen)
+
+Hermit integra un entorno de inicio minimalista (`ZenLauncherActivity`) diseñado para silenciar por completo el ruido visual:
+
+- **Interfaz OLED Negra:** Lienzo negro puro (`#000000`) con reloj digital, fecha, indicador de tiempo restante de sesión y aviso para desactivar mediante NFC.
+- **Herramientas Esenciales Visibles:**
+  - Teléfono (Marcador)
+  - Cámara
+  - Spotify (si está instalada)
+  - YouTube Music (si está instalada)
+  - Opcionalmente hasta 5 aplicaciones personalizadas elegidas por el usuario.
+  - Hermit (para acceder a ajustes, estadísticas y perfiles).
+- **Redirección del Botón de Inicio (Home):**
+  - Mientras el Modo Zen está activo, cualquier intento de pulsar el botón Home o cambiar de app en el launcher del sistema devuelve al usuario al Launcher Zen a través del servicio de accesibilidad.
+- **Protección Garantizada del Sistema:**
+  - Teclados / métodos de entrada (IMEs como Gboard), llamadas de emergencia, ajustes del sistema y Hermit están en lista blanca obligatoria y **jamás se bloquean**.
+- **Desactivación Física Estricta con NFC:**
+  - Para salir del Launcher Zen antes de tiempo es imprescindible escanear la etiqueta NFC física vinculada (o esperar al tope de seguridad de 12 horas).
 
 ---
 
 ## Funcionalidades Principales
 
-- **Gestor Completo de Etiquetas NFC:**
-  - Creación, grabación y registro de etiquetas dentro de la app.
-  - Nombres personalizados y asignación de acciones: `TOGGLE` (alternar), `ACTIVATE` (activar), `DEACTIVATE` (desactivar), `SWITCH` (cambiar perfil).
-  - Flujo de grabación guiado con verificación inmediata de lectura posterior.
-  - Alerta de seguridad antes de sobrescribir etiquetas con datos NDEF preexistentes.
+- **Interruptor Universal de Etiquetas NFC:**
+  - Toca tu etiqueta para alternar (activar/desactivar) el perfil seleccionado en la pestaña Enfoque.
+  - Asistente de grabación interactivo con verificación de lectura y alerta de sobrescritura.
   - Inspector de etiquetas que decodifica UID, chip, estado de solo lectura y memoria NDEF.
 - **Bloqueo Real de Aplicaciones:**
-  - `HermitAccessibilityService` supervisa cambios de ventana en primer plano en tiempo real.
-  - Lista blanca de seguridad que preserva el teléfono de llamadas, emergencias, instalador de paquetes, launcher de inicio y ajustes del sistema.
-  - Ventana de amortiguación (debounce) de 1200 ms para evitar bucles de eventos.
-  - Persistencia de sesión tras reinicio del dispositivo (`BootReceiver`).
-- **Perfiles de Concentración:**
-  - Perfiles configurables con nombres, descripciones, iconos y colores.
-  - Selector de aplicaciones instaladas con búsqueda en tiempo real.
-  - Duración de sesión opcional con temporizador visible o modo indefinido.
-  - Modo estricto con pausa reflexiva de 60 segundos antes de permitir salidas de emergencia.
+  - `HermitAccessibilityService` supervisa aplicaciones en primer plano sin inspeccionar mensajes ni pulsaciones.
+  - Ventana de amortiguación (debounce) de 1200 ms y persistencia tras reinicio (`BootReceiver`).
+- **Perfiles a Medida:**
+  - Selector de aplicaciones con filtro por categorías y búsqueda instantánea.
+  - Temporizador configurable de hasta 12 horas con pausas reflexivas de 60 segundos opcionales.
+- **Protección contra Desinstalación (Anti-Tamper):**
+  - Privilegios opcionales de Administrador de Dispositivos para deshabilitar el botón de desinstalación de Android.
+  - Desactivación protegida mediante una cuenta atrás consciente obligatoria.
+- **Actualizaciones Integradas mediante GitHub Releases:**
+  - Comprobador y descargador de actualizaciones directamente desde GitHub Releases con validación criptográfica SHA-256 e instalador APK interno.
 - **Métricas e Historial Local:**
-  - Registro de horas de enfoque, sesiones completadas y distracciones evitadas en base de datos Room.
-  - Cero peticiones de red o telemetría externa.
+  - Registro de horas de enfoque, sesiones completadas y distracciones evitadas en base de datos Room cifrada.
 - **Interfaz Bilingüe:**
-  - Soporte completo en español (`values-es/`) e inglés (`values/`).
-  - Detección automática del idioma del sistema con opción de cambio manual en Ajustes.
-- **Actualizaciones Seguras mediante GitHub Releases:**
-  - Actualización directa desde la app mediante la API pública de GitHub Releases, sin servicios propietarios ni rastreo.
-  - Comparación numérica SemVer 2.0.0, verificación de integridad SHA-256 y comprobación de certificados de firma antes de instalar.
-  - Documentación completa en [docs/RELEASES.md](docs/RELEASES.md).
+  - Soporte completo en español (`values-es/`) e inglés (`values/`) con detección automática y cambio manual.
 
 ---
 
@@ -178,6 +216,17 @@ El bloqueo se ejecuta a través de `HermitAccessibilityService`:
 3. **Lista Blanca de Seguridad:** El lanzador del sistema, la aplicación de teléfono, servicios de emergencia y los ajustes están completamente exentos.
 4. **Protección de Bucle:** Un intervalo de 1200 ms evita disparos repetidos al alternar entre pantallas.
 5. **Pantalla de Pausa:** Abre `BlockOverlayActivity` mostrando el mensaje consciente, el tiempo restante y la instrucción de desbloquear con la etiqueta NFC.
+6. **Redirección de Inicio al Launcher Zen:** Al estar en Modo Zen, cualquier navegación al launcher del sistema devuelve al usuario al `ZenLauncherActivity`. Los teclados (IMEs), el marcador, la cámara y el propio Hermit permanecen 100 % exentos.
+
+---
+
+## Seguridad y Protección contra Desinstalación
+
+Para evitar el autosabotaje impulsivo en momentos de distracción:
+
+- **Protección como Administrador del Dispositivo:** Permite conceder privilegios de Administrador (`HermitDeviceAdminReceiver`). Android inhabilita el botón de "Desinstalar" en los ajustes del sistema mientras esté activo.
+- **Pausa Reflexiva Obligatoria:** Desactivar la protección de Administrador requiere superar una cuenta atrás de reflexión consciente antes de permitir el acceso a los ajustes de desactivación.
+- **Tope de Seguridad de 12 Horas:** Todas las sesiones incorporan un límite estricto de 12 horas (`SAFETY_12H_TIMEOUT`), garantizando que ante cualquier pérdida de la etiqueta o imprevisto, el dispositivo nunca quede bloqueado indefinidamente.
 
 ---
 
@@ -194,12 +243,14 @@ El bloqueo se ejecuta a través de `HermitAccessibilityService`:
 | Permiso | Propósito | Impacto en Privacidad |
 | :--- | :--- | :--- |
 | `android.permission.NFC` | Lectura y grabación de etiquetas físicas | Exclusivamente hardware local |
-| `android.permission.BIND_ACCESSIBILITY_SERVICE` | Detectar cuándo se abren apps bloqueadas | Sin lectura de textos ni pulsaciones; solo nombres de paquetes |
+| `android.permission.BIND_ACCESSIBILITY_SERVICE` | Detectar apps bloqueadas y redirigir al Launcher Zen | Sin lectura de textos ni pulsaciones; solo nombres de paquetes |
 | `android.permission.RECEIVE_BOOT_COMPLETED` | Restaurar sesiones de enfoque tras reiniciar | Estado de sesión local |
 | `android.permission.VIBRATE` | Respuesta háptica al escanear | Sensorial |
 | `android.permission.QUERY_ALL_PACKAGES` | Listar aplicaciones en el selector de bloqueo | Almacenado localmente en Room |
+| `android.permission.INTERNET` | Consultar la API de GitHub Releases y descargar actualizaciones de APK | Exclusivo para releases verificadas con SHA-256; cero telemetría |
+| `android.permission.REQUEST_INSTALL_PACKAGES` | Instalar actualizaciones de APK verificadas dentro de la app | Autorizado explícitamente por el usuario |
 
-**Cero Acceso a Internet:** Hermit no incluye el permiso `INTERNET` en su manifiesto. Es técnicamente incapaz de enviar datos fuera del dispositivo.
+**Cero Vigilancia:** El acceso a internet se limita con exclusividad a comprobar y descargar versiones firmadas desde GitHub Releases con comprobación de hash SHA-256. Hermit no contiene analítica, rastreadores ni cuentas externas. El 100 % de tus datos permanece en tu dispositivo.
 
 ---
 

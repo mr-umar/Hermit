@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Page not found | Hermit</title>
+  <meta name="description" content="The page you were looking for doesn't exist. Head back to the Hermit homepage.">
+  <meta name="robots" content="noindex">
+
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F3EC">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#151614">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .error-page {
+      min-height: calc(100vh - 4.2rem - 6rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      text-align: center;
+    }
+
+    .error-card {
+      max-width: 520px;
+      width: 100%;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 3rem 2.5rem;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .error-emblem {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      border-radius: var(--radius-full);
+      background: rgba(224, 149, 123, 0.12);
+      border: 1px solid rgba(224, 149, 123, 0.30);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-accent);
+    }
+
+    .error-code {
+      font-size: clamp(3.5rem, 10vw, 5rem);
+      font-weight: 800;
+      color: var(--color-text-primary);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.5rem;
+      opacity: 0.15;
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .error-title {
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .error-desc {
+      font-size: 1rem;
+      color: var(--color-text-secondary);
+      line-height: 1.55;
+      margin-bottom: 2rem;
+    }
+
+    .error-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 420px) {
+      .error-actions {
+        flex-direction: row;
+        justify-content: center;
+      }
+      .error-actions .btn {
+        flex: 1;
+      }
+    }
+
+    .error-hint {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      opacity: 0.7;
+    }
+
+    .error-hint a {
+      color: var(--color-primary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo-link" aria-label="Hermit homepage">
+        <img src="assets/favicon.svg" alt="Hermit emblem" class="logo-icon" width="32" height="32">
+        <span>Hermit</span>
+      </a>
+
+      <div class="nav-controls">
+        <button id="theme-toggle" class="btn-icon-toggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="error-page">
+    <div class="error-card">
+      <div class="error-code" aria-hidden="true">404</div>
+
+      <div class="error-emblem">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </div>
+
+      <h1 class="error-title" data-i18n="error.title">Page not found</h1>
+
+      <p class="error-desc" data-i18n="error.desc">
+        The page you're looking for doesn't exist or has been moved. Let's get you back on track.
+      </p>
+
+      <div class="error-actions">
+        <a href="index.html" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="error.home">Home</span>
+        </a>
+        <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+
+      <p class="error-hint" data-i18n="error.hint">
+        If you scanned an NFC tag, <a href="scan.html">visit the scan page</a> instead.
+      </p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <p class="footer-copy" data-i18n="footer.desc">Open-source Android application for NFC-powered mindful focus.</p>
+      <div class="footer-links">
+        <a href="index.html" data-i18n="footer.home">Home</a>
+        <a href="https://github.com/mr-umar/Hermit" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        "error.title": "Page not found",
+        "error.desc": "The page you're looking for doesn't exist or has been moved. Let's get you back on track.",
+        "error.home": "Home",
+        "error.hint": "If you scanned an NFC tag, visit the scan page instead.",
+        "footer.desc": "Open-source Android application for NFC-powered mindful focus.",
+        "footer.home": "Home"
+      },
+      es: {
+        "error.title": "Página no encontrada",
+        "error.desc": "La página que buscas no existe o ha sido trasladada. Volvamos al buen camino.",
+        "error.home": "Inicio",
+        "error.hint": "Si has escaneado una etiqueta NFC, visita la página de escaneo.",
+        "footer.desc": "Aplicación Android de código abierto para concentración consciente mediante NFC.",
+        "footer.home": "Inicio"
+      }
+    };
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('hermit_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.style.colorScheme = theme;
+      updateThemeIcon(theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const target = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', target);
+      document.documentElement.style.colorScheme = target;
+      localStorage.setItem('hermit_theme', target);
+      updateThemeIcon(target);
+    }
+
+    function updateThemeIcon(theme) {
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.innerHTML = theme === 'dark'
+          ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+          : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+    }
+
+    function applyLanguage() {
+      const savedLang = localStorage.getItem('hermit_lang');
+      const browserLang = (navigator.languages && navigator.languages[0] || navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+      const lang = savedLang || browserLang;
+      document.documentElement.lang = lang;
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          if (key === 'error.hint') {
+            // Preserve the inner link
+            const linkHref = lang === 'es' ? 'scan.html' : 'scan.html';
+            const linkText = lang === 'es' ? 'visita la página de escaneo' : 'visit the scan page';
+            el.innerHTML = lang === 'es'
+              ? `Si has escaneado una etiqueta NFC, <a href="${linkHref}">${linkText}</a>.`
+              : `If you scanned an NFC tag, <a href="${linkHref}">${linkText}</a> instead.`;
+          } else {
+            el.textContent = translations[lang][key];
+          }
+        }
+      });
+
+      document.title = lang === 'es' ? 'Página no encontrada | Hermit' : 'Page not found | Hermit';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      applyLanguage();
+
+      document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+    });
+  </script>
+</body>
+</html>

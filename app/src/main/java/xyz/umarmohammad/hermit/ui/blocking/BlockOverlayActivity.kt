@@ -74,12 +74,15 @@ class BlockOverlayActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             HermitTheme(darkTheme = true) {
                 val state by sessionManager.sessionState.collectAsState()
 
+                val isEmergencyAllowed = state.activeProfile?.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.ALLOW_EMERGENCY
+
                 BlockOverlayScreen(
                     blockedAppName = blockedAppName,
                     blockedAppIcon = blockedAppIcon,
                     profileName = state.activeProfile?.name ?: profileName,
                     remainingSeconds = state.remainingSeconds,
                     strictCountdownRemaining = strictCountdownRemaining,
+                    allowEmergencyExit = isEmergencyAllowed,
                     onGoHome = { navigateToHome() },
                     onEmergencyExit = { handleEmergencyExit(state.activeProfile?.strictMode == true) }
                 )
@@ -137,8 +140,13 @@ class BlockOverlayActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun handleEmergencyExit(isStrictMode: Boolean) {
+        val currentProfile = sessionManager.sessionState.value.activeProfile
+        if (currentProfile?.exitBehavior != xyz.umarmohammad.hermit.data.model.ExitBehavior.ALLOW_EMERGENCY) {
+            return
+        }
+
+        // Require 60 seconds reflection pause in strict mode
         if (isStrictMode) {
-            // Require 60 seconds reflection pause in strict mode
             if (countdownJob != null && countdownJob?.isActive == true) return
             strictCountdownRemaining = 60
             countdownJob = lifecycleScope.launch {
@@ -157,11 +165,19 @@ class BlockOverlayActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun navigateToHome() {
-        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        val isZenActive = sessionManager.sessionState.value.activeProfile?.isMonkMode == true
+        if (isZenActive) {
+            val zenIntent = Intent(this, xyz.umarmohammad.hermit.ui.launcher.ZenLauncherActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(zenIntent)
+        } else {
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(homeIntent)
         }
-        startActivity(homeIntent)
         finish()
     }
 

@@ -69,10 +69,12 @@
 
       <nav aria-label="Main navigation">
         <ul class="nav-links">
+          <li><a href="#zen-launcher" data-i18n="nav.zen">Zen Launcher</a></li>
           <li><a href="#how-it-works" data-i18n="nav.how">How it works</a></li>
+          <li><a href="#adaptive-flow" data-i18n="nav.adaptive">Profiles &amp; NFC</a></li>
           <li><a href="#features" data-i18n="nav.features">Features</a></li>
           <li><a href="#hardware" data-i18n="nav.hardware">NFC hardware</a></li>
-          <li><a href="#privacy" data-i18n="nav.privacy">Privacy</a></li>
+          <li><a href="#security" data-i18n="nav.security">Security</a></li>
           <li><a href="#faq" data-i18n="nav.faq">FAQ</a></li>
         </ul>
       </nav>
@@ -101,7 +103,7 @@
         <div class="hero-content">
           <h1 class="hero-title" data-i18n="hero.title">Mindful focus, anchored in the physical world.</h1>
           <p class="hero-lede" data-i18n="hero.subtitle">
-            Hermit pairs affordable, standard NFC tags with genuine Android application blocking. Tap your desk tag to create a physical sanctuary for deep work. No subscriptions. No cloud servers. Zero surveillance.
+            Hermit pairs affordable, standard NFC tags with genuine Android application blocking and an integrated Zen Launcher. Zero subscriptions. Zero cloud trackers. An unyielding physical barrier for deep work.
           </p>
 
           <div class="hero-action-group">
@@ -111,8 +113,8 @@
                 <span data-i18n="hero.download">Download APK</span>
               </a>
               <div class="hero-secondary-group">
-                <a href="#how-it-works" class="btn btn-secondary">
-                  <span data-i18n="nav.how">How it works</span>
+                <a href="#zen-launcher" class="btn btn-secondary">
+                  <span data-i18n="nav.zen">Zen Launcher</span>
                 </a>
                 <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary btn-hero-github" target="_blank" rel="noopener">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -131,12 +133,12 @@
                 <dd data-i18n="hero.spec.hardware.val">NTAG213 / 215 / 216</dd>
               </div>
               <div class="hero-spec-item">
-                <dt data-i18n="hero.spec.privacy">Telemetry</dt>
-                <dd data-i18n="hero.spec.privacy.val">100% local (0 KB)</dd>
+                <dt data-i18n="hero.spec.safety">Safety ceiling</dt>
+                <dd data-i18n="hero.spec.safety.val">12 hours max</dd>
               </div>
               <div class="hero-spec-item">
-                <dt data-i18n="hero.spec.license">License</dt>
-                <dd data-i18n="hero.spec.license.val">Free &amp; open source (AGPLv3)</dd>
+                <dt data-i18n="hero.spec.privacy">Telemetry</dt>
+                <dd data-i18n="hero.spec.privacy.val">100% local (0 KB)</dd>
               </div>
             </dl>
           </div>
@@ -156,42 +158,179 @@
       </div>
     </section>
 
+    <!-- Zen Launcher Showcase Section -->
+    <section id="zen-launcher" class="section zen-section">
+      <div class="container">
+        <div class="zen-grid">
+          <div class="zen-info">
+            <div class="zen-badge">
+              <span class="zen-badge-dot"></span>
+              <span data-i18n="zen.badge">Integrated Zen Launcher</span>
+            </div>
+            <h2 data-i18n="zen.title">A distraction-free OLED sanctuary for your phone.</h2>
+            <p data-i18n="zen.desc">
+              When Zen Mode is engaged, your phone is secluded in an ultra-minimalist home environment. The home button routes directly back to Zen. Only your selected essentials remain reachable.
+            </p>
+
+            <div class="zen-app-tags">
+              <span class="zen-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-i18n="zen.app.phone">Phone</span></span>
+              <span class="zen-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> <span data-i18n="zen.app.camera">Camera</span></span>
+              <span class="zen-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> <span data-i18n="zen.app.spotify">Spotify</span></span>
+              <span class="zen-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span data-i18n="zen.app.ytmusic">YouTube Music</span></span>
+              <span class="zen-tag zen-tag-custom"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> <span data-i18n="zen.app.custom">Up to 5 custom apps</span></span>
+            </div>
+
+            <div class="zen-highlights">
+              <div class="zen-highlight-item">
+                <div class="zen-highlight-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                </div>
+                <div class="zen-highlight-body">
+                  <h4 data-i18n="zen.hl1.title">Strict physical NFC deactivation</h4>
+                  <p data-i18n="zen.hl1.desc">Cannot be exited on impulse. Early deactivation strictly requires scanning your paired physical NFC tag (backed by an internal 12-hour safety ceiling).</p>
+                </div>
+              </div>
+
+              <div class="zen-highlight-item">
+                <div class="zen-highlight-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div class="zen-highlight-body">
+                  <h4 data-i18n="zen.hl2.title">Accessibility Home redirection</h4>
+                  <p data-i18n="zen.hl2.desc">Tapping Home or recent apps automatically returns to the Zen Launcher, neutralizing unconscious muscle memory.</p>
+                </div>
+              </div>
+
+              <div class="zen-highlight-item">
+                <div class="zen-highlight-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                </div>
+                <div class="zen-highlight-body">
+                  <h4 data-i18n="zen.hl3.title">System essentials always preserved</h4>
+                  <p data-i18n="zen.hl3.desc">Keyboards (IMEs), emergency dialer, phone calls, system settings, and Hermit itself are hard-whitelisted and never blocked.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="zen-device-card">
+            <img src="assets/mockup-zen.svg" alt="Hermit Zen Launcher OLED interface" class="zen-device-img" width="340" height="600" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- How It Works Section -->
     <section id="how-it-works" class="section">
       <div class="container">
         <div class="section-header">
           <h2 data-i18n="how.title">How Hermit works</h2>
-          <p data-i18n="how.subtitle">Transform an inexpensive NFC tag into a physical sanctuary from digital distractions.</p>
+          <p data-i18n="how.subtitle">Zero pre-baked clutter. An intelligent onboarding that adapts to whether you have an NFC tag.</p>
         </div>
 
         <div class="steps-grid">
           <div class="step-card">
             <div class="step-number">1</div>
             <div class="step-body">
-              <h3 data-i18n="how.step1.title">1. Configure your profile</h3>
-              <p data-i18n="how.step1.desc">Choose which distracting social, video, or communication apps to silence and set optional session durations.</p>
+              <h3 data-i18n="how.step1.title">1. Pair your NFC tag (skippable)</h3>
+              <p data-i18n="how.step1.desc">Tap any standard NTAG213, NTAG215, or NTAG216 tag to pair it. Don't have one yet? Tap "Skip for now" to continue.</p>
             </div>
           </div>
           <div class="step-card">
             <div class="step-number">2</div>
             <div class="step-body">
-              <h3 data-i18n="how.step2.title">2. Write the physical tag</h3>
-              <p data-i18n="how.step2.desc">Hold any standard NTAG213, NTAG215, or NTAG216 tag to your phone. Hermit writes a verified NDEF message with an Android Application Record.</p>
+              <h3 data-i18n="how.step2.title">2. Adaptive profile creation</h3>
+              <p data-i18n="how.step2.desc">Hermit tailors options to your setup: timer-based locking if you have no tag, or universal NFC switch + Zen Mode if you have a tag.</p>
             </div>
           </div>
           <div class="step-card">
             <div class="step-number">3</div>
             <div class="step-body">
-              <h3 data-i18n="how.step3.title">3. Tap to engage</h3>
-              <p data-i18n="how.step3.desc">Tap the tag on your desk or doorway. Hermit instantly activates your focus mode, even if the app is closed or running in the background.</p>
+              <h3 data-i18n="how.step3.title">3. Engage your focus</h3>
+              <p data-i18n="how.step3.desc">Tap your physical desk tag or start the timer. Hermit enforces focus for up to 12 hours with unyielding consistency.</p>
             </div>
           </div>
           <div class="step-card">
             <div class="step-number">4</div>
             <div class="step-body">
-              <h3 data-i18n="how.step4.title">4. Genuine app &amp; web blocking</h3>
-              <p data-i18n="how.step4.desc">Opening blocked apps or visiting social media in browsers triggers a mindful breathing pause, requiring your physical tag to exit.</p>
+              <h3 data-i18n="how.step4.title">4. Mindful barrier &amp; Zen launcher</h3>
+              <p data-i18n="how.step4.desc">Distracting apps are met with a calm reflection screen or secluded within the Zen Launcher. Exit only when intention is renewed.</p>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Adaptive Profiles Decision Breakdown -->
+    <section id="adaptive-flow" class="section">
+      <div class="container">
+        <div class="section-header">
+          <h2 data-i18n="adaptive.title">Intelligent adaptive setup</h2>
+          <p data-i18n="adaptive.subtitle">No default profiles forced upon you. Hermit unlocks tailored capabilities depending on your physical setup.</p>
+        </div>
+
+        <div class="adaptive-grid">
+          <!-- Card A: Without NFC -->
+          <div class="adaptive-card">
+            <span class="adaptive-pill pill-timer" data-i18n="adaptive.pill.timer">Without NFC Tag (Timer Mode)</span>
+            <h3 data-i18n="adaptive.card1.title">Timer-based focus sessions</h3>
+            <p data-i18n="adaptive.card1.desc">If you haven't added an NFC tag yet, you can create focused profiles guarded by a strict countdown timer.</p>
+            <ul class="adaptive-list">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5B092" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c1.f1">Configurable timer up to a maximum of 12 hours</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5B092" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c1.f2">Emergency exit enabled by default with a 60-second reflection pause</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5B092" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c1.f3">Optional: Disable emergency exit completely for an unbypassable lock</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0957B" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <span data-i18n="adaptive.c1.f4">Zen Launcher mode disabled (requires physical NFC to exit safely)</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Card B: With NFC -->
+          <div class="adaptive-card with-nfc">
+            <span class="adaptive-pill pill-nfc" data-i18n="adaptive.pill.nfc">With NFC Tag (Physical Switch)</span>
+            <h3 data-i18n="adaptive.card2.title">Physical friction &amp; Zen Launcher</h3>
+            <p data-i18n="adaptive.card2.desc">Pairing an NFC tag anchors your commitment in the real world and unlocks the full power of Hermit.</p>
+            <ul class="adaptive-list">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c2.f1">Universal physical switch: Tap to toggle active focus on/off</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c2.f2">Unlock Zen Mode: replaces home screen with OLED essentials</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c2.f3">Deactivate exclusively with physical NFC tag</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="adaptive.c2.f4">Internal 12-hour ceiling guarantees safety under all conditions</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Security Banner -->
+        <div id="security" class="security-banner">
+          <div class="security-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="security-content">
+            <h3 data-i18n="security.title">Anti-tamper &amp; uninstall protection</h3>
+            <p data-i18n="security.desc">
+              During moments of weakness, the impulse to delete your focus app can be overwhelming. Hermit integrates Android Device Administrator protection to disable the system uninstall button. Disabling protection requires waiting out a mindful reflection timer, giving your rational self time to take over.
+            </p>
           </div>
         </div>
       </div>
@@ -242,7 +381,7 @@
             </div>
             <div class="feature-body">
               <h3 data-i18n="features.f4.title">Flexible &amp; secure exit behaviors</h3>
-              <p data-i18n="features.f4.desc">Choose between physical NFC tag unlocking (maximum 24 hours for safety), auto-timer release, or emergency reflection countdowns.</p>
+              <p data-i18n="features.f4.desc">Choose between physical NFC tag unlocking (maximum 12 hours safety ceiling), countdown timers, or optional 60-second reflection delays.</p>
             </div>
           </div>
 
@@ -251,8 +390,8 @@
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <div class="feature-body">
-              <h3 data-i18n="features.f5.title">Monk sanctuary &amp; custom profiles</h3>
-              <p data-i18n="features.f5.desc">Includes the Monk mode profile (whitelisting only Phone, Camera, WhatsApp, Spotify, and Maps) alongside fully customizable modes.</p>
+              <h3 data-i18n="features.f5.title">Zen Launcher &amp; custom profiles</h3>
+              <p data-i18n="features.f5.desc">Transform your home screen into a distraction-free OLED launcher with only essentials (Phone, Camera, Spotify, YT Music, plus up to 5 custom apps).</p>
             </div>
           </div>
 
@@ -414,7 +553,7 @@ cd Hermit</code></pre>
           <div class="faq-item active">
             <button class="faq-question" aria-expanded="true" aria-controls="faq-ans-1">
               <span data-i18n="faq.q1">What NFC tags should I buy?</span>
-              <span class="faq-chevron" aria-hidden="true">▼</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="faq-answer" id="faq-ans-1">
               <div class="faq-answer-inner">
@@ -426,7 +565,7 @@ cd Hermit</code></pre>
           <div class="faq-item">
             <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-2">
               <span data-i18n="faq.q2">Why does Hermit require Accessibility permission?</span>
-              <span class="faq-chevron" aria-hidden="true">▼</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="faq-answer" id="faq-ans-2">
               <div class="faq-answer-inner">
@@ -438,7 +577,7 @@ cd Hermit</code></pre>
           <div class="faq-item">
             <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-3">
               <span data-i18n="faq.q3">Does Hermit require internet access?</span>
-              <span class="faq-chevron" aria-hidden="true">▼</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="faq-answer" id="faq-ans-3">
               <div class="faq-answer-inner">
@@ -450,7 +589,7 @@ cd Hermit</code></pre>
           <div class="faq-item">
             <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-4">
               <span data-i18n="faq.q4">Does the app open automatically when tapping the tag while closed?</span>
-              <span class="faq-chevron" aria-hidden="true">▼</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="faq-answer" id="faq-ans-4">
               <div class="faq-answer-inner">
@@ -462,11 +601,47 @@ cd Hermit</code></pre>
           <div class="faq-item">
             <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-5">
               <span data-i18n="faq.q5">Can I unlock my phone if I lose my NFC tag?</span>
-              <span class="faq-chevron" aria-hidden="true">▼</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="faq-answer" id="faq-ans-5">
               <div class="faq-answer-inner">
-                <p data-i18n="faq.a5">Yes. Focus sessions have a safety limit of 24 hours, and profiles can be configured with an Emergency Exit option featuring a 60-second reflection countdown to prevent impulsive unlocking.</p>
+                <p data-i18n="faq.a5">Yes. Focus sessions enforce a maximum safety ceiling of 12 hours under all circumstances, and profiles can be configured with an Emergency Exit option featuring a 60-second reflection countdown to prevent permanent lockout.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-6">
+              <span data-i18n="faq.q6">What is Zen Launcher and which apps are available in it?</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+            </button>
+            <div class="faq-answer" id="faq-ans-6">
+              <div class="faq-answer-inner">
+                <p data-i18n="faq.a6">Zen Launcher is an integrated OLED black minimal launcher. While active, pressing Home automatically returns you to Zen. It only displays Phone, Camera, Spotify, YouTube Music (if installed), and optionally up to 5 user-selected custom apps. It can stay active up to 12 hours and strictly requires your physical NFC tag to deactivate early.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-7">
+              <span data-i18n="faq.q7">Can I use Hermit if I haven't purchased an NFC tag yet?</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+            </button>
+            <div class="faq-answer" id="faq-ans-7">
+              <div class="faq-answer-inner">
+                <p data-i18n="faq.a7">Absolutely. During onboarding you can skip adding a tag. Hermit will allow you to create timer-based focus profiles (up to 12 hours) with an emergency exit option (enabled by default after 60s of reflection, but disableable for strict focus). You can pair an NFC tag at any time later in the Tags tab to unlock Zen Launcher mode.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-8">
+              <span data-i18n="faq.q8">Will Hermit ever block my keyboard, dialer, or essential system features?</span>
+              <span class="faq-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+            </button>
+            <div class="faq-answer" id="faq-ans-8">
+              <div class="faq-answer-inner">
+                <p data-i18n="faq.a8">Never. Hermit's accessibility service explicitly exempts all system Input Method Editors (keyboards like Gboard), emergency calls, system UI dialogs, and the Hermit app itself. You can always type and make emergency calls safely.</p>
               </div>
             </div>
           </div>

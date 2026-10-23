@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -39,6 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -109,31 +112,71 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         setContent {
             val prefManager = app.preferenceManager
             val themeMode by prefManager.themeMode.collectAsState(initial = "system")
+            val localeCode by prefManager.appLocale.collectAsState(initial = "system")
+
             val isDark = when (themeMode) {
                 "light" -> false
                 "dark" -> true
                 else -> isSystemInDarkTheme()
             }
 
-            HermitTheme(darkTheme = isDark) {
-                val isFirstLaunch by prefManager.isFirstLaunch.collectAsState(initial = false)
+            val baseContext = LocalContext.current
+            val baseConfig = LocalConfiguration.current
 
-                if (isFirstLaunch) {
-                    OnboardingScreen(
-                        app = app,
-                        onFinishOnboarding = {
-                            lifecycleScope.launch {
-                                prefManager.setFirstLaunchCompleted()
-                            }
-                        }
-                    )
+            val localizedContext = remember(baseContext, localeCode) {
+                if (localeCode == "en" || localeCode == "es") {
+                    val locale = java.util.Locale(localeCode)
+                    val config = android.content.res.Configuration(baseContext.resources.configuration)
+                    config.setLocale(locale)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        config.setLocales(android.os.LocaleList(locale))
+                    }
+                    baseContext.createConfigurationContext(config)
                 } else {
-                    MainAppScaffold(
-                        app = app,
-                        activePhysicalTag = activePhysicalTag,
-                        onTagHandled = { activePhysicalTag = null },
-                        onSetNfcIntercept = { isNfcIntercepted = it }
-                    )
+                    baseContext
+                }
+            }
+
+            val localizedConfig = remember(baseConfig, localeCode) {
+                if (localeCode == "en" || localeCode == "es") {
+                    val locale = java.util.Locale(localeCode)
+                    android.content.res.Configuration(baseConfig).apply {
+                        setLocale(locale)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            setLocales(android.os.LocaleList(locale))
+                        }
+                    }
+                } else {
+                    baseConfig
+                }
+            }
+
+            CompositionLocalProvider(
+                LocalContext provides localizedContext,
+                LocalConfiguration provides localizedConfig
+            ) {
+                HermitTheme(darkTheme = isDark) {
+                    val isFirstLaunch by prefManager.isFirstLaunch.collectAsState(initial = false)
+
+                    if (isFirstLaunch) {
+                        OnboardingScreen(
+                            app = app,
+                            activePhysicalTag = activePhysicalTag,
+                            onTagHandled = { activePhysicalTag = null },
+                            onFinishOnboarding = {
+                                lifecycleScope.launch {
+                                    prefManager.setFirstLaunchCompleted()
+                                }
+                            }
+                        )
+                    } else {
+                        MainAppScaffold(
+                            app = app,
+                            activePhysicalTag = activePhysicalTag,
+                            onTagHandled = { activePhysicalTag = null },
+                            onSetNfcIntercept = { isNfcIntercepted = it }
+                        )
+                    }
                 }
             }
         }
@@ -201,11 +244,11 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     private fun showOutcomeToast(outcome: TagScanOutcome) {
         runOnUiThread {
             when (outcome) {
-                TagScanOutcome.STARTED -> Toast.makeText(this, "Focus session started", Toast.LENGTH_SHORT).show()
-                TagScanOutcome.STOPPED -> Toast.makeText(this, "Focus session ended", Toast.LENGTH_SHORT).show()
-                TagScanOutcome.SWITCHED -> Toast.makeText(this, "Focus profile switched", Toast.LENGTH_SHORT).show()
-                TagScanOutcome.DISABLED_TAG -> Toast.makeText(this, "This NFC tag is disabled", Toast.LENGTH_SHORT).show()
-                TagScanOutcome.UNKNOWN_PROFILE -> Toast.makeText(this, "Profile not found", Toast.LENGTH_SHORT).show()
+                TagScanOutcome.STARTED -> Toast.makeText(this, getString(R.string.toast_scan_started), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.STOPPED -> Toast.makeText(this, getString(R.string.toast_scan_stopped), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.SWITCHED -> Toast.makeText(this, getString(R.string.toast_scan_switched), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.DISABLED_TAG -> Toast.makeText(this, getString(R.string.toast_scan_disabled), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.UNKNOWN_PROFILE -> Toast.makeText(this, getString(R.string.toast_scan_no_profile), Toast.LENGTH_SHORT).show()
                 else -> Unit
             }
         }
@@ -248,18 +291,20 @@ fun MainAppScaffold(
 
     // Staged list of blocked packages for currently editing profile
     val stagedBlockedPackages = remember { mutableStateListOf<String>() }
+    // Staged list of allowed packages for Zen mode
+    val stagedZenPackages = remember { mutableStateListOf<String>() }
 
     val bottomNavItems = listOf(
         Screen.Focus,
         Screen.Profiles,
         Screen.Tags,
-        Screen.Stats,
-        Screen.Settings
+        Screen.Stats
     )
 
     val showBottomBar = bottomNavItems.any { it.route == currentRoute }
 
     Scaffold(
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
                 AppleTabBar {
@@ -296,7 +341,27 @@ fun MainAppScaffold(
                     sessionManager = app.sessionManager,
                     profileRepository = profileRepo,
                     tagRepository = tagRepo,
-                    onNavigateToTags = { navController.navigate(Screen.Tags.route) }
+                    onNavigateToTags = {
+                        navController.navigate(Screen.Tags.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateToProfiles = {
+                        navController.navigate(Screen.Profiles.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings.route)
+                    }
                 )
             }
             composable(Screen.Profiles.route) {
@@ -316,9 +381,22 @@ fun MainAppScaffold(
                 ProfileEditScreen(
                     profileId = profileId,
                     profileRepository = profileRepo,
+                    tagRepository = tagRepo,
                     selectedBlockedPackages = stagedBlockedPackages.toList(),
+                    selectedZenPackages = stagedZenPackages.toList(),
+                    onSyncBlockedPackages = { list ->
+                        stagedBlockedPackages.clear()
+                        stagedBlockedPackages.addAll(list)
+                    },
+                    onSyncZenPackages = { list ->
+                        stagedZenPackages.clear()
+                        stagedZenPackages.addAll(list)
+                    },
                     onSelectAppsClick = {
                         navController.navigate("app_selection")
+                    },
+                    onSelectZenAppsClick = {
+                        navController.navigate("app_selection_zen")
                     },
                     onSaved = { navController.popBackStack() },
                     onBackClick = { navController.popBackStack() }
@@ -335,10 +413,22 @@ fun MainAppScaffold(
                     onBackClick = { navController.popBackStack() }
                 )
             }
+            composable("app_selection_zen") {
+                AppSelectionScreen(
+                    initiallySelectedPackages = stagedZenPackages.toList(),
+                    title = stringResource(R.string.zen_select_apps_title),
+                    maxSelection = 5,
+                    onSaveSelection = { updatedList ->
+                        stagedZenPackages.clear()
+                        stagedZenPackages.addAll(updatedList.take(5))
+                        navController.popBackStack()
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
             composable(Screen.Tags.route) {
                 TagListScreen(
                     tagRepository = tagRepo,
-                    profileRepository = profileRepo,
                     onWriteTagClick = { navController.navigate("write_tag") },
                     onReadTagClick = { navController.navigate("read_tag") }
                 )
@@ -346,7 +436,6 @@ fun MainAppScaffold(
             composable("write_tag") {
                 WriteTagScreen(
                     tagRepository = tagRepo,
-                    profileRepository = profileRepo,
                     activePhysicalTag = activePhysicalTag,
                     onTagHandled = onTagHandled,
                     onBackClick = { navController.popBackStack() }
@@ -367,7 +456,8 @@ fun MainAppScaffold(
                 SettingsScreen(
                     preferenceManager = app.preferenceManager,
                     database = app.database,
-                    updateManager = app.updateManager
+                    updateManager = app.updateManager,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }

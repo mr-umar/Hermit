@@ -14,11 +14,18 @@ class ProfileRepository(private val dao: FocusProfileDao) {
     fun getProfileByIdFlow(id: String): Flow<FocusProfile?> = dao.getProfileByIdFlow(id)
 
     suspend fun saveProfile(profile: FocusProfile) {
-        dao.insertProfile(profile)
+        val sanitized = profile.copy(
+            blockedPackages = profile.blockedPackages.filter { it != "xyz.umarmohammad.hermit" }
+        )
+        dao.insertProfile(sanitized)
     }
 
     suspend fun updateProfile(profile: FocusProfile) {
-        dao.updateProfile(profile.copy(updatedAt = System.currentTimeMillis()))
+        val sanitized = profile.copy(
+            blockedPackages = profile.blockedPackages.filter { it != "xyz.umarmohammad.hermit" },
+            updatedAt = System.currentTimeMillis()
+        )
+        dao.updateProfile(sanitized)
     }
 
     suspend fun deleteProfile(profile: FocusProfile) {
@@ -27,11 +34,5 @@ class ProfileRepository(private val dao: FocusProfileDao) {
 
     suspend fun deleteProfileById(id: String) {
         dao.deleteProfileById(id)
-    }
-
-    suspend fun ensureDefaultProfiles() {
-        if (dao.countProfiles() == 0) {
-            HermitDatabase.populateDefaultProfiles(dao)
-        }
     }
 }

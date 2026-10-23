@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,6 +40,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xyz.umarmohammad.hermit.ui.theme.Acento
@@ -83,6 +87,7 @@ fun AppleListRow(
     iconTint: Color = Acento,
     value: String? = null,
     showChevron: Boolean = false,
+    verticalPadding: Dp = 10.dp,
     onClick: (() -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -107,14 +112,14 @@ fun AppleListRow(
                         }
                 } else Modifier
             )
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(9.dp))
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(iconTint.copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -122,27 +127,31 @@ fun AppleListRow(
                     imageVector = icon,
                     contentDescription = null,
                     tint = iconTint,
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(17.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f, fill = false)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
+                    fontSize = 15.5.sp
                 ),
-                color = Texto
+                color = Texto,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             if (!subtitle.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-                    color = Secundario
+                    color = Secundario,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -151,8 +160,12 @@ fun AppleListRow(
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                color = Secundario
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.5.sp),
+                color = Secundario,
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
             )
         }
 
@@ -200,14 +213,14 @@ fun AppleToggleRow(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(9.dp))
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(iconTint.copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -215,10 +228,10 @@ fun AppleToggleRow(
                     imageVector = icon,
                     contentDescription = null,
                     tint = iconTint,
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(17.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
         Column(modifier = Modifier.weight(1f)) {
@@ -228,14 +241,18 @@ fun AppleToggleRow(
                     fontWeight = FontWeight.Medium,
                     fontSize = 15.sp
                 ),
-                color = Texto
+                color = Texto,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             if (!subtitle.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.5.sp),
-                    color = Secundario
+                    color = Secundario,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -270,12 +287,13 @@ fun <T> AppleSegmentedControl(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(44.dp)
+            .heightIn(min = 44.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(SuperficieSubtle)
             .border(0.5.dp, BorderDark, RoundedCornerShape(12.dp))
             .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         items.forEach { item ->
             val isSelected = (item == selectedItem)
@@ -291,14 +309,15 @@ fun <T> AppleSegmentedControl(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(38.dp)
+                    .heightIn(min = 38.dp)
                     .clip(RoundedCornerShape(9.dp))
                     .background(backgroundColor)
                     .then(
                         if (isSelected) Modifier.border(0.5.dp, BorderDark.copy(alpha = 0.5f), RoundedCornerShape(9.dp))
                         else Modifier
                     )
-                    .clickable { onItemSelected(item) },
+                    .clickable { onItemSelected(item) }
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -308,7 +327,9 @@ fun <T> AppleSegmentedControl(
                         fontSize = 13.sp
                     ),
                     color = textColor,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -393,7 +414,9 @@ fun AppleTabItem(
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 fontSize = 10.5.sp
             ),
-            color = itemColor
+            color = itemColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

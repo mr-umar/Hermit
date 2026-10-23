@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -105,17 +106,11 @@ enum class WriteStage {
 @Composable
 fun WriteTagScreen(
     tagRepository: TagRepository,
-    profileRepository: ProfileRepository,
     activePhysicalTag: Tag?,
     onTagHandled: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
-
-    var tagName by remember { mutableStateOf("Focus Tag") }
-    var tagDescription by remember { mutableStateOf("") }
-    var selectedAction by remember { mutableStateOf(TagAction.TOGGLE) }
-    var selectedProfileId by remember { mutableStateOf<String?>(null) }
+    var tagName by remember { mutableStateOf("Etiqueta física") }
 
     var stage by remember { mutableStateOf(WriteStage.CONFIGURE) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -127,22 +122,14 @@ fun WriteTagScreen(
     var writtenTagUid by remember { mutableStateOf<String?>(null) }
     var testWarningMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(profiles) {
-        if (selectedProfileId == null && profiles.isNotEmpty()) {
-            selectedProfileId = profiles.first().id
-        }
-    }
-
-    val selectedProfile = profiles.firstOrNull { it.id == selectedProfileId }
-
     // Real write operation with pre-flight check and readback
     val performWrite = { targetTag: Tag ->
         stage = WriteStage.WRITING
         val tagId = UUID.randomUUID().toString()
         val payload = HermitTagPayload(
             id = tagId,
-            action = selectedAction.name,
-            profileId = selectedProfileId,
+            action = TagAction.TOGGLE.name,
+            profileId = null,
             name = tagName.trim()
         )
 
@@ -154,9 +141,9 @@ fun WriteTagScreen(
                     id = tagId,
                     tagPhysicalUid = physicalUid,
                     name = tagName.trim(),
-                    description = tagDescription.trim(),
-                    action = selectedAction,
-                    targetProfileId = selectedProfileId,
+                    description = "",
+                    action = TagAction.TOGGLE,
+                    targetProfileId = null,
                     lastScannedAt = System.currentTimeMillis()
                 )
                 tagRepository.saveTag(record)
@@ -263,89 +250,44 @@ fun WriteTagScreen(
                             singleLine = true
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
 
-                        // Action selector
+                        // Universal toggle explanation card
                         AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = stringResource(R.string.tag_detail_action),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                    color = Texto
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(18.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Nfc,
+                                    contentDescription = null,
+                                    tint = Acento,
+                                    modifier = Modifier.size(28.dp)
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                TagAction.entries.forEach { action ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { selectedAction = action }
-                                            .padding(vertical = 6.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        RadioButton(
-                                            selected = (selectedAction == action),
-                                            onClick = { selectedAction = action }
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = stringResource(action.titleRes),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Texto
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Profile selector if applicable
-                        if (selectedAction != TagAction.DEACTIVATE) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
-                                Column(modifier = Modifier.padding(16.dp)) {
+                                Spacer(modifier = Modifier.width(14.dp))
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = stringResource(R.string.tag_detail_profile),
+                                        text = stringResource(R.string.write_tag_universal_title),
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                                         color = Texto
                                     )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    profiles.forEach { profile ->
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable { selectedProfileId = profile.id }
-                                                .padding(vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            RadioButton(
-                                                selected = (selectedProfileId == profile.id),
-                                                onClick = { selectedProfileId = profile.id }
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Column {
-                                                Text(
-                                                    text = profile.name,
-                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                                    color = Texto
-                                                )
-                                                if (profile.description.isNotBlank()) {
-                                                    Text(
-                                                        text = profile.description,
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = Secundario
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = stringResource(R.string.write_tag_universal_desc),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Secundario
+                                    )
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(28.dp))
 
                         TactileButton(
                             onClick = { stage = WriteStage.WAITING_FOR_TAG },
-                            enabled = tagName.isNotBlank() && (selectedAction == TagAction.DEACTIVATE || selectedProfileId != null),
+                            enabled = tagName.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
@@ -379,7 +321,10 @@ fun WriteTagScreen(
                         Box(
                             modifier = Modifier
                                 .size(110.dp)
-                                .scale(pulseScale)
+                                .graphicsLayer {
+                                    scaleX = pulseScale
+                                    scaleY = pulseScale
+                                }
                                 .clip(CircleShape)
                                 .background(Acento.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
@@ -486,7 +431,10 @@ fun WriteTagScreen(
                             Box(
                                 modifier = Modifier
                                     .size(110.dp)
-                                    .scale(pulseScale)
+                                    .graphicsLayer {
+                                        scaleX = pulseScale
+                                        scaleY = pulseScale
+                                    }
                                     .clip(CircleShape)
                                     .background(Acento.copy(alpha = 0.15f)),
                                 contentAlignment = Alignment.Center
@@ -648,21 +596,10 @@ fun WriteTagScreen(
 
                                 AppleListRow(
                                     title = stringResource(R.string.tag_detail_action),
-                                    value = stringResource(selectedAction.titleRes),
+                                    value = stringResource(R.string.write_tag_toggle_action),
                                     icon = Icons.Default.PlayArrow,
                                     iconTint = Acento
                                 )
-
-                                if (selectedProfile != null && selectedAction != TagAction.DEACTIVATE) {
-                                    AppleDivider(startIndent = true)
-
-                                    AppleListRow(
-                                        title = stringResource(R.string.tag_detail_profile),
-                                        value = selectedProfile.name,
-                                        icon = Icons.Default.Shield,
-                                        iconTint = Acento
-                                    )
-                                }
 
                                 if (writtenTagUid != null) {
                                     AppleDivider(startIndent = true)

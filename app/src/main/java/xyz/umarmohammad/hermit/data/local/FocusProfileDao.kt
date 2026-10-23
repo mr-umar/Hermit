@@ -38,6 +38,9 @@ interface FocusProfileDao {
     @Query("SELECT COUNT(*) FROM focus_profiles")
     suspend fun countProfiles(): Int
 
+    @Query("DELETE FROM focus_profiles WHERE id LIKE 'default_%'")
+    suspend fun deleteDefaultProfiles()
+
     @Query("DELETE FROM focus_profiles")
     suspend fun deleteAll()
 }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import xyz.umarmohammad.hermit.data.local.HermitDatabase
+import xyz.umarmohammad.hermit.data.model.ExitBehavior
 import xyz.umarmohammad.hermit.data.model.FocusProfile
 import xyz.umarmohammad.hermit.data.model.FocusSessionRecord
 import xyz.umarmohammad.hermit.data.model.TagAction
@@ -85,13 +86,36 @@ class SessionManager private constructor(private val context: Context) {
         val blockedCount = preferenceManager.sessionBlockedCount.first()
 
         if (!activeSessionId.isNullOrBlank() && !activeProfileId.isNullOrBlank()) {
-            val profile = profileRepository.getProfileById(activeProfileId)
+            val rawProfile = profileRepository.getProfileById(activeProfileId)
+            val hasTags = tagRepository.allTags.first().isNotEmpty()
+            val sanitizedExitBehavior = if (!hasTags && rawProfile?.exitBehavior == ExitBehavior.NFC_ONLY) {
+                ExitBehavior.ALLOW_EMERGENCY
+            } else {
+                rawProfile?.exitBehavior ?: ExitBehavior.ALLOW_EMERGENCY
+            }
+            val sanitizedActivationType = if (!hasTags) "TIME" else (rawProfile?.activationType ?: "TIME")
+
+            val profile = rawProfile?.copy(
+                exitBehavior = sanitizedExitBehavior,
+                activationType = sanitizedActivationType,
+                blockedPackages = rawProfile.blockedPackages.filter {
+                    it != context.packageName && it != "xyz.umarmohammad.hermit"
+                }
+            )
             val now = System.currentTimeMillis()
             val elapsedSec = (now - startTime) / 1000
+            val maxSafetySec = 12 * 3600L // 12 hours max safety limit
+
+            if (elapsedSec >= maxSafetySec) {
+                sessionRepository.endSession(activeSessionId, "SAFETY_12H_TIMEOUT", blockedCount)
+                preferenceManager.clearActiveSession()
+                _sessionState.value = FocusSessionState()
+                return
+            }
 
             // Check if timed session already expired while process was killed
             if (durationMin != null && durationMin > 0) {
-                val totalDurationSec = durationMin * 60L
+                val totalDurationSec = durationMin.coerceAtMost(720) * 60L
                 if (elapsedSec >= totalDurationSec) {
                     // Session expired during sleep/reboot
                     sessionRepository.endSession(activeSessionId, "TIMED_COMPLETION", blockedCount)
@@ -106,9 +130,9 @@ class SessionManager private constructor(private val context: Context) {
                 sessionId = activeSessionId,
                 activeProfile = profile,
                 startedAt = startTime,
-                plannedDurationMinutes = durationMin,
+                plannedDurationMinutes = durationMin?.coerceAtMost(720),
                 elapsedSeconds = elapsedSec.coerceAtLeast(0),
-                remainingSeconds = durationMin?.let { (it * 60L - elapsedSec).coerceAtLeast(0) },
+                remainingSeconds = durationMin?.let { (it.coerceAtMost(720) * 60L - elapsedSec).coerceAtLeast(0) },
                 blockedAttemptsCount = blockedCount
             )
             startTicker()
@@ -117,16 +141,50 @@ class SessionManager private constructor(private val context: Context) {
 
     fun startFocus(profileId: String, reason: String = "MANUAL_START") {
         scope.launch {
-            val profile = profileRepository.getProfileById(profileId) ?: return@launch
+            val rawProfile = profileRepository.getProfileById(profileId) ?: return@launch
+            val registeredTags = tagRepository.allTags.first()
+            val hasTags = registeredTags.isNotEmpty()
+
+            // Strict rule: Under NO circumstances can NFC_ONLY or NFC mode be active without physical tags!
+            val effectiveExitBehavior = if (!hasTags && rawProfile.exitBehavior == ExitBehavior.NFC_ONLY) {
+                ExitBehavior.ALLOW_EMERGENCY
+            } else {
+                rawProfile.exitBehavior
+            }
+
+            val effectiveDuration = if (!hasTags && (rawProfile.durationMinutes == null || rawProfile.durationMinutes >= 720)) {
+                60
+            } else {
+                rawProfile.durationMinutes?.coerceIn(15, 720) ?: 60
+            }
+
+            val effectiveActivationType = if (!hasTags) "TIME" else rawProfile.activationType
+
+            val profile = rawProfile.copy(
+                exitBehavior = effectiveExitBehavior,
+                durationMinutes = effectiveDuration,
+                activationType = effectiveActivationType,
+                blockedPackages = rawProfile.blockedPackages.filter {
+                    it != context.packageName && it != "xyz.umarmohammad.hermit"
+                },
+                zenAllowedPackages = rawProfile.zenAllowedPackages.distinct().take(5)
+            )
+
+            // Persist the sanitized profile if it was incorrectly configured for NFC without tags
+            if (!hasTags && (rawProfile.exitBehavior == ExitBehavior.NFC_ONLY || rawProfile.activationType == "NFC")) {
+                profileRepository.saveProfile(profile)
+            }
+
             val now = System.currentTimeMillis()
             val sessionId = UUID.randomUUID().toString()
 
+            val plannedMinutes = profile.durationMinutes?.coerceAtMost(720)
             val session = FocusSessionRecord(
                 id = sessionId,
                 profileId = profile.id,
                 profileName = profile.name,
                 startedAt = now,
-                plannedDurationMinutes = profile.durationMinutes,
+                plannedDurationMinutes = plannedMinutes,
                 endReason = "ACTIVE"
             )
             sessionRepository.startSession(session)
@@ -134,7 +192,7 @@ class SessionManager private constructor(private val context: Context) {
                 sessionId = sessionId,
                 profileId = profile.id,
                 startTime = now,
-                durationMinutes = profile.durationMinutes
+                durationMinutes = plannedMinutes
             )
 
             _sessionState.value = FocusSessionState(
@@ -142,8 +200,8 @@ class SessionManager private constructor(private val context: Context) {
                 sessionId = sessionId,
                 activeProfile = profile,
                 startedAt = now,
-                plannedDurationMinutes = profile.durationMinutes,
-                remainingSeconds = profile.durationMinutes?.let { it * 60L },
+                plannedDurationMinutes = plannedMinutes,
+                remainingSeconds = plannedMinutes?.let { it * 60L },
                 elapsedSeconds = 0,
                 blockedAttemptsCount = 0
             )
@@ -169,6 +227,15 @@ class SessionManager private constructor(private val context: Context) {
         }
     }
 
+    fun refreshActiveProfile() {
+        scope.launch {
+            val current = _sessionState.value
+            val profId = current.activeProfile?.id ?: return@launch
+            val updated = profileRepository.getProfileById(profId) ?: return@launch
+            _sessionState.update { it.copy(activeProfile = updated) }
+        }
+    }
+
     suspend fun handleTagScan(payload: HermitTagPayload, physicalUid: String): TagScanOutcome {
         val now = System.currentTimeMillis()
 
@@ -186,62 +253,22 @@ class SessionManager private constructor(private val context: Context) {
         tagRepository.markScanned(payload.id)
         preferenceManager.updateLastScannedTag(payload.id, now)
 
-        val targetProfileId = payload.profileId ?: registeredTag?.targetProfileId
-        val resolvedAction = registeredTag?.action ?: payload.getResolvedAction()
         val current = _sessionState.value
 
-        return when (resolvedAction) {
-            TagAction.TOGGLE -> {
-                if (current.isActive) {
-                    endFocus("NFC_TAG_TOGGLED")
-                    TagScanOutcome.STOPPED
-                } else {
-                    if (targetProfileId != null) {
-                        startFocus(targetProfileId, "NFC_TAG_TOGGLED")
-                        TagScanOutcome.STARTED
-                    } else {
-                        // Default profile fallback
-                        val defaultProf = profileRepository.allProfiles.first().firstOrNull()
-                        if (defaultProf != null) {
-                            startFocus(defaultProf.id, "NFC_TAG_TOGGLED")
-                            TagScanOutcome.STARTED
-                        } else {
-                            TagScanOutcome.UNKNOWN_PROFILE
-                        }
-                    }
-                }
-            }
-            TagAction.ACTIVATE -> {
-                if (targetProfileId != null) {
-                    startFocus(targetProfileId, "NFC_TAG_ACTIVATED")
-                    TagScanOutcome.STARTED
-                } else {
-                    TagScanOutcome.UNKNOWN_PROFILE
-                }
-            }
-            TagAction.DEACTIVATE -> {
-                if (current.isActive) {
-                    endFocus("NFC_TAG_DEACTIVATED")
-                    TagScanOutcome.STOPPED
-                } else {
-                    TagScanOutcome.STOPPED
-                }
-            }
-            TagAction.SWITCH -> {
-                if (targetProfileId != null) {
-                    if (current.isActive && current.activeProfile?.id == targetProfileId) {
-                        // Already on this profile
-                        TagScanOutcome.IGNORED_DEBOUNCE
-                    } else {
-                        if (current.isActive) {
-                            endFocus("NFC_PROFILE_SWITCH")
-                        }
-                        startFocus(targetProfileId, "NFC_PROFILE_SWITCH")
-                        TagScanOutcome.SWITCHED
-                    }
-                } else {
-                    TagScanOutcome.UNKNOWN_PROFILE
-                }
+        // Physical NFC tags serve exclusively as on/off toggles
+        // for whichever profile is currently selected in the app under Enfoque.
+        return if (current.isActive) {
+            endFocus("NFC_TAG_TOGGLED")
+            TagScanOutcome.STOPPED
+        } else {
+            val profileToStart = preferenceManager.selectedQuickProfileId.first()
+                ?: profileRepository.allProfiles.first().firstOrNull()?.id
+
+            if (profileToStart != null) {
+                startFocus(profileToStart, "NFC_TAG_TOGGLED")
+                TagScanOutcome.STARTED
+            } else {
+                TagScanOutcome.UNKNOWN_PROFILE
             }
         }
     }
@@ -266,8 +293,15 @@ class SessionManager private constructor(private val context: Context) {
                 val now = System.currentTimeMillis()
                 val elapsed = ((now - current.startedAt) / 1000).coerceAtLeast(0)
 
+                // 12-hour (43200s) internal safety cutoff
+                val maxSafetySec = 12 * 3600L
+                if (elapsed >= maxSafetySec) {
+                    endFocus("SAFETY_12H_TIMEOUT")
+                    break
+                }
+
                 val remaining = current.plannedDurationMinutes?.let { durMin ->
-                    val totalSec = durMin * 60L
+                    val totalSec = durMin.coerceAtMost(720) * 60L
                     val rem = totalSec - elapsed
                     if (rem <= 0) {
                         // Auto end expired session

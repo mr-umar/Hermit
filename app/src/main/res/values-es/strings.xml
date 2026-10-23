@@ -39,7 +39,9 @@
     <string name="profile_icon_label">Icono</string>
     <string name="profile_duration_label">Duración de la sesión (minutos)</string>
     <string name="profile_duration_unlimited">Sin temporizador (parada manual o toque NFC)</string>
+    <string name="profile_duration_unlimited_badge">Sin temporizador</string>
     <string name="profile_duration_minutes">%1$d minutos</string>
+    <string name="profile_block_web_social_title">Bloqueo en navegadores</string>
     <string name="profile_blocked_apps_label">Aplicaciones bloqueadas</string>
     <string name="profile_blocked_count">%1$d aplicaciones seleccionadas</string>
     <string name="profile_select_apps">Seleccionar aplicaciones</string>
@@ -88,6 +90,7 @@
     <string name="tag_disable">Desactivar etiqueta</string>
     <string name="tag_enable">Activar etiqueta</string>
     <string name="tag_delete">Eliminar registro de etiqueta</string>
+    <string name="tag_delete_confirm_desc">¿Seguro que deseas eliminar el registro de «%1$s»?</string>
     <string name="tag_rewrite">Regrabar etiqueta física</string>
     <string name="tag_status_disabled">Desactivada</string>
 
@@ -276,9 +279,51 @@
     <string name="onboarding_block_web_social">Bloquear también redes sociales en navegadores (Chrome, Firefox, etc.)</string>
     <string name="onboarding_unlock_nfc_only">Solo desbloqueo físico con NFC (no se puede cancelar desde la app, máx. 24 h)</string>
     <string name="onboarding_unlock_time_only">Por tiempo o app (hasta 24 h)</string>
-    <string name="onboarding_monk_banner_title">Perfil Monk (santuario absoluto)</string>
+    <string name="onboarding_monk_banner_title">Modo Zen (Santuario Absoluto)</string>
     <string name="onboarding_monk_banner_desc">Solo teléfono, cámara, mapas, WhatsApp y música. Requiere obligatoriamente etiqueta NFC para salir.</string>
     <string name="onboarding_btn_enter">Entrar a Hermit</string>
+
+    <!-- Zen Mode Validation -->
+    <string name="zen_mode_title">Modo Zen</string>
+    <string name="zen_mode_desc">Bloquea todas las aplicaciones excepto teléfono, cámara, mapas, WhatsApp y música. Requiere una etiqueta física NFC para desbloquear.</string>
+    <string name="zen_mode_requires_tag_title">El Modo Zen requiere una etiqueta física</string>
+    <string name="zen_mode_requires_tag_desc">El Modo Zen crea un santuario absoluto y no se puede cancelar desde la pantalla. Para garantizar que nunca te quedes bloqueado sin una llave física, es obligatorio tener registrada al menos una etiqueta NFC antes de activar este modo.</string>
+    <string name="zen_mode_btn_setup_tag">Configurar etiqueta NFC</string>
+
+    <!-- Profile Friction Guidance Dialog -->
+    <string name="profile_friction_dialog_title">Fricción física y enfoque consciente</string>
+    <string name="profile_friction_dialog_desc">Para romper el piloto automático del móvil, la fricción física con una etiqueta NFC es la técnica más efectiva. Si aún no tienes una etiqueta, puedes usar este perfil con temporizador programado o por minutos dentro de la app.</string>
+    <string name="profile_friction_dialog_continue">Continuar creando</string>
+    <string name="profile_friction_dialog_setup_tag">Configurar etiqueta primero</string>
+
+    <!-- Tag Without Specific Profile (Active Profile Toggle) -->
+    <string name="write_tag_profile_none">Sin perfil específico (Alternar perfil activo)</string>
+    <string name="write_tag_profile_none_desc">Al tocar la etiqueta se activará o desactivará el perfil que tengas seleccionado en la pantalla de Enfoque.</string>
+    <string name="write_tag_create_profile">+ Crear nuevo perfil</string>
+
+    <!-- Dynamic Mindful Greetings -->
+    <string name="home_greeting_1">Listo para concentrarte</string>
+    <string name="home_greeting_2">Respira hondo y enfócate</string>
+    <string name="home_greeting_3">Tu momento de calma</string>
+    <string name="home_greeting_4">Desconecta para reconectar</string>
+    <string name="home_greeting_5">Un paso hacia la claridad</string>
+    <string name="home_greeting_6">Protege tu atención</string>
+    <string name="home_greeting_7">Cultiva tu tranquilidad</string>
+    <string name="home_greeting_8">Haz espacio para lo que importa</string>
+
+    <!-- Physical Tag Setup Card (Shown when 0 tags) -->
+    <string name="home_card_setup_nfc">Configura una etiqueta física</string>
+    <string name="home_card_setup_nfc_desc">La fricción física es la clave del enfoque duradero. Levantarte a tocar una etiqueta rompe el piloto automático.</string>
+
+    <!-- Digital Wellbeing Statistics -->
+    <string name="stats_screen_time_title">Bienestar Digital</string>
+    <string name="stats_screen_time_today">Tiempo de pantalla hoy</string>
+    <string name="stats_focus_ratio">Ratio de concentración</string>
+    <string name="stats_focus_ratio_desc">El %1$d%% del tiempo de pantalla fue de enfoque consciente</string>
+    <string name="stats_top_used_apps">Apps más usadas hoy</string>
+    <string name="stats_usage_perm_title">Activar análisis de tiempo de uso</string>
+    <string name="stats_usage_perm_desc">Concede acceso de uso para ver tu tiempo de pantalla diario junto a las sesiones de Hermit.</string>
+    <string name="stats_usage_perm_btn">Conceder acceso de bienestar</string>
 
     <!-- Settings Provenance & Links -->
     <string name="settings_about_domain_title">Sitio web oficial</string>
@@ -287,7 +332,26 @@
     <string name="settings_about_repo_val">github.com/mr-umar/Hermit</string>
     <string name="settings_about_license_title">Licencia</string>
     <string name="settings_about_license_val">GNU AGPLv3 (libre y código abierto)</string>
+    <string name="settings_about_version_title">Versión</string>
     <string name="settings_about_version_val">Hermit 1.0.0 (Build 1)</string>
+
+    <!-- Uninstall & Tamper Protection -->
+    <string name="settings_section_security">Seguridad y Fricción</string>
+    <string name="settings_device_admin_title">Protección contra desinstalación</string>
+    <string name="settings_device_admin_desc_active">El Administrador del Dispositivo está activo. Android bloquea la desinstalación directa de Hermit.</string>
+    <string name="settings_device_admin_desc_inactive">Activa los permisos de Administrador de Dispositivos para deshabilitar el botón de desinstalación en el sistema y evitar eliminar Hermit por impulso.</string>
+    <string name="settings_device_admin_btn_enable">Activar protección</string>
+    <string name="settings_device_admin_btn_disable">Desactivar protección</string>
+    <string name="device_admin_description">Hermit utiliza privilegios de administrador de dispositivo exclusivamente para evitar que la aplicación sea desinstalada durante sesiones de enfoque o por impulsividad.</string>
+    <string name="device_admin_explanation">Activar esta protección deshabilita el botón de desinstalación directa en los ajustes de Android, ayudándote a mantener tu compromiso de concentración.</string>
+    <string name="device_admin_warning">¿Deseas desactivar la protección contra desinstalación de Hermit? Perderás la barrera física contra impulsos y distracciones.</string>
+    <string name="device_admin_enabled_toast">Protección contra desinstalación activada correctamente</string>
+    <string name="device_admin_disabled_toast">Protección contra desinstalación desactivada</string>
+    <string name="device_admin_deactivate_dialog_title">Pausa de reflexión</string>
+    <string name="device_admin_deactivate_dialog_desc">Para evitar decisiones impulsivas, tómate unos segundos para respirar y reflexionar si realmente necesitas desactivar la protección.</string>
+    <string name="device_admin_countdown_wait">Espera %1$d segundos…</string>
+    <string name="device_admin_btn_confirm_deactivate">Continuar a desactivación</string>
+    <string name="uninstall_intercept_toast">Hermit: Sesión activa. No puedes modificar ni desinstalar la app hasta completar tu enfoque.</string>
 
     <!-- General / Actions -->
     <string name="action_save">Guardar</string>
@@ -298,4 +362,64 @@
     <string name="action_retry">Reintentar</string>
     <string name="action_confirm">Confirmar</string>
     <string name="dialog_error_title">Aviso</string>
+
+    <!-- Universal Tag & Zero-Profile Strings -->
+    <string name="home_no_profiles_title">Sin perfiles de enfoque</string>
+    <string name="home_no_profiles_desc">Crea tu primer perfil para definir qué aplicaciones bloquear o activar el Modo Zen.</string>
+    <string name="home_btn_create_first_profile">Crear mi primer perfil</string>
+    <string name="write_tag_universal_title">Interruptor de enfoque universal</string>
+    <string name="write_tag_universal_desc">Esta etiqueta física sirve como interruptor directo. Al acercarla al móvil, activará o desactivará el perfil que tengas seleccionado en la pantalla de Enfoque.</string>
+    <string name="write_tag_toggle_action">Activar / Desactivar enfoque</string>
+    <string name="toast_scan_started">Sesión de enfoque iniciada</string>
+    <string name="toast_scan_stopped">Sesión de enfoque finalizada</string>
+    <string name="toast_scan_switched">Perfil de enfoque cambiado</string>
+    <string name="toast_scan_disabled">Esta etiqueta NFC está desactivada</string>
+    <string name="toast_scan_no_profile">Crea primero un perfil de enfoque</string>
+    <string name="settings_license_dialog_title">Licencia de código abierto</string>
+    <string name="settings_license_dialog_desc">Hermit es software 100% libre y de código abierto bajo licencia GNU Affero General Public License v3.0 (AGPLv3).\n\nTienes derecho a inspeccionar el código fuente, auditar que no recopilamos datos y adaptarlo libremente sin restricciones comerciales ocultas.</string>
+
+    <!-- Zen Launcher & Onboarding Strings -->
+    <string name="zen_launcher_open_launcher_btn">Abrir Launcher Zen</string>
+    <string name="zen_end_requires_nfc_desc">Finalización obligatoria mediante etiqueta física NFC</string>
+    <string name="zen_select_apps_title">Apps en Modo Zen (máx. 5)</string>
+    <string name="zen_launcher_idle_title">Launcher Zen en reposo</string>
+    <string name="zen_launcher_idle_desc">El Modo Zen se activa al iniciar un perfil Zen o al acercar tu etiqueta NFC.</string>
+    <string name="zen_launcher_open_hermit">Abrir Hermit</string>
+    <string name="zen_launcher_go_system_home">Ir al inicio del sistema</string>
+    <string name="zen_launcher_active_badge">Modo Zen • %1$s</string>
+    <string name="zen_launcher_remaining_label">Restante: %1$s</string>
+    <string name="zen_launcher_nfc_prompt">Acerca tu etiqueta NFC para salir</string>
+    <string name="zen_launcher_nfc_subprompt">Desactivación física obligatoria</string>
+    <string name="block_screen_no_emergency">Salida de emergencia no disponible. Desbloqueo exclusivo mediante etiqueta NFC o fin del temporizador.</string>
+    <string name="onboarding_nfc_setup_header">Añadir etiqueta física NFC</string>
+    <string name="onboarding_nfc_setup_scan_hint">Acerca tu etiqueta NFC a la parte trasera del teléfono para vincularla</string>
+    <string name="onboarding_nfc_setup_success">¡Etiqueta vinculada con éxito!</string>
+    <string name="onboarding_nfc_setup_skip">Omitir por ahora (Continuar sin etiqueta)</string>
+    <string name="onboarding_profile_timer_only_badge">Modo por temporizador (Sin etiqueta NFC)</string>
+    <string name="onboarding_profile_nfc_badge">Etiqueta física NFC vinculada</string>
+
+    <!-- Profile Mode, Timer & Emergency Exit Strings -->
+    <string name="profile_activation_mode">Modo de activación</string>
+    <string name="profile_activation_nfc">Etiqueta NFC</string>
+    <string name="profile_activation_time">Por tiempo</string>
+    <string name="profile_activation_nfc_desc">Activa y desactiva la sesión con la etiqueta NFC.</string>
+    <string name="profile_activation_time_desc">Finaliza cuando expira el temporizador.</string>
+    <string name="profile_duration_timer_title">Duración</string>
+    <string name="profile_duration_slider_hint"></string>
+    <string name="profile_emergency_exit_title">Salida de emergencia</string>
+    <string name="profile_emergency_exit_enabled_desc">Permite salir esperando 60 segundos.</string>
+    <string name="profile_emergency_exit_disabled_desc">Bloqueo estricto hasta finalizar el tiempo.</string>
+    <string name="profile_zen_minimalist_title">Launcher Zen</string>
+    <string name="profile_zen_minimalist_desc">Teléfono, Cámara, Spotify y YT Music.</string>
+    <string name="profile_zen_add_apps_btn">Añadir apps adicionales (hasta 5)</string>
+    <string name="profile_zen_apps_added_btn">%1$d/5 apps adicionales añadidas</string>
+    <string name="app_select_max_allowed">Máximo %1$d aplicaciones permitidas</string>
+    <string name="app_select_selected_of_max">%1$d / %2$d seleccionadas</string>
+    <string name="stats_session_blocked">%1$d bloqueados</string>
+    <string name="tag_status_active">Activa</string>
+    <string name="profiles_zen_badge">Launcher Zen</string>
+    <string name="countdown_starting_title">Iniciando sesión</string>
+    <string name="countdown_starting_desc">El modo de enfoque comenzará en %1$d segundos.</string>
+    <string name="countdown_btn_cancel">Cancelar inicio</string>
+    <string name="profile_apps_locked_during_session">No puedes modificar las aplicaciones durante una sesión activa.</string>
 </resources>

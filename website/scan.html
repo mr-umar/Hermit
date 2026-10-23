@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>You scanned a Hermit tag | Hermit</title>
+  <meta name="description" content="You scanned a physical NFC tag configured for Hermit, the open-source Android app for mindful focus and distraction blocking.">
+  <link rel="canonical" href="https://hermit.umarmohammad.xyz/scan.html">
+  <link rel="alternate" hreflang="en" href="https://hermit.umarmohammad.xyz/scan.html?lang=en">
+  <link rel="alternate" hreflang="es" href="https://hermit.umarmohammad.xyz/scan.html?lang=es">
+  <link rel="alternate" hreflang="x-default" href="https://hermit.umarmohammad.xyz/scan.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hermit.umarmohammad.xyz/scan.html">
+  <meta property="og:title" content="You scanned a Hermit tag">
+  <meta property="og:description" content="This physical NFC tag is a mindful focus anchor for Hermit on Android. Download the free, open-source app to activate it.">
+  <meta property="og:image" content="https://hermit.umarmohammad.xyz/assets/mockup-app.svg">
+
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F3EC">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#151614">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .scan-hero {
+      padding: 3.5rem 0 2.5rem;
+      text-align: center;
+      position: relative;
+    }
+    .scan-tag-card {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+    .nfc-emblem-wrap {
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 1.5rem;
+      border-radius: var(--radius-full);
+      background: rgba(165, 176, 146, 0.12);
+      border: 1px solid rgba(165, 176, 146, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .nfc-pulse-ring {
+      position: absolute;
+      inset: -10px;
+      border-radius: var(--radius-full);
+      border: 1.5px solid var(--color-primary);
+      opacity: 0.4;
+      animation: nfcPulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    .nfc-pulse-ring:nth-child(2) {
+      inset: -20px;
+      animation-delay: 0.7s;
+      opacity: 0.2;
+    }
+    @keyframes nfcPulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      70% { transform: scale(1.15); opacity: 0.05; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+    .scan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background: var(--badge-success-bg);
+      border: 1px solid var(--badge-success-border);
+      color: var(--badge-success-text);
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.25rem;
+    }
+    .scan-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .scan-title {
+      font-size: clamp(1.65rem, 4vw, 2.35rem);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 0.85rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    .scan-subtitle {
+      font-size: 1.05rem;
+      color: var(--color-text-secondary);
+      line-height: 1.55;
+      margin-bottom: 1.75rem;
+    }
+    .scan-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    @media (min-width: 480px) {
+      .scan-actions {
+        flex-direction: row;
+        justify-content: center;
+      }
+      .scan-actions .btn {
+        flex: 1;
+      }
+    }
+    .explanation-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      margin: 2.5rem 0;
+    }
+    @media (min-width: 768px) {
+      .explanation-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    .info-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+    }
+    .info-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: rgba(165, 176, 146, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--color-primary);
+    }
+    .info-card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .info-card p {
+      font-size: 0.925rem;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+    .steps-section {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 3rem;
+      text-align: left;
+    }
+    .step-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0 0;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .step-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: var(--color-bg);
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-content strong {
+      display: block;
+      color: var(--color-text-primary);
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+    .step-content p {
+      color: var(--color-text-secondary);
+      font-size: 0.925rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="skip-link" data-i18n="a11y.skip">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo-link" aria-label="Hermit homepage">
+        <img src="assets/favicon.svg" alt="Hermit emblem" class="logo-icon" width="32" height="32">
+        <span>Hermit</span>
+      </a>
+
+      <div class="nav-controls">
+        <a href="index.html" class="btn btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" data-i18n="nav.website">
+          Main Website
+        </a>
+        <button id="lang-toggle" class="btn-icon-toggle" aria-label="Switch language">ES</button>
+        <button id="theme-toggle" class="btn-icon-toggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="container">
+    <section class="scan-hero">
+      <div class="scan-tag-card">
+        <div class="nfc-pulse-ring"></div>
+        <div class="nfc-pulse-ring"></div>
+
+        <div class="nfc-emblem-wrap">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/>
+            <path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/>
+            <path d="M12.91 4.1a15.91 15.91 0 0 1 0 15.8"/>
+            <rect x="2" y="2" width="20" height="20" rx="5"/>
+          </svg>
+        </div>
+
+        <div class="scan-badge" data-i18n="badge.detected">
+          NFC Tag Detected
+        </div>
+
+        <h1 class="scan-title" data-i18n="scan.title">
+          You scanned a Hermit tag
+        </h1>
+
+        <p class="scan-subtitle" data-i18n="scan.subtitle">
+          This physical tag is configured as a mindful focus anchor for the Hermit app.
+        </p>
+
+        <div class="scan-actions">
+          <a href="https://github.com/mr-umar/Hermit/releases/latest" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span data-i18n="btn.download">Download APK Free</span>
+          </a>
+
+          <a href="index.html" class="btn btn-secondary">
+            <span data-i18n="btn.learn_more">Learn about Hermit</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Information Grid -->
+    <section>
+      <div class="explanation-grid">
+        <div class="info-card">
+          <div class="info-card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </div>
+          <h3 data-i18n="card1.title">Why are you seeing this page?</h3>
+          <p data-i18n="card1.desc">
+            Your phone successfully read this NFC tag, but Hermit is not yet installed on this device. Rather than forcing you into a generic app store, we route you here with a clear explanation.
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3 data-i18n="card2.title">What does this tag do?</h3>
+          <p data-i18n="card2.desc">
+            With Hermit installed, tapping this physical tag instantly triggers deep focus mode, blocking apps that steal your attention or launching the distraction-free Zen Launcher.
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 data-i18n="card3.title">100% local &amp; private</h3>
+          <p data-i18n="card3.desc">
+            Hermit is open-source (AGPLv3), requires zero accounts, has no tracking telemetry, and charges no subscriptions. All blocking happens strictly on your device.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Steps to use -->
+    <section class="steps-section">
+      <h2 style="font-size: 1.45rem; font-weight: 700; color: var(--color-text-primary);" data-i18n="steps.title">
+        How to use this tag
+      </h2>
+
+      <ol class="step-list">
+        <li class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong data-i18n="step1.title">Install the Hermit Android app</strong>
+            <p data-i18n="step1.desc">
+              Download the official APK directly from our GitHub Releases. It is completely free and libre software.
+            </p>
+          </div>
+        </li>
+
+        <li class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong data-i18n="step2.title">Enable mindful blocking permissions</strong>
+            <p data-i18n="step2.desc">
+              Grant local AccessibilityService permissions so Hermit can intercept and redirect distracting apps of your choice.
+            </p>
+          </div>
+        </li>
+
+        <li class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong data-i18n="step3.title">Tap the tag again!</strong>
+            <p data-i18n="step3.desc">
+              Once installed, tapping this physical tag will immediately launch your focus session or engage Zen Launcher.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 1rem;">
+        <a href="https://github.com/mr-umar/Hermit/releases/latest" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span data-i18n="btn.download_apk">Download Official APK (GitHub Releases)</span>
+        </a>
+        <a href="https://github.com/mr-umar/Hermit" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span data-i18n="btn.view_source">Source Code on GitHub</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <p data-i18n="footer.copy">
+        Hermit — Mindful focus anchored in the physical world. Open-source under AGPLv3.
+      </p>
+      <div class="footer-links">
+        <a href="index.html" data-i18n="footer.home">Home</a>
+        <a href="https://github.com/mr-umar/Hermit" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      es: {
+        "a11y.skip": "Saltar al contenido principal",
+        "page.title": "Has escaneado una etiqueta de Hermit | Hermit",
+        "nav.website": "Ir a la web",
+        "badge.detected": "Etiqueta NFC detectada",
+        "scan.title": "Has escaneado una etiqueta de Hermit",
+        "scan.subtitle": "Esta etiqueta física está configurada como un ancla de concentración consciente para la app Hermit.",
+        "btn.download": "Descargar APK gratis",
+        "btn.learn_more": "Conocer Hermit",
+        "card1.title": "¿Por qué ves esta página?",
+        "card1.desc": "Tu teléfono ha leído la etiqueta NFC correctamente, pero aún no tiene Hermit instalado. En lugar de llevarte a una tienda genérica de aplicaciones, te dirigimos aquí para explicarte su propósito.",
+        "card2.title": "¿Qué hace esta etiqueta?",
+        "card2.desc": "Cuando Hermit está instalado, tocar esta etiqueta física activa instantáneamente una sesión de concentración profunda, bloqueando aplicaciones que roban tu atención o iniciando el Zen Launcher.",
+        "card3.title": "100% local y privado",
+        "card3.desc": "Hermit es de código abierto (AGPLv3), sin cuentas, sin rastreadores y sin suscripciones. Todo el bloqueo y los datos de concentración se gestionan exclusivamente en tu dispositivo.",
+        "steps.title": "Cómo empezar a usar esta etiqueta",
+        "step1.title": "Instala la aplicación Hermit en Android",
+        "step1.desc": "Descarga directamente el archivo APK oficial desde nuestros lanzamientos en GitHub. Es totalmente gratuito y libre.",
+        "step2.title": "Habilita el bloqueo mindful",
+        "step2.desc": "Concede el permiso del Servicio de Accesibilidad local para que Hermit pueda redirigir las aplicaciones distractoras que elijas bloquear.",
+        "step3.title": "¡Vuelve a acercar el teléfono a la etiqueta!",
+        "step3.desc": "Una vez instalada la app, tocar esta misma etiqueta física iniciará tu sesión de concentración o cambiará al Zen Launcher de inmediato.",
+        "btn.download_apk": "Descargar APK oficial (GitHub Releases)",
+        "btn.view_source": "Código fuente en GitHub",
+        "footer.copy": "Hermit — Concentración consciente con ancla física NFC. Código abierto bajo licencia AGPLv3.",
+        "footer.home": "Inicio"
+      },
+      en: {
+        "a11y.skip": "Skip to main content",
+        "page.title": "You scanned a Hermit tag | Hermit",
+        "nav.website": "Main Website",
+        "badge.detected": "NFC Tag Detected",
+        "scan.title": "You scanned a Hermit tag",
+        "scan.subtitle": "This physical tag is configured as a mindful focus anchor for the Hermit app.",
+        "btn.download": "Download APK Free",
+        "btn.learn_more": "Learn about Hermit",
+        "card1.title": "Why are you seeing this page?",
+        "card1.desc": "Your phone successfully read this NFC tag, but Hermit is not yet installed on this device. Rather than forcing you into a generic app store, we route you here with a clear explanation.",
+        "card2.title": "What does this tag do?",
+        "card2.desc": "With Hermit installed, tapping this physical tag instantly triggers deep focus mode, blocking apps that steal your attention or launching the distraction-free Zen Launcher.",
+        "card3.title": "100% local & private",
+        "card3.desc": "Hermit is open-source (AGPLv3), requires zero accounts, has no tracking telemetry, and charges no subscriptions. All blocking happens strictly on your device.",
+        "steps.title": "How to use this tag",
+        "step1.title": "Install the Hermit Android app",
+        "step1.desc": "Download the official APK directly from our GitHub Releases. It is completely free and libre software.",
+        "step2.title": "Enable mindful blocking permissions",
+        "step2.desc": "Grant local AccessibilityService permissions so Hermit can intercept and redirect distracting apps of your choice.",
+        "step3.title": "Tap the tag again!",
+        "step3.desc": "Once installed, tapping this physical tag will immediately launch your focus session or engage Zen Launcher.",
+        "btn.download_apk": "Download Official APK (GitHub Releases)",
+        "btn.view_source": "Source Code on GitHub",
+        "footer.copy": "Hermit — Mindful focus anchored in the physical world. Open-source under AGPLv3.",
+        "footer.home": "Home"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function setLanguage(lang) {
+      if (!translations[lang]) lang = 'en';
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      localStorage.setItem('hermit_lang', lang);
+
+      const langBtn = document.getElementById('lang-toggle');
+      if (langBtn) {
+        langBtn.textContent = lang === 'en' ? 'ES' : 'EN';
+        langBtn.setAttribute('aria-label', lang === 'en' ? 'Cambiar a español' : 'Switch to English');
+      }
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+
+      document.title = translations[lang]["page.title"];
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('hermit_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.style.colorScheme = theme;
+      updateThemeIcon(theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const target = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', target);
+      document.documentElement.style.colorScheme = target;
+      localStorage.setItem('hermit_theme', target);
+      updateThemeIcon(target);
+    }
+
+    function updateThemeIcon(theme) {
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.innerHTML = theme === 'dark'
+          ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+          : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Automatic language detection: URL param > localStorage > browser
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramLang = urlParams.get('lang');
+      const savedLang = localStorage.getItem('hermit_lang');
+      const deviceLang = (navigator.languages && navigator.languages[0] || navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+
+      const initialLang = paramLang || savedLang || deviceLang;
+      setLanguage(initialLang);
+      initTheme();
+
+      document.getElementById('lang-toggle').addEventListener('click', () => {
+        setLanguage(currentLang === 'en' ? 'es' : 'en');
+      });
+
+      document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+    });
+  </script>
+</body>
+</html>

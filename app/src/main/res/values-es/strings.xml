@@ -424,4 +424,7 @@
     <string name="profile_apps_locked_during_session">No puedes modificar las aplicaciones durante una sesión activa.</string>
     <string name="profile_zen_dnd_title">Modo No Molestar</string>
     <string name="profile_zen_dnd_desc">Silencia notificaciones y llamadas en el launcher Zen.</string>
+    <string name="profile_zen_grayscale_title">Modo escala de grises</string>
+    <string name="profile_zen_grayscale_desc">Pantalla en blanco y negro para reducir distracciones visuales.</string>
+    <string name="profile_zen_grayscale_adb_toast">Aplicado en el launcher Zen. Para todo el móvil, requiere permiso ADB.</string>
 </resources>

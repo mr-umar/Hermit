@@ -29,6 +29,11 @@
     <!-- Access notification policy to manage Do Not Disturb (DND) during Zen mode -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
+    <!-- Optional permission for system-wide grayscale mode (granted via ADB or device owner) -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
     <!-- Usage stats access for focus analytics and app detection -->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"

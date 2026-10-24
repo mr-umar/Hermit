@@ -138,6 +138,9 @@ class SessionManager private constructor(private val context: Context) {
             if (profile?.enableDnd == true) {
                 xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
             }
+            if (profile?.enableGrayscale == true) {
+                xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(context)
+            }
             startTicker()
         }
     }
@@ -211,6 +214,9 @@ class SessionManager private constructor(private val context: Context) {
             if (profile.enableDnd) {
                 xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
             }
+            if (profile.enableGrayscale) {
+                xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(context)
+            }
             startTicker()
         }
     }
@@ -229,6 +235,7 @@ class SessionManager private constructor(private val context: Context) {
                 )
             }
             xyz.umarmohammad.hermit.util.DndManager.restoreDnd(context)
+            xyz.umarmohammad.hermit.util.GrayscaleManager.restoreSystemGrayscale(context)
             preferenceManager.clearActiveSession()
             _sessionState.value = FocusSessionState()
         }
@@ -243,6 +250,12 @@ class SessionManager private constructor(private val context: Context) {
                 xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
             } else if (!updated.enableDnd) {
                 xyz.umarmohammad.hermit.util.DndManager.restoreDnd(context)
+            }
+
+            if (updated.enableGrayscale && current.isActive) {
+                xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(context)
+            } else if (!updated.enableGrayscale) {
+                xyz.umarmohammad.hermit.util.GrayscaleManager.restoreSystemGrayscale(context)
             }
             _sessionState.update { it.copy(activeProfile = updated) }
         }

@@ -20,7 +20,7 @@ import xyz.umarmohammad.hermit.data.model.NfcTagRecord
         NfcTagRecord::class,
         FocusSessionRecord::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,6 +39,12 @@ abstract class HermitDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_5_6 = object : androidx.room.migration.Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE focus_profiles ADD COLUMN enableGrayscale INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getInstance(context: Context): HermitDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -46,7 +52,7 @@ abstract class HermitDatabase : RoomDatabase() {
                     HermitDatabase::class.java,
                     "hermit_database.db"
                 )
-                    .addMigrations(MIGRATION_4_5)
+                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

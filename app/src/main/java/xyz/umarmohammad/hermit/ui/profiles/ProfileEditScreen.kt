@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -101,6 +102,7 @@ fun ProfileEditScreen(
     var allowEmergencyExit by remember { mutableStateOf(true) } // Default: allowed after 60s
     var isMonkMode by remember { mutableStateOf(false) }
     var enableDnd by remember { mutableStateOf(false) }
+    var enableGrayscale by remember { mutableStateOf(false) }
     var blockWebSocial by remember { mutableStateOf(true) }
     var activationType by remember { mutableStateOf(if (hasPhysicalTags) "NFC" else "TIME") }
 
@@ -117,6 +119,7 @@ fun ProfileEditScreen(
                 allowEmergencyExit = (existing.exitBehavior == ExitBehavior.ALLOW_EMERGENCY)
                 isMonkMode = existing.isMonkMode
                 enableDnd = existing.enableDnd
+                enableGrayscale = existing.enableGrayscale
                 blockWebSocial = existing.blockWebSocial
                 activationType = if (hasPhysicalTags) existing.activationType else "TIME"
 
@@ -197,7 +200,8 @@ fun ProfileEditScreen(
                                 blockWebSocial = blockWebSocial,
                                 activationType = if (hasPhysicalTags) activationType else "TIME",
                                 zenAllowedPackages = effectiveZenPackages,
-                                enableDnd = enableDnd
+                                enableDnd = enableDnd,
+                                enableGrayscale = enableGrayscale
                             )
 
                             coroutineScope.launch(Dispatchers.IO) {
@@ -500,6 +504,46 @@ fun ProfileEditScreen(
                                     enableDnd = isChecked
                                     if (isChecked && !xyz.umarmohammad.hermit.util.DndManager.hasDndPermission(context)) {
                                         xyz.umarmohammad.hermit.util.DndManager.requestDndPermission(context)
+                                    }
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            thickness = 0.5.dp
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.profile_zen_grayscale_title),
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.profile_zen_grayscale_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Switch(
+                                checked = enableGrayscale,
+                                onCheckedChange = { isChecked ->
+                                    enableGrayscale = isChecked
+                                    if (isChecked && !xyz.umarmohammad.hermit.util.GrayscaleManager.hasWriteSecureSettings(context)) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            context.getString(R.string.profile_zen_grayscale_adb_toast),
+                                            android.widget.Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 }
                             )

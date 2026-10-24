@@ -117,15 +117,27 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             if (profile.enableDnd) {
                 xyz.umarmohammad.hermit.util.DndManager.enableDnd(this)
             }
+            if (profile.enableGrayscale) {
+                xyz.umarmohammad.hermit.util.GrayscaleManager.applyWindowGrayscale(window, true)
+                xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(this)
+            } else {
+                xyz.umarmohammad.hermit.util.GrayscaleManager.applyWindowGrayscale(window, false)
+            }
             loadAllowedApps(profile.zenAllowedPackages)
         } else {
             lifecycleScope.launch(Dispatchers.IO) {
                 val app = application as HermitApplication
                 val allProfiles = app.database.focusProfileDao().getAllProfiles().first()
                 val zenProfile = allProfiles.firstOrNull { it.isMonkMode } ?: allProfiles.firstOrNull()
-                if (zenProfile?.enableDnd == true) {
-                    withContext(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
+                    if (zenProfile?.enableDnd == true) {
                         xyz.umarmohammad.hermit.util.DndManager.enableDnd(this@ZenLauncherActivity)
+                    }
+                    if (zenProfile?.enableGrayscale == true) {
+                        xyz.umarmohammad.hermit.util.GrayscaleManager.applyWindowGrayscale(window, true)
+                        xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(this@ZenLauncherActivity)
+                    } else {
+                        xyz.umarmohammad.hermit.util.GrayscaleManager.applyWindowGrayscale(window, false)
                     }
                 }
                 loadAllowedApps(zenProfile?.zenAllowedPackages ?: emptyList())
@@ -385,10 +397,15 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun exitToSystemHome() {
-        val isStillZenActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableDnd == true
-        if (!isStillZenActive) {
+        val isStillDndActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableDnd == true
+        if (!isStillDndActive) {
             xyz.umarmohammad.hermit.util.DndManager.restoreDnd(this)
         }
+        val isStillGrayscaleActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableGrayscale == true
+        if (!isStillGrayscaleActive) {
+            xyz.umarmohammad.hermit.util.GrayscaleManager.restoreSystemGrayscale(this)
+        }
+        xyz.umarmohammad.hermit.util.GrayscaleManager.applyWindowGrayscale(window, false)
         val homeIntent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -413,9 +430,14 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
     override fun onDestroy() {
         super.onDestroy()
-        val isStillZenActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableDnd == true
-        if (!isStillZenActive) {
+        val isStillDndActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableDnd == true
+        if (!isStillDndActive) {
             xyz.umarmohammad.hermit.util.DndManager.restoreDnd(this)
         }
+        val isStillGrayscaleActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableGrayscale == true
+        if (!isStillGrayscaleActive) {
+            xyz.umarmohammad.hermit.util.GrayscaleManager.restoreSystemGrayscale(this)
+        }
+        xyz.umarmohammad.hermit.util.GrayscaleManager.applyWindowGrayscale(window, false)
     }
 }

@@ -100,6 +100,7 @@ fun ProfileEditScreen(
     var durationMinutes by remember { mutableFloatStateOf(60f) }
     var allowEmergencyExit by remember { mutableStateOf(true) } // Default: allowed after 60s
     var isMonkMode by remember { mutableStateOf(false) }
+    var enableDnd by remember { mutableStateOf(false) }
     var blockWebSocial by remember { mutableStateOf(true) }
     var activationType by remember { mutableStateOf(if (hasPhysicalTags) "NFC" else "TIME") }
 
@@ -115,6 +116,7 @@ fun ProfileEditScreen(
                 durationMinutes = (existing.durationMinutes ?: 60).toFloat().coerceIn(15f, 720f)
                 allowEmergencyExit = (existing.exitBehavior == ExitBehavior.ALLOW_EMERGENCY)
                 isMonkMode = existing.isMonkMode
+                enableDnd = existing.enableDnd
                 blockWebSocial = existing.blockWebSocial
                 activationType = if (hasPhysicalTags) existing.activationType else "TIME"
 
@@ -194,7 +196,8 @@ fun ProfileEditScreen(
                                 isMonkMode = isMonkMode,
                                 blockWebSocial = blockWebSocial,
                                 activationType = if (hasPhysicalTags) activationType else "TIME",
-                                zenAllowedPackages = effectiveZenPackages
+                                zenAllowedPackages = effectiveZenPackages,
+                                enableDnd = enableDnd
                             )
 
                             coroutineScope.launch(Dispatchers.IO) {
@@ -469,6 +472,36 @@ fun ProfileEditScreen(
                                 text = stringResource(R.string.profile_apps_locked_during_session),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.profile_zen_dnd_title),
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.profile_zen_dnd_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Switch(
+                                checked = enableDnd,
+                                onCheckedChange = { isChecked ->
+                                    enableDnd = isChecked
+                                    if (isChecked && !xyz.umarmohammad.hermit.util.DndManager.hasDndPermission(context)) {
+                                        xyz.umarmohammad.hermit.util.DndManager.requestDndPermission(context)
+                                    }
+                                }
                             )
                         }
                     }

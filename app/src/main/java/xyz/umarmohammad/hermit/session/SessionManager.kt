@@ -135,6 +135,9 @@ class SessionManager private constructor(private val context: Context) {
                 remainingSeconds = durationMin?.let { (it.coerceAtMost(720) * 60L - elapsedSec).coerceAtLeast(0) },
                 blockedAttemptsCount = blockedCount
             )
+            if (profile?.enableDnd == true) {
+                xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
+            }
             startTicker()
         }
     }
@@ -205,6 +208,9 @@ class SessionManager private constructor(private val context: Context) {
                 elapsedSeconds = 0,
                 blockedAttemptsCount = 0
             )
+            if (profile.enableDnd) {
+                xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
+            }
             startTicker()
         }
     }
@@ -222,6 +228,7 @@ class SessionManager private constructor(private val context: Context) {
                     blockedAttempts = current.blockedAttemptsCount
                 )
             }
+            xyz.umarmohammad.hermit.util.DndManager.restoreDnd(context)
             preferenceManager.clearActiveSession()
             _sessionState.value = FocusSessionState()
         }
@@ -232,6 +239,11 @@ class SessionManager private constructor(private val context: Context) {
             val current = _sessionState.value
             val profId = current.activeProfile?.id ?: return@launch
             val updated = profileRepository.getProfileById(profId) ?: return@launch
+            if (updated.enableDnd && current.isActive) {
+                xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
+            } else if (!updated.enableDnd) {
+                xyz.umarmohammad.hermit.util.DndManager.restoreDnd(context)
+            }
             _sessionState.update { it.copy(activeProfile = updated) }
         }
     }

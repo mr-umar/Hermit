@@ -422,4 +422,6 @@
     <string name="countdown_starting_desc">El modo de enfoque comenzará en %1$d segundos.</string>
     <string name="countdown_btn_cancel">Cancelar inicio</string>
     <string name="profile_apps_locked_during_session">No puedes modificar las aplicaciones durante una sesión activa.</string>
+    <string name="profile_zen_dnd_title">Modo No Molestar</string>
+    <string name="profile_zen_dnd_desc">Silencia notificaciones y llamadas en el launcher Zen.</string>
 </resources>

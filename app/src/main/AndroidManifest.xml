@@ -26,6 +26,9 @@
     <!-- Collapse / manage status bar and notification shade in Zen launcher -->
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
+    <!-- Access notification policy to manage Do Not Disturb (DND) during Zen mode -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
     <!-- Usage stats access for focus analytics and app detection -->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"

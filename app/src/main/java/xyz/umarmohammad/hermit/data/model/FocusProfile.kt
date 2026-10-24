@@ -25,6 +25,7 @@ data class FocusProfile(
     val blockWebSocial: Boolean = true,
     val activationType: String = "BOTH", // "NFC", "TIME", or "BOTH"
     val zenAllowedPackages: List<String> = emptyList(),
+    val enableDnd: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

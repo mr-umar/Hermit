@@ -422,4 +422,6 @@
     <string name="countdown_starting_desc">Focus mode will start in %1$d seconds.</string>
     <string name="countdown_btn_cancel">Cancel start</string>
     <string name="profile_apps_locked_during_session">You cannot modify applications during an active session.</string>
+    <string name="profile_zen_dnd_title">Do Not Disturb</string>
+    <string name="profile_zen_dnd_desc">Silence notifications and calls in Zen Launcher.</string>
 </resources>

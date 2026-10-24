@@ -114,12 +114,20 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         )
         val profile = sessionManager.sessionState.value.activeProfile
         if (profile != null) {
+            if (profile.enableDnd) {
+                xyz.umarmohammad.hermit.util.DndManager.enableDnd(this)
+            }
             loadAllowedApps(profile.zenAllowedPackages)
         } else {
             lifecycleScope.launch(Dispatchers.IO) {
                 val app = application as HermitApplication
                 val allProfiles = app.database.focusProfileDao().getAllProfiles().first()
                 val zenProfile = allProfiles.firstOrNull { it.isMonkMode } ?: allProfiles.firstOrNull()
+                if (zenProfile?.enableDnd == true) {
+                    withContext(Dispatchers.Main) {
+                        xyz.umarmohammad.hermit.util.DndManager.enableDnd(this@ZenLauncherActivity)
+                    }
+                }
                 loadAllowedApps(zenProfile?.zenAllowedPackages ?: emptyList())
             }
         }
@@ -377,6 +385,10 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun exitToSystemHome() {
+        val isStillZenActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableDnd == true
+        if (!isStillZenActive) {
+            xyz.umarmohammad.hermit.util.DndManager.restoreDnd(this)
+        }
         val homeIntent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -396,6 +408,14 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
             @Suppress("DEPRECATION")
             vibrator?.vibrate(70)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val isStillZenActive = sessionManager.sessionState.value.isActive && sessionManager.sessionState.value.activeProfile?.enableDnd == true
+        if (!isStillZenActive) {
+            xyz.umarmohammad.hermit.util.DndManager.restoreDnd(this)
         }
     }
 }

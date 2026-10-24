@@ -30,3 +30,4 @@ node_modules/
 website/dist/
 website/.cache/
 release-dist/
+release-artifacts/

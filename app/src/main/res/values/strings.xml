@@ -463,4 +463,20 @@
     <string name="read_tag_erase_confirm_title">Erase physical tag?</string>
     <string name="read_tag_erase_confirm_desc">This will erase the Hermit configuration and reset tag protection, leaving it clean and empty.</string>
     <string name="read_tag_erase_success">Tag erased and reset successfully</string>
+
+    <!-- Onboarding Uninstall Protection -->
+    <string name="onboarding_uninstall_protection_title">Enable Uninstall Protection?</string>
+    <string name="onboarding_uninstall_protection_subtitle">Prevent impulsive deletion during moments of distraction</string>
+    <string name="onboarding_uninstall_protection_desc">Hermit uses Android Device Administrator privileges solely to disable the uninstall button. This keeps you committed when impulse urges arise.</string>
+    <string name="onboarding_uninstall_protection_feature_commit_title">Full commitment</string>
+    <string name="onboarding_uninstall_protection_feature_commit_desc">Blocks impulsive uninstallation of Hermit during moments of weakness.</string>
+    <string name="onboarding_uninstall_protection_feature_safe_title">100% reversible</string>
+    <string name="onboarding_uninstall_protection_feature_safe_desc">You can easily deactivate this protection at any time from Settings after a brief 15-second reflection delay.</string>
+    <string name="onboarding_uninstall_protection_btn_now">Enable Now</string>
+    <string name="onboarding_uninstall_protection_btn_later">Maybe Later</string>
+    <string name="onboarding_uninstall_protection_later_title">Available in Settings</string>
+    <string name="onboarding_uninstall_protection_later_desc">No problem! You can find and activate Uninstall Protection whenever you wish in Settings &gt; System Diagnostics.</string>
+    <string name="onboarding_uninstall_protection_active_title">Protection is Active</string>
+    <string name="onboarding_uninstall_protection_active_desc">Great job! Hermit is now protected against impulsive uninstallation. You can deactivate it from Settings with a 15-second delay whenever needed.</string>
+    <string name="onboarding_uninstall_protection_change_mind">Activate now instead</string>
 </resources>

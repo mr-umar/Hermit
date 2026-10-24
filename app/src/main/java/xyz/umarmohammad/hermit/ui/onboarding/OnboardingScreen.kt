@@ -128,6 +128,7 @@ import xyz.umarmohammad.hermit.ui.theme.Secundario
 import xyz.umarmohammad.hermit.ui.theme.Superficie
 import xyz.umarmohammad.hermit.ui.theme.SuperficieSubtle
 import xyz.umarmohammad.hermit.ui.theme.Texto
+import xyz.umarmohammad.hermit.util.DeviceProtectionManager
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,6 +151,7 @@ fun OnboardingScreen(
     var isBatteryExempt by remember { mutableStateOf(false) }
     var hasOverlayPermission by remember { mutableStateOf(false) }
     var hasUsagePermission by remember { mutableStateOf(false) }
+    var isDeviceAdminActive by remember { mutableStateOf(false) }
     val isAccessibilityRunning by HermitAccessibilityService.isServiceRunning.collectAsState()
 
     fun checkAllPermissions() {
@@ -166,6 +168,8 @@ fun OnboardingScreen(
             appOps?.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
         }
         hasUsagePermission = mode == AppOpsManager.MODE_ALLOWED
+
+        isDeviceAdminActive = DeviceProtectionManager.isDeviceAdminActive(context)
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -293,20 +297,28 @@ fun OnboardingScreen(
                         },
                         onNext = { currentStep = 6 }
                     )
-                    6 -> StepNfcSetup(
+                    6 -> StepUninstallProtection(
+                        isGranted = isDeviceAdminActive,
+                        onAction = {
+                            val intent = DeviceProtectionManager.createEnableAdminIntent(context)
+                            context.startActivity(intent)
+                        },
+                        onNext = { currentStep = 7 }
+                    )
+                    7 -> StepNfcSetup(
                         app = app,
                         activePhysicalTag = activePhysicalTag,
                         onTagHandled = onTagHandled,
                         onTagPaired = {
                             hasNfcTagAdded = true
-                            currentStep = 7
+                            currentStep = 8
                         },
                         onSkip = {
                             hasNfcTagAdded = false
-                            currentStep = 7
+                            currentStep = 8
                         }
                     )
-                    7 -> StepCreateProfile(
+                    8 -> StepCreateProfile(
                         app = app,
                         hasNfcTag = hasNfcTagAdded,
                         onCompleted = onFinishOnboarding
@@ -766,7 +778,250 @@ private fun StepAccessibilityPermission(
 }
 
 // -------------------------------------------------------------
-// Step 6: NFC Tag Setup (Interactive write / pairing - Skippable)
+// Step 6: Uninstall Protection Screen
+// -------------------------------------------------------------
+@Composable
+private fun StepUninstallProtection(
+    isGranted: Boolean,
+    onAction: () -> Unit,
+    onNext: () -> Unit
+) {
+    var showLaterNotice by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(68.dp)
+                    .clip(CircleShape)
+                    .background(Superficie),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = null,
+                    tint = if (isGranted) Acento else if (showLaterNotice) Secundario else Acento,
+                    modifier = Modifier.size(34.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = if (isGranted) {
+                    stringResource(R.string.onboarding_uninstall_protection_active_title)
+                } else if (showLaterNotice) {
+                    stringResource(R.string.onboarding_uninstall_protection_later_title)
+                } else {
+                    stringResource(R.string.onboarding_uninstall_protection_title)
+                },
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = Texto,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = if (isGranted) {
+                    stringResource(R.string.onboarding_uninstall_protection_active_desc)
+                } else if (showLaterNotice) {
+                    stringResource(R.string.onboarding_uninstall_protection_later_desc)
+                } else {
+                    stringResource(R.string.onboarding_uninstall_protection_subtitle)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = Secundario,
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (isGranted) {
+                AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Estado",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Secundario
+                        )
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Acento,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = stringResource(R.string.onboarding_perm_status_granted),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = Acento
+                            )
+                        }
+                    }
+                }
+            } else if (showLaterNotice) {
+                AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Acento,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Ajustes > Diagnósticos del sistema",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = Texto
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.onboarding_uninstall_protection_later_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Secundario,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = onAction,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        tint = Acento,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.onboarding_uninstall_protection_change_mind),
+                        color = Acento
+                    )
+                }
+            } else {
+                AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text(text = "🛡️", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.onboarding_uninstall_protection_feature_commit_title),
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    color = Texto
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.onboarding_uninstall_protection_feature_commit_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Secundario,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+
+                        AppleDivider()
+
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text(text = "⏱️", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.onboarding_uninstall_protection_feature_safe_title),
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    color = Texto
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.onboarding_uninstall_protection_feature_safe_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Secundario,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp, top = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (isGranted || showLaterNotice) {
+                TactileButton(
+                    onClick = onNext,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.onboarding_btn_next))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                }
+            } else {
+                TactileButton(
+                    onClick = onAction,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(imageVector = Icons.Default.Security, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.onboarding_uninstall_protection_btn_now))
+                }
+
+                OutlinedButton(
+                    onClick = { showLaterNotice = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.onboarding_uninstall_protection_btn_later),
+                        color = Secundario
+                    )
+                }
+            }
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// Step 7: NFC Tag Setup (Interactive write / pairing - Skippable)
 // -------------------------------------------------------------
 @Composable
 private fun StepNfcSetup(

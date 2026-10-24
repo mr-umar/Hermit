@@ -463,4 +463,20 @@
     <string name="read_tag_erase_confirm_title">¿Borrar etiqueta física?</string>
     <string name="read_tag_erase_confirm_desc">Se eliminarán los datos de Hermit y la protección de la etiqueta, dejándola completamente vacía.</string>
     <string name="read_tag_erase_success">Etiqueta borrada y reseteada con éxito</string>
+
+    <!-- Onboarding Uninstall Protection -->
+    <string name="onboarding_uninstall_protection_title">¿Activar protección contra desinstalación?</string>
+    <string name="onboarding_uninstall_protection_subtitle">Evita borrar la app en momentos de debilidad o impulso</string>
+    <string name="onboarding_uninstall_protection_desc">Hermit utiliza el Administrador de Dispositivos de Android únicamente para deshabilitar el botón de desinstalación. Esto te ayuda a mantener tu compromiso cuando sientas tentación.</string>
+    <string name="onboarding_uninstall_protection_feature_commit_title">Compromiso total</string>
+    <string name="onboarding_uninstall_protection_feature_commit_desc">Bloquea la desinstalación impulsiva de Hermit en momentos de recaída o distracción.</string>
+    <string name="onboarding_uninstall_protection_feature_safe_title">100% reversible</string>
+    <string name="onboarding_uninstall_protection_feature_safe_desc">Puedes desactivarlo cuando quieras desde Ajustes tras una breve pausa de reflexión de 15 segundos.</string>
+    <string name="onboarding_uninstall_protection_btn_now">Activar ahora</string>
+    <string name="onboarding_uninstall_protection_btn_later">Más adelante</string>
+    <string name="onboarding_uninstall_protection_later_title">Disponible en Ajustes</string>
+    <string name="onboarding_uninstall_protection_later_desc">¡Entendido! Puedes encontrar y activar esta opción cuando quieras en un futuro desde Ajustes &gt; Diagnósticos del sistema.</string>
+    <string name="onboarding_uninstall_protection_active_title">Protección activada</string>
+    <string name="onboarding_uninstall_protection_active_desc">¡Excelente! Hermit está protegido contra desinstalación accidental o impulsiva. Puedes desactivarlo desde Ajustes tras una pausa de 15 segundos.</string>
+    <string name="onboarding_uninstall_protection_change_mind">Cambiar de opinión y activar ahora</string>
 </resources>

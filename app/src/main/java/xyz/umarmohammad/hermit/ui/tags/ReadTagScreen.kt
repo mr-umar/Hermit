@@ -19,13 +19,19 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Refresh
+import android.widget.Toast
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,9 +64,11 @@ fun ReadTagScreen(
     onTagHandled: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
     var scannedInfo by remember { mutableStateOf<NfcCapabilityInfo?>(null) }
     var isImported by remember { mutableStateOf(false) }
     var customTagName by remember { mutableStateOf("") }
+    var showEraseDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(activePhysicalTag) {
         if (activePhysicalTag != null) {
@@ -248,7 +256,62 @@ fun ReadTagScreen(
                     Text(stringResource(R.string.read_tag_action_rescan))
                 }
 
+                if (activePhysicalTag != null && (scannedInfo?.isWritable == true || scannedInfo?.existingPayload != null)) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = { showEraseDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.read_tag_action_erase),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            if (showEraseDialog && activePhysicalTag != null) {
+                AlertDialog(
+                    onDismissRequest = { showEraseDialog = false },
+                    title = { Text(stringResource(R.string.read_tag_erase_confirm_title)) },
+                    text = { Text(stringResource(R.string.read_tag_erase_confirm_desc)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showEraseDialog = false
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val res = NfcTagManager.eraseTag(activePhysicalTag)
+                                    launch(Dispatchers.Main) {
+                                        if (res.isSuccess) {
+                                            Toast.makeText(context, context.getString(R.string.read_tag_erase_success), Toast.LENGTH_SHORT).show()
+                                            scannedInfo = NfcTagManager.inspectTag(activePhysicalTag)
+                                            isImported = false
+                                        } else {
+                                            Toast.makeText(context, "Error: ${res.exceptionOrNull()?.localizedMessage ?: "Failed"}", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showEraseDialog = false }) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                )
             }
         }
     }

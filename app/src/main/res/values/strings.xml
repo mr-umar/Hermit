@@ -432,4 +432,15 @@
     <string name="profile_zen_grayscale_title">Grayscale Mode</string>
     <string name="profile_zen_grayscale_desc">Monochrome screen to reduce visual dopamine.</string>
     <string name="profile_zen_grayscale_adb_toast">Applied in Zen Launcher. For system-wide, grant WRITE_SECURE_SETTINGS via ADB.</string>
+
+    <!-- NFC Tag Protection & Import Strings -->
+    <string name="tag_detail_default_name">Physical tag</string>
+    <string name="tag_import_prompt_title">Hermit Tag Detected</string>
+    <string name="tag_import_prompt_desc">This tag has a Hermit configuration. Would you like to add it to your tags to use with your focus profiles?</string>
+    <string name="tag_import_btn_add">Add to My Tags</string>
+    <string name="tag_import_btn_activate_only">Use Once</string>
+    <string name="read_tag_action_erase">Erase Tag</string>
+    <string name="read_tag_erase_confirm_title">Erase physical tag?</string>
+    <string name="read_tag_erase_confirm_desc">This will erase the Hermit configuration and reset tag protection, leaving it clean and empty.</string>
+    <string name="read_tag_erase_success">Tag erased and reset successfully</string>
 </resources>

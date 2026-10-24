@@ -432,4 +432,15 @@
     <string name="profile_zen_grayscale_title">Modo escala de grises</string>
     <string name="profile_zen_grayscale_desc">Pantalla en blanco y negro para reducir distracciones visuales.</string>
     <string name="profile_zen_grayscale_adb_toast">Aplicado en el launcher Zen. Para todo el móvil, requiere permiso ADB.</string>
+
+    <!-- NFC Tag Protection & Import Strings -->
+    <string name="tag_detail_default_name">Etiqueta física</string>
+    <string name="tag_import_prompt_title">Etiqueta Hermit detectada</string>
+    <string name="tag_import_prompt_desc">Esta etiqueta física contiene una configuración de Hermit. ¿Deseas añadirla a tus etiquetas para usarla con tus perfiles?</string>
+    <string name="tag_import_btn_add">Añadir a mis etiquetas</string>
+    <string name="tag_import_btn_activate_only">Solo usar ahora</string>
+    <string name="read_tag_action_erase">Borrar etiqueta</string>
+    <string name="read_tag_erase_confirm_title">¿Borrar etiqueta física?</string>
+    <string name="read_tag_erase_confirm_desc">Se eliminarán los datos de Hermit y la protección de la etiqueta, dejándola completamente vacía.</string>
+    <string name="read_tag_erase_success">Etiqueta borrada y reseteada con éxito</string>
 </resources>

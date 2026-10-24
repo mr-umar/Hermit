@@ -172,6 +172,9 @@ object NfcTagManager {
         val message = NdefMessage(arrayOf(mimeRecord, uriRecord))
         val messageSize = message.byteArrayLength
 
+        // 1. If this is an NTAG previously write-protected by Hermit, unlock it first so Ndef write succeeds
+        unlockNtagIfProtected(tag)
+
         val ndef = Ndef.get(tag)
         if (ndef != null) {
             try {
@@ -208,6 +211,10 @@ object NfcTagManager {
                 if (!verified) {
                     return Result.failure(IllegalStateException("VERIFICATION_FAILED"))
                 }
+
+                // 2. Lock tag with Hermit's universal password protection (read is open, write is protected)
+                applyNtagProtection(tag)
+
                 return Result.success(payload)
             } catch (e: TagLostException) {
                 return Result.failure(e)
@@ -227,6 +234,8 @@ object NfcTagManager {
                 formatable.connect()
                 formatable.format(message)
                 formatable.close()
+
+                applyNtagProtection(tag)
                 return Result.success(payload)
             } catch (e: Exception) {
                 return Result.failure(e)
@@ -234,6 +243,152 @@ object NfcTagManager {
         }
 
         return Result.failure(UnsupportedOperationException("UNSUPPORTED_TAG_TECHNOLOGY"))
+    }
+
+    // Universal Hermit Tag Protection Password & PACK
+    // 4-byte PWD: ASCII "Herm" = [0x48, 0x65, 0x72, 0x6D]
+    // 2-byte PACK: ASCII "HT" = [0x48, 0x54]
+    val HERMIT_PWD: ByteArray = byteArrayOf(0x48.toByte(), 0x65.toByte(), 0x72.toByte(), 0x6D.toByte())
+    val HERMIT_PACK: ByteArray = byteArrayOf(0x48.toByte(), 0x54.toByte())
+
+    data class NtagConfig(
+        val auth0Page: Int,
+        val accessPage: Int,
+        val pwdPage: Int,
+        val packPage: Int
+    )
+
+    private fun detectNtagConfig(ultralight: MifareUltralight, maxNdefSize: Int): NtagConfig? {
+        try {
+            val version = ultralight.transceive(byteArrayOf(0x60.toByte()))
+            if (version != null && version.size >= 8) {
+                val storageSize = version[6].toInt() and 0xFF
+                return when (storageSize) {
+                    0x0F -> NtagConfig(auth0Page = 41, accessPage = 42, pwdPage = 43, packPage = 44) // NTAG213
+                    0x11 -> NtagConfig(auth0Page = 131, accessPage = 132, pwdPage = 133, packPage = 134) // NTAG215
+                    0x13 -> NtagConfig(auth0Page = 227, accessPage = 228, pwdPage = 229, packPage = 230) // NTAG216
+                    else -> null
+                }
+            }
+        } catch (_: Exception) {
+            // Fallback to maxNdefSize if GET_VERSION not supported
+        }
+
+        return when {
+            maxNdefSize in 100..200 -> NtagConfig(41, 42, 43, 44) // NTAG213 (~144 bytes)
+            maxNdefSize in 400..600 -> NtagConfig(131, 132, 133, 134) // NTAG215 (~504 bytes)
+            maxNdefSize in 800..1000 -> NtagConfig(227, 228, 229, 230) // NTAG216 (~888 bytes)
+            else -> null
+        }
+    }
+
+    private fun authenticateTag(ultralight: MifareUltralight): Boolean {
+        return try {
+            val cmd = byteArrayOf(
+                0x1B.toByte(),
+                HERMIT_PWD[0],
+                HERMIT_PWD[1],
+                HERMIT_PWD[2],
+                HERMIT_PWD[3]
+            )
+            val resp = ultralight.transceive(cmd)
+            resp != null && resp.size >= 2
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Unprotects an NTAG21x tag if previously locked by Hermit, so NDEF write operations succeed.
+     */
+    fun unlockNtagIfProtected(tag: Tag): Boolean {
+        val ultralight = MifareUltralight.get(tag) ?: return false
+        return try {
+            ultralight.connect()
+            val config = detectNtagConfig(ultralight, Ndef.get(tag)?.maxSize ?: 0)
+            if (config != null) {
+                if (authenticateTag(ultralight)) {
+                    // Temporarily set AUTH0 to 0xFF so Ndef can write freely
+                    ultralight.writePage(config.auth0Page, byteArrayOf(0x00, 0x00, 0x00, 0xFF.toByte()))
+                }
+            }
+            ultralight.close()
+            true
+        } catch (_: Exception) {
+            try { ultralight.close() } catch (_: Exception) {}
+            false
+        }
+    }
+
+    /**
+     * Applies Hermit's write-protection password (PROT=0: write protected, read completely open).
+     */
+    fun applyNtagProtection(tag: Tag): Boolean {
+        val ultralight = MifareUltralight.get(tag) ?: return false
+        return try {
+            ultralight.connect()
+            val config = detectNtagConfig(ultralight, Ndef.get(tag)?.maxSize ?: 0)
+            if (config != null) {
+                // 1. Authenticate first if already locked
+                authenticateTag(ultralight)
+                // 2. Write PWD and PACK
+                ultralight.writePage(config.pwdPage, HERMIT_PWD)
+                ultralight.writePage(config.packPage, byteArrayOf(HERMIT_PACK[0], HERMIT_PACK[1], 0x00, 0x00))
+                // 3. Write ACCESS: PROT = 0 (write protected, read is open to all), CFGLCK=0, AUTHLIM=0
+                ultralight.writePage(config.accessPage, byteArrayOf(0x00, 0x00, 0x00, 0x00))
+                // 4. Write AUTH0: Page 4 (protect user memory from page 4 to end)
+                ultralight.writePage(config.auth0Page, byteArrayOf(0x00, 0x00, 0x00, 0x04))
+            }
+            ultralight.close()
+            true
+        } catch (_: Exception) {
+            try { ultralight.close() } catch (_: Exception) {}
+            false
+        }
+    }
+
+    /**
+     * Erases an NFC tag: unlocks with Hermit password, resets password to factory default,
+     * and clears the NDEF content.
+     */
+    fun eraseTag(tag: Tag): Result<Unit> {
+        val ultralight = MifareUltralight.get(tag)
+        if (ultralight != null) {
+            try {
+                ultralight.connect()
+                val config = detectNtagConfig(ultralight, Ndef.get(tag)?.maxSize ?: 0)
+                if (config != null) {
+                    authenticateTag(ultralight)
+                    // Disable password protection by setting AUTH0 = 0xFF
+                    ultralight.writePage(config.auth0Page, byteArrayOf(0x00, 0x00, 0x00, 0xFF.toByte()))
+                    // Reset ACCESS
+                    ultralight.writePage(config.accessPage, byteArrayOf(0x00, 0x00, 0x00, 0x00))
+                    // Reset PWD to factory default (0xFF, 0xFF, 0xFF, 0xFF)
+                    ultralight.writePage(config.pwdPage, byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()))
+                    // Reset PACK to factory default (0x00, 0x00, 0x00, 0x00)
+                    ultralight.writePage(config.packPage, byteArrayOf(0x00, 0x00, 0x00, 0x00))
+                }
+                ultralight.close()
+            } catch (_: Exception) {
+                try { ultralight.close() } catch (_: Exception) {}
+            }
+        }
+
+        val ndef = Ndef.get(tag)
+        if (ndef != null) {
+            try {
+                ndef.connect()
+                val emptyRecord = NdefRecord(NdefRecord.TNF_EMPTY, ByteArray(0), ByteArray(0), ByteArray(0))
+                ndef.writeNdefMessage(NdefMessage(arrayOf(emptyRecord)))
+                ndef.close()
+                return Result.success(Unit)
+            } catch (e: Exception) {
+                try { ndef.close() } catch (_: Exception) {}
+                return Result.failure(e)
+            }
+        }
+
+        return Result.success(Unit)
     }
 
     /**

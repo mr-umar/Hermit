@@ -38,12 +38,15 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -51,6 +54,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,11 +106,18 @@ sealed class Screen(val route: String, val titleRes: Int, val icon: ImageVector)
     data object Settings : Screen("settings", R.string.nav_settings, Icons.Default.Settings)
 }
 
+data class UnregisteredTagPrompt(
+    val payload: xyz.umarmohammad.hermit.nfc.HermitTagPayload,
+    val physicalUid: String,
+    val defaultName: String
+)
+
 class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
     private var nfcAdapter: NfcAdapter? = null
     private var activePhysicalTag by mutableStateOf<Tag?>(null)
     private var isNfcIntercepted by mutableStateOf(false)
+    private var pendingUnregisteredTag by mutableStateOf<UnregisteredTagPrompt?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -194,7 +205,9 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                             app = app,
                             activePhysicalTag = activePhysicalTag,
                             onTagHandled = { activePhysicalTag = null },
-                            onSetNfcIntercept = { isNfcIntercepted = it }
+                            onSetNfcIntercept = { isNfcIntercepted = it },
+                            pendingUnregisteredTag = pendingUnregisteredTag,
+                            onClearPendingUnregisteredTag = { pendingUnregisteredTag = null }
                         )
                     }
                 }
@@ -241,9 +254,20 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         val uid = NfcTagManager.extractTagUid(intent)
         val app = application as HermitApplication
         lifecycleScope.launch {
-            val outcome = app.sessionManager.handleTagScan(payload, uid)
-            triggerHapticFeedback()
-            showOutcomeToast(outcome)
+            val registeredTag = app.database.nfcTagDao().getTagById(payload.id)
+                ?: app.database.nfcTagDao().getTagByPhysicalUid(uid)
+
+            if (registeredTag == null && !app.sessionManager.sessionState.value.isActive) {
+                pendingUnregisteredTag = UnregisteredTagPrompt(
+                    payload = payload,
+                    physicalUid = uid,
+                    defaultName = payload.name ?: getString(R.string.tag_detail_default_name)
+                )
+            } else {
+                val outcome = app.sessionManager.handleTagScan(payload, uid)
+                triggerHapticFeedback()
+                showOutcomeToast(outcome)
+            }
         }
     }
 
@@ -262,9 +286,20 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             val app = application as HermitApplication
             val uid = NfcTagManager.bytesToHex(tag.id)
             lifecycleScope.launch {
-                val outcome = app.sessionManager.handleTagScan(payload, uid)
-                triggerHapticFeedback()
-                showOutcomeToast(outcome)
+                val registeredTag = app.database.nfcTagDao().getTagById(payload.id)
+                    ?: app.database.nfcTagDao().getTagByPhysicalUid(uid)
+
+                if (registeredTag == null && !app.sessionManager.sessionState.value.isActive) {
+                    pendingUnregisteredTag = UnregisteredTagPrompt(
+                        payload = payload,
+                        physicalUid = uid,
+                        defaultName = payload.name ?: getString(R.string.tag_detail_default_name)
+                    )
+                } else {
+                    val outcome = app.sessionManager.handleTagScan(payload, uid)
+                    triggerHapticFeedback()
+                    showOutcomeToast(outcome)
+                }
             }
         }
     }
@@ -302,8 +337,11 @@ fun MainAppScaffold(
     app: HermitApplication,
     activePhysicalTag: Tag?,
     onTagHandled: () -> Unit,
-    onSetNfcIntercept: (Boolean) -> Unit
+    onSetNfcIntercept: (Boolean) -> Unit,
+    pendingUnregisteredTag: UnregisteredTagPrompt? = null,
+    onClearPendingUnregisteredTag: () -> Unit = {}
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -617,6 +655,67 @@ fun MainAppScaffold(
                     }
                 }
             }
+        }
+
+        // Unregistered Tag Import Confirmation Dialog
+        pendingUnregisteredTag?.let { prompt ->
+            var customName by remember(prompt) { mutableStateOf(prompt.defaultName) }
+            AlertDialog(
+                onDismissRequest = onClearPendingUnregisteredTag,
+                title = { Text(stringResource(R.string.tag_import_prompt_title)) },
+                text = {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.tag_import_prompt_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        OutlinedTextField(
+                            value = customName,
+                            onValueChange = { customName = it },
+                            label = { Text(stringResource(R.string.tag_detail_name)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val tagRecord = xyz.umarmohammad.hermit.data.model.NfcTagRecord(
+                                id = prompt.payload.id,
+                                tagPhysicalUid = prompt.physicalUid,
+                                name = customName.trim().ifBlank { prompt.defaultName },
+                                action = prompt.payload.getResolvedAction(),
+                                targetProfileId = prompt.payload.profileId,
+                                lastScannedAt = System.currentTimeMillis()
+                            )
+                            coroutineScope.launch {
+                                tagRepo.saveTag(tagRecord)
+                                app.sessionManager.handleTagScan(prompt.payload, prompt.physicalUid)
+                            }
+                            onClearPendingUnregisteredTag()
+                        },
+                        enabled = customName.isNotBlank()
+                    ) {
+                        Text(stringResource(R.string.tag_import_btn_add))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                app.sessionManager.handleTagScan(prompt.payload, prompt.physicalUid)
+                            }
+                            onClearPendingUnregisteredTag()
+                        }
+                    ) {
+                        Text(stringResource(R.string.tag_import_btn_activate_only))
+                    }
+                }
+            )
         }
     }
 }

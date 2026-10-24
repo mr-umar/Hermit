@@ -118,6 +118,7 @@ import xyz.umarmohammad.hermit.ui.components.AppleDivider
 import xyz.umarmohammad.hermit.ui.components.AppleGroupedCard
 import xyz.umarmohammad.hermit.ui.components.AppleSegmentedControl
 import xyz.umarmohammad.hermit.ui.components.AppleToggleRow
+import xyz.umarmohammad.hermit.ui.components.DurationPickerCard
 import xyz.umarmohammad.hermit.ui.components.TactileButton
 import xyz.umarmohammad.hermit.ui.theme.Acento
 import xyz.umarmohammad.hermit.ui.theme.Aviso
@@ -988,8 +989,8 @@ private fun StepCreateProfile(
 
     // If hasActualNfcTag: can choose "NFC" or "TIME". If !hasActualNfcTag: strictly "TIME"
     var unlockMode by remember { mutableStateOf(if (hasActualNfcTag) "NFC" else "TIME") }
-    // Timer duration: 15 to 720 minutes (default 60m)
-    var durationMinutes by remember { mutableFloatStateOf(60f) }
+    // Timer duration: 1 to 720 minutes (default 60m)
+    var durationMinutes by remember { mutableIntStateOf(60) }
     // Emergency exit: default allowed after 60s delay
     var allowEmergencyExit by remember { mutableStateOf(true) }
 
@@ -1161,50 +1162,12 @@ private fun StepCreateProfile(
                 Spacer(modifier = Modifier.height(18.dp))
             }
 
-            // Duration Slider & Emergency Exit (shown whenever in TIME mode or when no NFC tags exist)
+            // Duration Picker (shown whenever in TIME mode or when no NFC tags exist)
             if (!hasActualNfcTag || unlockMode == "TIME") {
-                Text(
-                    text = stringResource(R.string.profile_duration_timer_title),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = Secundario,
-                    modifier = Modifier.fillMaxWidth()
+                DurationPickerCard(
+                    durationMinutes = durationMinutes,
+                    onDurationChange = { durationMinutes = it }
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        val totalMin = durationMinutes.toInt()
-                        val hours = totalMin / 60
-                        val mins = totalMin % 60
-                        val durText = if (hours > 0 && mins > 0) "${hours}h ${mins}m"
-                        else if (hours > 0) "${hours}h"
-                        else "${mins}m"
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(stringResource(R.string.profile_duration_timer_title), style = MaterialTheme.typography.bodyMedium, color = Secundario)
-                            Text(durText, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Acento)
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Slider(
-                            value = durationMinutes,
-                            onValueChange = { durationMinutes = it },
-                            valueRange = 15f..720f,
-                            steps = 46,
-                            colors = SliderDefaults.colors(
-                                thumbColor = Acento,
-                                activeTrackColor = Acento,
-                                inactiveTrackColor = SuperficieSubtle
-                            )
-                        )
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -1402,7 +1365,7 @@ private fun StepCreateProfile(
                         val finalDuration = if (isNfcSession) {
                             720
                         } else {
-                            durationMinutes.toInt().coerceIn(15, 720)
+                            durationMinutes.coerceIn(1, 720)
                         }
 
                         val customProfile = FocusProfile(

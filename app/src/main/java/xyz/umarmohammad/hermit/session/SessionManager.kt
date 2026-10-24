@@ -196,7 +196,7 @@ class SessionManager private constructor(private val context: Context) {
             val effectiveDuration = if (!hasTags && (rawProfile.durationMinutes == null || rawProfile.durationMinutes >= 720)) {
                 60
             } else {
-                rawProfile.durationMinutes?.coerceIn(15, 720) ?: 60
+                rawProfile.durationMinutes?.coerceIn(1, 720) ?: 60
             }
 
             val effectiveActivationType = if (!hasTags) "TIME" else rawProfile.activationType

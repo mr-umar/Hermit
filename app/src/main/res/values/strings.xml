@@ -406,6 +406,9 @@
     <string name="profile_activation_time_desc">Ends when the timer expires.</string>
     <string name="profile_duration_timer_title">Duration</string>
     <string name="profile_duration_slider_hint"></string>
+    <string name="profile_duration_hours">Hours</string>
+    <string name="profile_duration_minutes_label">Minutes</string>
+    <string name="profile_duration_pomodoro">25m (Pomodoro)</string>
     <string name="profile_emergency_exit_title">Emergency exit</string>
     <string name="profile_emergency_exit_enabled_desc">Allow exit after waiting 60 seconds.</string>
     <string name="profile_emergency_exit_disabled_desc">Strict lock until timer completes.</string>

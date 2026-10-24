@@ -40,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,6 +63,7 @@ import xyz.umarmohammad.hermit.data.model.FocusProfile
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.data.repository.TagRepository
 import xyz.umarmohammad.hermit.ui.components.AppleSegmentedControl
+import xyz.umarmohammad.hermit.ui.components.DurationPickerCard
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
 import xyz.umarmohammad.hermit.ui.components.TactileButton
@@ -97,8 +99,8 @@ fun ProfileEditScreen(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf("work") }
-    // Duration in minutes, max 12 hours (720 min)
-    var durationMinutes by remember { mutableFloatStateOf(60f) }
+    // Duration in minutes, from 1 minute to 12 hours (720 min)
+    var durationMinutes by remember { mutableIntStateOf(60) }
     var allowEmergencyExit by remember { mutableStateOf(true) } // Default: allowed after 60s
     var isMonkMode by remember { mutableStateOf(false) }
     var enableDnd by remember { mutableStateOf(false) }
@@ -115,7 +117,7 @@ fun ProfileEditScreen(
                 name = existing.name
                 description = existing.description
                 selectedIcon = existing.iconName
-                durationMinutes = (existing.durationMinutes ?: 60).toFloat().coerceIn(15f, 720f)
+                durationMinutes = (existing.durationMinutes ?: 60).coerceIn(1, 720)
                 allowEmergencyExit = (existing.exitBehavior == ExitBehavior.ALLOW_EMERGENCY)
                 isMonkMode = existing.isMonkMode
                 enableDnd = existing.enableDnd
@@ -167,7 +169,7 @@ fun ProfileEditScreen(
                             val finalDuration = if (isNfcMode) {
                                 720
                             } else {
-                                durationMinutes.toInt().coerceIn(15, 720)
+                                durationMinutes.coerceIn(1, 720)
                             }
 
                             val effectiveZenPackages = if (isSessionActive && profileId == sessionState.activeProfile?.id) {
@@ -320,51 +322,12 @@ fun ProfileEditScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Duration Slider (Shown if activationType is TIME, or if user has no NFC tags)
+            // Duration Picker (Shown if activationType is TIME, or if user has no NFC tags)
             if (!hasPhysicalTags || activationType == "TIME") {
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.profile_duration_timer_title),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            ) {
-                                val totalMin = durationMinutes.toInt()
-                                val hours = totalMin / 60
-                                val mins = totalMin % 60
-                                val labelText = if (hours > 0 && mins > 0) "${hours}h ${mins}m"
-                                else if (hours > 0) "${hours}h"
-                                else "${mins}m"
-
-                                Text(
-                                    text = labelText,
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Slider(
-                            value = durationMinutes,
-                            onValueChange = { durationMinutes = it },
-                            valueRange = 15f..720f,
-                            steps = 46 // 15m intervals up to 12h
-                        )
-                    }
-                }
+                DurationPickerCard(
+                    durationMinutes = durationMinutes,
+                    onDurationChange = { durationMinutes = it }
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 

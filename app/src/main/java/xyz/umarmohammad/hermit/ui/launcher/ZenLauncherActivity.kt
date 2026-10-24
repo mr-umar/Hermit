@@ -37,6 +37,7 @@ import xyz.umarmohammad.hermit.session.SessionManager
 import xyz.umarmohammad.hermit.session.TagScanOutcome
 import xyz.umarmohammad.hermit.ui.MainActivity
 import xyz.umarmohammad.hermit.ui.theme.HermitTheme
+import xyz.umarmohammad.hermit.service.HermitAccessibilityService
 import kotlinx.coroutines.flow.first
 
 class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
@@ -48,6 +49,7 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        applyImmersiveMode()
 
         sessionManager = SessionManager.getInstance(this)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
@@ -99,6 +101,7 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
     override fun onResume() {
         super.onResume()
+        applyImmersiveMode()
         nfcAdapter?.enableReaderMode(
             this,
             this,
@@ -125,6 +128,54 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     override fun onPause() {
         super.onPause()
         nfcAdapter?.disableReaderMode(this)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        val state = sessionManager.sessionState.value
+        val isZenActive = state.isActive && (state.activeProfile?.isMonkMode == true ||
+                state.activeProfile?.name?.equals("Zen", true) == true ||
+                state.activeProfile?.name?.equals("Monk", true) == true)
+
+        if (!hasFocus && isZenActive) {
+            // Dismiss notification panel / status bar to prevent opening quick settings
+            HermitAccessibilityService.dismissNotificationShade()
+            collapseStatusBarPanels()
+        } else if (hasFocus) {
+            applyImmersiveMode()
+        }
+    }
+
+    private fun collapseStatusBarPanels() {
+        try {
+            val statusBarService = getSystemService("statusbar")
+            val statusBarManager = Class.forName("android.app.StatusBarManager")
+            val collapseMethod = statusBarManager.getMethod("collapsePanels")
+            collapseMethod.isAccessible = true
+            collapseMethod.invoke(statusBarService)
+        } catch (_: Exception) {}
+
+        try {
+            @Suppress("DEPRECATION")
+            val closeIntent = Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+            sendBroadcast(closeIntent)
+        } catch (_: Exception) {}
+    }
+
+    private fun applyImmersiveMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.let { controller ->
+                controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(android.view.WindowInsets.Type.statusBars())
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            )
+        }
     }
 
     override fun onTagDiscovered(tag: Tag?) {

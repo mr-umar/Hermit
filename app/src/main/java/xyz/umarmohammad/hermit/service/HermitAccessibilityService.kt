@@ -61,11 +61,33 @@ class HermitAccessibilityService : AccessibilityService() {
         private val _isServiceRunning = MutableStateFlow(false)
         val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
+        @Volatile
+        private var instance: HermitAccessibilityService? = null
+
+        fun dismissNotificationShade() {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    instance?.performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
+                } else {
+                    instance?.performGlobalAction(GLOBAL_ACTION_BACK)
+                }
+            } catch (_: Exception) {}
+        }
+
+        fun isSettingsPackage(pkg: String): Boolean {
+            return pkg == "com.android.settings" ||
+                    pkg == "com.samsung.android.settings" ||
+                    pkg == "com.google.android.settings" ||
+                    pkg == "com.miui.securitycenter" ||
+                    pkg == "com.coloros.safecenter" ||
+                    pkg == "com.huawei.systemmanager" ||
+                    pkg.endsWith(".settings")
+        }
+
         // Critical system packages that must never be blocked to ensure user safety
         private val ESSENTIAL_SYSTEM_PACKAGES = setOf(
             "xyz.umarmohammad.hermit",
             "com.android.systemui",
-            "com.android.settings",
             "com.google.android.permissioncontroller",
             "com.android.permissioncontroller",
             "com.android.packageinstaller",
@@ -78,7 +100,6 @@ class HermitAccessibilityService : AccessibilityService() {
         private val BASE_ZEN_PACKAGES = setOf(
             "xyz.umarmohammad.hermit",
             "com.android.systemui",
-            "com.android.settings",
             "com.google.android.dialer",
             "com.android.dialer",
             "com.samsung.android.dialer",
@@ -116,6 +137,7 @@ class HermitAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
+        instance = this
         _isServiceRunning.value = true
         sessionManager = SessionManager.getInstance(applicationContext)
         refreshExemptPackages()
@@ -153,7 +175,7 @@ class HermitAccessibilityService : AccessibilityService() {
         val now = System.currentTimeMillis()
 
         // 4. Uninstall and Tamper Protection during active focus session
-        val isSettingsOrInstaller = rawPkg == "com.android.settings" ||
+        val isSettingsOrInstaller = isSettingsPackage(rawPkg) ||
                 rawPkg == "com.google.android.packageinstaller" ||
                 rawPkg == "com.android.packageinstaller" ||
                 rawPkg == "com.google.android.permissioncontroller"
@@ -222,6 +244,23 @@ class HermitAccessibilityService : AccessibilityService() {
                 return
             }
 
+            // In Zen mode, Settings is strictly forbidden under all circumstances
+            if (isSettingsPackage(rawPkg)) {
+                if (rawPkg == lastBlockedPackage && (now - lastBlockTimestamp) < BLOCK_DEBOUNCE_WINDOW_MS) {
+                    return
+                }
+                lastBlockedPackage = rawPkg
+                lastBlockTimestamp = now
+                sessionManager.recordBlockedAttempt(rawPkg)
+                performGlobalAction(GLOBAL_ACTION_BACK)
+                val intent = Intent(this, xyz.umarmohammad.hermit.ui.launcher.ZenLauncherActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
+                startActivity(intent)
+                triggerBlockExperience(rawPkg, profile.name)
+                return
+            }
+
             // Verify against Zen whitelist: Phone, Camera, Spotify, YT Music, and up to 5 optional apps
             if (!isZenAllowed(rawPkg, profile.zenAllowedPackages)) {
                 if (rawPkg == lastBlockedPackage && (now - lastBlockTimestamp) < BLOCK_DEBOUNCE_WINDOW_MS) {
@@ -230,6 +269,11 @@ class HermitAccessibilityService : AccessibilityService() {
                 lastBlockedPackage = rawPkg
                 lastBlockTimestamp = now
                 sessionManager.recordBlockedAttempt(rawPkg)
+                performGlobalAction(GLOBAL_ACTION_BACK)
+                val intent = Intent(this, xyz.umarmohammad.hermit.ui.launcher.ZenLauncherActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
+                startActivity(intent)
                 triggerBlockExperience(rawPkg, profile.name)
                 return
             }
@@ -344,6 +388,7 @@ class HermitAccessibilityService : AccessibilityService() {
 
     private fun isCoreEssentialPackage(pkg: String): Boolean {
         if (pkg == packageName || pkg == "xyz.umarmohammad.hermit") return true
+        if (isSettingsPackage(pkg)) return false
         if (ESSENTIAL_SYSTEM_PACKAGES.contains(pkg)) return true
 
         val now = System.currentTimeMillis()
@@ -362,6 +407,7 @@ class HermitAccessibilityService : AccessibilityService() {
     }
 
     private fun isZenAllowed(pkg: String, optionalZenApps: List<String>): Boolean {
+        if (isSettingsPackage(pkg)) return false
         if (BASE_ZEN_PACKAGES.contains(pkg)) return true
         if (isCoreEssentialPackage(pkg)) return true
         if (optionalZenApps.take(5).contains(pkg)) return true
@@ -402,6 +448,9 @@ class HermitAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (instance == this) {
+            instance = null
+        }
         _isServiceRunning.value = false
     }
 }

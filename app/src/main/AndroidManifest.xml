@@ -23,6 +23,9 @@
     <!-- Request battery optimization exemption for uninterrupted focus sessions -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Collapse / manage status bar and notification shade in Zen launcher -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+
     <!-- Usage stats access for focus analytics and app detection -->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"

@@ -68,6 +68,7 @@ import xyz.umarmohammad.hermit.ui.components.EmptyStateView
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
 import xyz.umarmohammad.hermit.ui.theme.Acento
+import xyz.umarmohammad.hermit.util.ScreenTimeManager
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -98,154 +99,38 @@ fun StatsScreen(sessionRepository: SessionRepository) {
     LaunchedEffect(hasUsagePermission) {
         if (hasUsagePermission) {
             withContext(Dispatchers.IO) {
-                val cal = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                val startOfDay = cal.timeInMillis
-                val now = System.currentTimeMillis()
-
-                val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-                val stats = usm?.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startOfDay, now) ?: emptyList()
-
+                val usageResult = ScreenTimeManager.getTodayUsage(context)
                 val pm = context.packageManager
 
-                // 1. Discover all Home Launchers installed on device across any OEM/brand
-                val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-                val discoveredLaunchers = try {
-                    pm.queryIntentActivities(homeIntent, PackageManager.MATCH_ALL)
-                        .mapNotNull { it.activityInfo?.packageName }
-                        .toSet()
-                } catch (_: Exception) {
-                    emptySet()
-                }
-
-                val defaultLauncher = try {
-                    pm.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
-                        ?.activityInfo?.packageName
-                } catch (_: Exception) {
-                    null
-                }
-
-                // 2. Comprehensive OEM & custom launcher safety net (Samsung, Xiaomi, Pixel, OnePlus, Oppo, Vivo, Moto, etc.)
-                val knownLaunchers = setOf(
-                    "com.google.android.apps.nexuslauncher",
-                    "com.android.launcher",
-                    "com.android.launcher2",
-                    "com.android.launcher3",
-                    "com.sec.android.app.launcher",
-                    "com.sec.android.app.twlauncher",
-                    "com.miui.home",
-                    "com.mi.android.globallauncher",
-                    "com.miui.mihome2",
-                    "net.oneplus.launcher",
-                    "com.oppo.launcher",
-                    "com.coloros.launcher",
-                    "com.coloros.recents",
-                    "com.realme.launcher",
-                    "com.bbk.launcher2",
-                    "com.vivo.upslide",
-                    "com.vivo.launcher",
-                    "com.huawei.android.launcher",
-                    "com.honor.qclauncher",
-                    "com.hihonor.android.launcher",
-                    "com.motorola.launcher3",
-                    "com.lenovo.launcher",
-                    "com.sonyericsson.home",
-                    "com.sonymobile.home",
-                    "com.asus.launcher",
-                    "com.lge.launcher2",
-                    "com.lge.launcher3",
-                    "com.transsion.hilauncher",
-                    "com.transsion.XOSLauncher",
-                    "com.transsion.itel.launcher",
-                    "com.nothing.launcher",
-                    "com.teslacoilsw.launcher",
-                    "ch.deletescape.lawnchair",
-                    "ch.deletescape.lawnchair.plah",
-                    "app.lawnchair",
-                    "app.lawnchair.play",
-                    "com.microsoft.launcher",
-                    "ginlemon.flowerfree",
-                    "ginlemon.flowerpro",
-                    "com.actionlauncher.playstore",
-                    "com.niagara.launcher",
-                    "bitpit.launcher",
-                    "com.indistractable.launcher",
-                    "com.befocused.launcher",
-                    "com.appdevgenie.minimalistlauncher",
-                    "com.qqlabs.minimalistlauncher",
-                    "xyz.umarmohammad.hermit",
-                    context.packageName
-                )
-
-                // 3. Input Method Editors (Keyboards)
-                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                val imePackages = try {
-                    imm?.enabledInputMethodList?.mapNotNull { it.packageName }?.toSet() ?: emptySet()
-                } catch (_: Exception) {
-                    emptySet()
-                }
-
-                // 4. System frameworks and UI
-                val systemExempt = setOf(
-                    "android",
-                    "com.android.systemui",
-                    "com.android.settings",
-                    "com.google.android.packageinstaller",
-                    "com.android.packageinstaller",
-                    "com.google.android.permissioncontroller",
-                    "com.android.permissioncontroller"
-                )
-
-                val allExcludedPackages = discoveredLaunchers +
-                        (defaultLauncher?.let { setOf(it) } ?: emptySet()) +
-                        knownLaunchers +
-                        imePackages +
-                        systemExempt
-
-                val validStats = stats.filter {
-                    it.totalTimeInForeground > 30_000L &&
-                            !allExcludedPackages.contains(it.packageName)
-                }.groupBy { it.packageName }
-                    .mapValues { entry -> entry.value.sumOf { it.totalTimeInForeground } }
-
-                val totalTime = validStats.values.sum()
-
-                val topList = validStats.entries
-                    .sortedByDescending { it.value }
-                    .take(4)
-                    .map { (pkg, time) ->
-                        val label = try {
-                            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                pm.getApplicationInfo(pkg, PackageManager.ApplicationInfoFlags.of(0))
-                            } else {
-                                @Suppress("DEPRECATION")
-                                pm.getApplicationInfo(pkg, 0)
-                            }
-                            pm.getApplicationLabel(info).toString()
-                        } catch (_: Exception) {
-                            pkg.substringAfterLast(".")
+                val topList = usageResult.topPackages.map { (pkg, time) ->
+                    val label = try {
+                        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            pm.getApplicationInfo(pkg, PackageManager.ApplicationInfoFlags.of(0))
+                        } else {
+                            @Suppress("DEPRECATION")
+                            pm.getApplicationInfo(pkg, 0)
                         }
-
-                        val iconBmp = try {
-                            pm.getApplicationIcon(pkg).toBitmap(64, 64).asImageBitmap()
-                        } catch (_: Exception) {
-                            null
-                        }
-
-                        TopAppUsage(
-                            packageName = pkg,
-                            appName = label,
-                            usageMillis = time,
-                            iconBitmap = iconBmp
-                        )
+                        pm.getApplicationLabel(info).toString()
+                    } catch (_: Exception) {
+                        pkg.substringAfterLast(".")
                     }
 
+                    val iconBmp = try {
+                        pm.getApplicationIcon(pkg).toBitmap(64, 64).asImageBitmap()
+                    } catch (_: Exception) {
+                        null
+                    }
+
+                    TopAppUsage(
+                        packageName = pkg,
+                        appName = label,
+                        usageMillis = time,
+                        iconBitmap = iconBmp
+                    )
+                }
+
                 withContext(Dispatchers.Main) {
-                    todayScreenTimeMillis = totalTime
+                    todayScreenTimeMillis = usageResult.totalScreenTimeMillis
                     topApps = topList
                 }
             }
@@ -643,12 +528,5 @@ private fun SessionHistoryCard(session: FocusSessionRecord, dateFormat: SimpleDa
 }
 
 private fun checkUsageStatsPermission(context: Context): Boolean {
-    val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager ?: return false
-    val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
-    } else {
-        @Suppress("DEPRECATION")
-        appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
-    }
-    return mode == AppOpsManager.MODE_ALLOWED
+    return ScreenTimeManager.hasUsagePermission(context)
 }

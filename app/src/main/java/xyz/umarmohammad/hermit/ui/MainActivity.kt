@@ -14,6 +14,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
@@ -328,6 +331,16 @@ fun MainAppScaffold(
 
     val showBottomBar = bottomNavItems.any { it.route == currentRoute }
 
+    val bottomBarRoutes = remember {
+        setOf(
+            Screen.Focus.route,
+            Screen.Profiles.route,
+            Screen.Tags.route,
+            Screen.Stats.route,
+            Screen.Settings.route
+        )
+    }
+
     Scaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         bottomBar = {
@@ -359,7 +372,43 @@ fun MainAppScaffold(
         NavHost(
             navController = navController,
             startDestination = Screen.Focus.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                if ((fromRoute == null || fromRoute in bottomBarRoutes) && toRoute in bottomBarRoutes) {
+                    EnterTransition.None
+                } else {
+                    fadeIn(animationSpec = tween(200))
+                }
+            },
+            exitTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                if (fromRoute in bottomBarRoutes && toRoute in bottomBarRoutes) {
+                    ExitTransition.None
+                } else {
+                    fadeOut(animationSpec = tween(200))
+                }
+            },
+            popEnterTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                if (fromRoute in bottomBarRoutes && toRoute in bottomBarRoutes) {
+                    EnterTransition.None
+                } else {
+                    fadeIn(animationSpec = tween(200))
+                }
+            },
+            popExitTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                if (fromRoute in bottomBarRoutes && toRoute in bottomBarRoutes) {
+                    ExitTransition.None
+                } else {
+                    fadeOut(animationSpec = tween(200))
+                }
+            }
         ) {
             composable(Screen.Focus.route) {
                 HomeScreen(

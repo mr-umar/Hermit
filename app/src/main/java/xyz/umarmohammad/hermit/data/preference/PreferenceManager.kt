@@ -27,6 +27,7 @@ class PreferenceManager(private val context: Context) {
         val KEY_ACTIVE_PROFILE_ID = stringPreferencesKey("key_active_profile_id")
         val KEY_SESSION_START_TIME = longPreferencesKey("key_session_start_time")
         val KEY_SESSION_DURATION_MIN = intPreferencesKey("key_session_duration_min")
+        val KEY_SESSION_STARTED_WITH_NFC = booleanPreferencesKey("key_session_started_with_nfc")
         val KEY_BLOCKED_COUNT = intPreferencesKey("key_session_blocked_count")
 
         // NFC scan debounce protection
@@ -81,6 +82,10 @@ class PreferenceManager(private val context: Context) {
         preferences[KEY_SESSION_DURATION_MIN]
     }
 
+    val sessionStartedWithNfc: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[KEY_SESSION_STARTED_WITH_NFC] ?: false
+    }
+
     val sessionBlockedCount: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[KEY_BLOCKED_COUNT] ?: 0
     }
@@ -113,7 +118,8 @@ class PreferenceManager(private val context: Context) {
         sessionId: String,
         profileId: String,
         startTime: Long,
-        durationMinutes: Int?
+        durationMinutes: Int?,
+        startedWithNfc: Boolean = false
     ) {
         context.dataStore.edit { prefs ->
             prefs[KEY_ACTIVE_SESSION_ID] = sessionId
@@ -124,6 +130,7 @@ class PreferenceManager(private val context: Context) {
             } else {
                 prefs.remove(KEY_SESSION_DURATION_MIN)
             }
+            prefs[KEY_SESSION_STARTED_WITH_NFC] = startedWithNfc
             prefs[KEY_BLOCKED_COUNT] = 0
         }
     }
@@ -134,6 +141,7 @@ class PreferenceManager(private val context: Context) {
             prefs.remove(KEY_ACTIVE_PROFILE_ID)
             prefs.remove(KEY_SESSION_START_TIME)
             prefs.remove(KEY_SESSION_DURATION_MIN)
+            prefs.remove(KEY_SESSION_STARTED_WITH_NFC)
             prefs.remove(KEY_BLOCKED_COUNT)
         }
     }

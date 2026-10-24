@@ -83,7 +83,7 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             HermitTheme(darkTheme = true) {
                 val state by sessionManager.sessionState.collectAsState()
                 val isZenActive = state.isActive && state.activeProfile?.isMonkMode == true
-                val isNfcExit = state.activeProfile?.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.NFC_ONLY
+                val isNfcExit = state.startedWithNfc
 
                 ZenLauncherScreen(
                     isZenActive = isZenActive,

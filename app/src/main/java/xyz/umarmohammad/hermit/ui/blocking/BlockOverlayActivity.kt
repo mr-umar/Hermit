@@ -74,7 +74,7 @@ class BlockOverlayActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             HermitTheme(darkTheme = true) {
                 val state by sessionManager.sessionState.collectAsState()
 
-                val isEmergencyAllowed = state.activeProfile?.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.ALLOW_EMERGENCY
+                val isEmergencyAllowed = !state.startedWithNfc
 
                 BlockOverlayScreen(
                     blockedAppName = blockedAppName,

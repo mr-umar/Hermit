@@ -32,7 +32,8 @@ data class FocusSessionState(
     val plannedDurationMinutes: Int? = null,
     val remainingSeconds: Long? = null,
     val elapsedSeconds: Long = 0L,
-    val blockedAttemptsCount: Int = 0
+    val blockedAttemptsCount: Int = 0,
+    val startedWithNfc: Boolean = false
 )
 
 data class PendingCountdown(
@@ -159,6 +160,7 @@ class SessionManager private constructor(private val context: Context) {
                 }
             }
 
+            val startedWithNfc = preferenceManager.sessionStartedWithNfc.first()
             _sessionState.value = FocusSessionState(
                 isActive = true,
                 sessionId = activeSessionId,
@@ -167,7 +169,8 @@ class SessionManager private constructor(private val context: Context) {
                 plannedDurationMinutes = durationMin?.coerceAtMost(720),
                 elapsedSeconds = elapsedSec.coerceAtLeast(0),
                 remainingSeconds = durationMin?.let { (it.coerceAtMost(720) * 60L - elapsedSec).coerceAtLeast(0) },
-                blockedAttemptsCount = blockedCount
+                blockedAttemptsCount = blockedCount,
+                startedWithNfc = startedWithNfc
             )
             if (profile?.enableDnd == true) {
                 xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)
@@ -228,12 +231,13 @@ class SessionManager private constructor(private val context: Context) {
                 plannedDurationMinutes = plannedMinutes,
                 endReason = "ACTIVE"
             )
-            sessionRepository.startSession(session)
+            val startedWithNfc = reason == "NFC_TAG_TOGGLED" || reason.startsWith("NFC")
             preferenceManager.setActiveSession(
                 sessionId = sessionId,
                 profileId = profile.id,
                 startTime = now,
-                durationMinutes = plannedMinutes
+                durationMinutes = plannedMinutes,
+                startedWithNfc = startedWithNfc
             )
 
             _sessionState.value = FocusSessionState(
@@ -244,7 +248,8 @@ class SessionManager private constructor(private val context: Context) {
                 plannedDurationMinutes = plannedMinutes,
                 remainingSeconds = plannedMinutes?.let { it * 60L },
                 elapsedSeconds = 0,
-                blockedAttemptsCount = 0
+                blockedAttemptsCount = 0,
+                startedWithNfc = startedWithNfc
             )
             if (profile.enableDnd) {
                 xyz.umarmohammad.hermit.util.DndManager.enableDnd(context)

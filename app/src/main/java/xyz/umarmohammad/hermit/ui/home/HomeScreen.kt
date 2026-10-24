@@ -442,7 +442,7 @@ private fun ActiveFocusHero(
 
         val context = androidx.compose.ui.platform.LocalContext.current
         val isZenMode = sessionState.activeProfile?.isMonkMode == true
-        val isNfcOnlyExit = sessionState.activeProfile?.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.NFC_ONLY
+        val isNfcOnlyExit = sessionState.startedWithNfc
 
         if (isZenMode) {
             TactileButton(

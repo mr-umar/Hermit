@@ -20,6 +20,7 @@ class PreferenceManager(private val context: Context) {
         val KEY_FIRST_LAUNCH = booleanPreferencesKey("key_first_launch")
         val KEY_APP_LOCALE = stringPreferencesKey("key_app_locale")
         val KEY_THEME_MODE = stringPreferencesKey("key_theme_mode")
+        val KEY_THEME_PALETTE = stringPreferencesKey("key_theme_palette")
 
         // Active Session Persistence across process kills and reboots
         val KEY_ACTIVE_SESSION_ID = stringPreferencesKey("key_active_session_id")
@@ -50,6 +51,10 @@ class PreferenceManager(private val context: Context) {
 
     val themeMode: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[KEY_THEME_MODE] ?: "system"
+    }
+
+    val themePalette: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[KEY_THEME_PALETTE] ?: "forest"
     }
 
     val autoCheckUpdates: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -98,6 +103,10 @@ class PreferenceManager(private val context: Context) {
 
     suspend fun setThemeMode(theme: String) {
         context.dataStore.edit { it[KEY_THEME_MODE] = theme }
+    }
+
+    suspend fun setThemePalette(palette: String) {
+        context.dataStore.edit { it[KEY_THEME_PALETTE] = palette }
     }
 
     suspend fun setActiveSession(

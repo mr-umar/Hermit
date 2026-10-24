@@ -143,6 +143,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         setContent {
             val prefManager = app.preferenceManager
             val themeMode by prefManager.themeMode.collectAsState(initial = "system")
+            val themePalette by prefManager.themePalette.collectAsState(initial = "forest")
             val localeCode by prefManager.appLocale.collectAsState(initial = "system")
 
             val isDark = when (themeMode) {
@@ -186,7 +187,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                 LocalContext provides localizedContext,
                 LocalConfiguration provides localizedConfig
             ) {
-                HermitTheme(darkTheme = isDark) {
+                HermitTheme(darkTheme = isDark, palette = themePalette) {
                     val isFirstLaunch by prefManager.isFirstLaunch.collectAsState(initial = false)
 
                     if (isFirstLaunch) {

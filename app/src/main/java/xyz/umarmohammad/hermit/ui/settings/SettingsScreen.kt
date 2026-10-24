@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Cancel
@@ -98,7 +99,13 @@ import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
 import xyz.umarmohammad.hermit.ui.theme.Acento
 import xyz.umarmohammad.hermit.ui.theme.Aviso
+import xyz.umarmohammad.hermit.ui.theme.DuneDarkAcento
+import xyz.umarmohammad.hermit.ui.theme.DuneLightAcento
 import xyz.umarmohammad.hermit.ui.theme.Fondo
+import xyz.umarmohammad.hermit.ui.theme.ForestDarkAcento
+import xyz.umarmohammad.hermit.ui.theme.ForestLightAcento
+import xyz.umarmohammad.hermit.ui.theme.OceanDarkAcento
+import xyz.umarmohammad.hermit.ui.theme.OceanLightAcento
 import xyz.umarmohammad.hermit.ui.theme.Secundario
 import xyz.umarmohammad.hermit.ui.theme.Texto
 import xyz.umarmohammad.hermit.updater.UpdateError
@@ -118,6 +125,7 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     val currentLocale by preferenceManager.appLocale.collectAsState(initial = "system")
     val currentTheme by preferenceManager.themeMode.collectAsState(initial = "system")
+    val currentPalette by preferenceManager.themePalette.collectAsState(initial = "forest")
     val isAccessibilityRunning by HermitAccessibilityService.isServiceRunning.collectAsState()
 
     var showResetDialog by remember { mutableStateOf(false) }
@@ -276,6 +284,90 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = stringResource(R.string.settings_theme_palette),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    val palettes = listOf(
+                        Triple(
+                            "forest",
+                            stringResource(R.string.palette_forest),
+                            stringResource(R.string.palette_forest_desc)
+                        ) to listOf(ForestDarkAcento, ForestLightAcento),
+                        Triple(
+                            "ocean",
+                            stringResource(R.string.palette_ocean),
+                            stringResource(R.string.palette_ocean_desc)
+                        ) to listOf(OceanDarkAcento, OceanLightAcento),
+                        Triple(
+                            "dune",
+                            stringResource(R.string.palette_dune),
+                            stringResource(R.string.palette_dune_desc)
+                        ) to listOf(DuneDarkAcento, DuneLightAcento)
+                    )
+
+                    palettes.forEach { (info, colors) ->
+                        val (code, name, desc) = info
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    coroutineScope.launch {
+                                        preferenceManager.setThemePalette(code)
+                                    }
+                                }
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (currentPalette.lowercase() == code),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        preferenceManager.setThemePalette(code)
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Text(
+                                    text = desc,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                colors.forEach { color ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(color)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

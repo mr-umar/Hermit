@@ -555,16 +555,24 @@ fun WriteTagScreen(
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(28.dp))
 
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = Acento,
-                                modifier = Modifier.size(68.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(76.dp)
+                                    .clip(CircleShape)
+                                    .background(Acento.copy(alpha = 0.14f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Acento,
+                                    modifier = Modifier.size(46.dp)
+                                )
+                            }
 
-                            Spacer(modifier = Modifier.height(18.dp))
+                            Spacer(modifier = Modifier.height(22.dp))
 
                             Text(
                                 text = stringResource(R.string.write_tag_test_success_title),
@@ -573,49 +581,17 @@ fun WriteTagScreen(
                                 textAlign = TextAlign.Center
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
                                 text = stringResource(R.string.write_tag_test_success_desc),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Secundario,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                lineHeight = 22.sp
                             )
 
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Apple-style verified configuration summary
-                            AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
-                                AppleListRow(
-                                    title = stringResource(R.string.tag_detail_name),
-                                    value = tagName,
-                                    icon = Icons.Default.Nfc,
-                                    iconTint = Acento,
-                                    onClick = { showRenameSuccessDialog = true }
-                                )
-
-                                AppleDivider(startIndent = true)
-
-                                AppleListRow(
-                                    title = stringResource(R.string.tag_detail_action),
-                                    value = stringResource(R.string.write_tag_toggle_action),
-                                    icon = Icons.Default.PlayArrow,
-                                    iconTint = Acento
-                                )
-
-                                if (writtenTagUid != null) {
-                                    AppleDivider(startIndent = true)
-
-                                    AppleListRow(
-                                        title = "UID Físico",
-                                        value = writtenTagUid,
-                                        icon = Icons.Default.Fingerprint,
-                                        iconTint = Secundario
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(28.dp))
 
                             // Background opening info callout
                             Box(

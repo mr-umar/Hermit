@@ -381,22 +381,23 @@ private fun ActiveFocusHero(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Large Optical Timer
-        val timerDisplay = if (sessionState.remainingSeconds != null) {
-            val rem = sessionState.remainingSeconds
-            val min = rem / 60
-            val sec = rem % 60
-            "%02d:%02d".format(min, sec)
+        val totalSec = (sessionState.remainingSeconds ?: sessionState.elapsedSeconds).coerceAtLeast(0)
+        val timerDisplay = if (totalSec >= 3600) {
+            val hrs = totalSec / 3600
+            val min = (totalSec % 3600) / 60
+            val sec = totalSec % 60
+            "%02d:%02d:%02d".format(hrs, min, sec)
         } else {
-            val el = sessionState.elapsedSeconds
-            val min = el / 60
-            val sec = el % 60
+            val min = totalSec / 60
+            val sec = totalSec % 60
             "%02d:%02d".format(min, sec)
         }
 
         Text(
             text = timerDisplay,
             style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1
         )
 
         Spacer(modifier = Modifier.height(6.dp))

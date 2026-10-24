@@ -186,9 +186,17 @@ fun BlockOverlayScreen(
                 )
 
                 if (remainingSeconds != null && remainingSeconds > 0) {
-                    val minutes = remainingSeconds / 60
-                    val seconds = remainingSeconds % 60
-                    val timeStr = "%02d:%02d".format(minutes, seconds)
+                    val rem = remainingSeconds.coerceAtLeast(0)
+                    val timeStr = if (rem >= 3600) {
+                        val hours = rem / 3600
+                        val minutes = (rem % 3600) / 60
+                        val seconds = rem % 60
+                        "%02d:%02d:%02d".format(hours, minutes, seconds)
+                    } else {
+                        val minutes = rem / 60
+                        val seconds = rem % 60
+                        "%02d:%02d".format(minutes, seconds)
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
                     Surface(

@@ -309,7 +309,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         runOnUiThread {
             when (outcome) {
                 TagScanOutcome.STARTED -> Toast.makeText(this, getString(R.string.countdown_starting_title), Toast.LENGTH_SHORT).show()
-                TagScanOutcome.STOPPED -> Toast.makeText(this, getString(R.string.toast_scan_stopped), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.STOPPED -> Unit
                 TagScanOutcome.SWITCHED -> Toast.makeText(this, getString(R.string.toast_scan_switched), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.DISABLED_TAG -> Toast.makeText(this, getString(R.string.toast_scan_disabled), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.UNKNOWN_PROFILE -> Toast.makeText(this, getString(R.string.toast_scan_no_profile), Toast.LENGTH_SHORT).show()
@@ -346,6 +346,8 @@ fun MainAppScaffold(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val completedSessionSummary by app.sessionManager.lastCompletedSessionSummary.collectAsState()
 
     androidx.compose.runtime.LaunchedEffect(currentRoute) {
         val isTagScreen = currentRoute == "write_tag" || currentRoute == "read_tag"
@@ -715,6 +717,15 @@ fun MainAppScaffold(
                     ) {
                         Text(stringResource(R.string.tag_import_btn_activate_only))
                     }
+                }
+            )
+        }
+
+        if (completedSessionSummary != null) {
+            xyz.umarmohammad.hermit.ui.components.SessionCompletionSummaryDialog(
+                summary = completedSessionSummary!!,
+                onDismiss = {
+                    app.sessionManager.dismissCompletedSessionSummary()
                 }
             )
         }

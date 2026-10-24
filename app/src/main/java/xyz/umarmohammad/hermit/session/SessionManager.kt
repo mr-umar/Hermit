@@ -1,6 +1,10 @@
 package xyz.umarmohammad.hermit.session
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -22,6 +26,7 @@ import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.data.repository.SessionRepository
 import xyz.umarmohammad.hermit.data.repository.TagRepository
 import xyz.umarmohammad.hermit.nfc.HermitTagPayload
+import xyz.umarmohammad.hermit.util.ScreenTimeManager
 import java.util.UUID
 
 data class FocusSessionState(
@@ -40,6 +45,21 @@ data class PendingCountdown(
     val profile: FocusProfile,
     val secondsRemaining: Int = 5,
     val source: String = "MANUAL_QUICK_START"
+)
+
+data class AppSessionStat(
+    val packageName: String,
+    val appName: String,
+    val count: Int
+)
+
+data class SessionCompletionSummary(
+    val profileName: String,
+    val durationSeconds: Long,
+    val unlockCount: Int,
+    val totalBlockedCount: Int,
+    val topApps: List<AppSessionStat> = emptyList(),
+    val endedViaNfc: Boolean = true
 )
 
 enum class TagScanOutcome {
@@ -66,6 +86,46 @@ class SessionManager private constructor(private val context: Context) {
 
     private val _pendingCountdown = MutableStateFlow<PendingCountdown?>(null)
     val pendingCountdown: StateFlow<PendingCountdown?> = _pendingCountdown.asStateFlow()
+
+    private val _lastCompletedSessionSummary = MutableStateFlow<SessionCompletionSummary?>(null)
+    val lastCompletedSessionSummary: StateFlow<SessionCompletionSummary?> = _lastCompletedSessionSummary.asStateFlow()
+
+    fun dismissCompletedSessionSummary() {
+        _lastCompletedSessionSummary.value = null
+    }
+
+    private var unlockCount: Int = 0
+    private var isUnlockReceiverRegistered: Boolean = false
+    private val blockedAppCounts = java.util.concurrent.ConcurrentHashMap<String, Int>()
+
+    private val unlockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(c: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_USER_PRESENT && _sessionState.value.isActive) {
+                unlockCount++
+            }
+        }
+    }
+
+    private fun registerUnlockReceiver() {
+        if (isUnlockReceiverRegistered) return
+        try {
+            val filter = IntentFilter(Intent.ACTION_USER_PRESENT)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(unlockReceiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                context.registerReceiver(unlockReceiver, filter)
+            }
+            isUnlockReceiverRegistered = true
+        } catch (_: Exception) {}
+    }
+
+    private fun unregisterUnlockReceiver() {
+        if (!isUnlockReceiverRegistered) return
+        try {
+            context.unregisterReceiver(unlockReceiver)
+            isUnlockReceiverRegistered = false
+        } catch (_: Exception) {}
+    }
 
     private var countdownJob: Job? = null
     private var timerJob: Job? = null
@@ -178,6 +238,7 @@ class SessionManager private constructor(private val context: Context) {
             if (profile?.enableGrayscale == true) {
                 xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(context)
             }
+            registerUnlockReceiver()
             startTicker()
         }
     }
@@ -257,6 +318,9 @@ class SessionManager private constructor(private val context: Context) {
             if (profile.enableGrayscale) {
                 xyz.umarmohammad.hermit.util.GrayscaleManager.enableSystemGrayscale(context)
             }
+            unlockCount = 0
+            blockedAppCounts.clear()
+            registerUnlockReceiver()
             startTicker()
         }
     }
@@ -276,6 +340,7 @@ class SessionManager private constructor(private val context: Context) {
             }
             xyz.umarmohammad.hermit.util.DndManager.restoreDnd(context)
             xyz.umarmohammad.hermit.util.GrayscaleManager.restoreSystemGrayscale(context)
+            unregisterUnlockReceiver()
             preferenceManager.clearActiveSession()
             _sessionState.value = FocusSessionState()
         }
@@ -323,6 +388,40 @@ class SessionManager private constructor(private val context: Context) {
         // Physical NFC tags serve exclusively as on/off toggles
         // for whichever profile is currently selected in the app under Enfoque.
         return if (current.isActive) {
+            val now = System.currentTimeMillis()
+            val durationSeconds = ((now - current.startedAt) / 1000).coerceAtLeast(0)
+            val analysis = ScreenTimeManager.getSessionStatsAnalysis(context, current.startedAt, now)
+            val effectiveUnlocks = maxOf(unlockCount, analysis.unlockCount)
+
+            val mergedAppCounts = mutableMapOf<String, Int>()
+            for ((pkg, count) in blockedAppCounts) {
+                mergedAppCounts[pkg] = count
+            }
+            for ((pkg, count) in analysis.topAppViews) {
+                mergedAppCounts[pkg] = maxOf(mergedAppCounts[pkg] ?: 0, count)
+            }
+
+            val topApps = mergedAppCounts.entries
+                .sortedByDescending { it.value }
+                .take(4)
+                .map { entry ->
+                    AppSessionStat(
+                        packageName = entry.key,
+                        appName = ScreenTimeManager.resolveAppName(context, entry.key),
+                        count = entry.value
+                    )
+                }
+
+            val summary = SessionCompletionSummary(
+                profileName = current.activeProfile?.name ?: "Enfoque",
+                durationSeconds = durationSeconds,
+                unlockCount = effectiveUnlocks,
+                totalBlockedCount = current.blockedAttemptsCount,
+                topApps = topApps,
+                endedViaNfc = true
+            )
+            _lastCompletedSessionSummary.value = summary
+
             endFocus("NFC_TAG_TOGGLED")
             TagScanOutcome.STOPPED
         } else if (_pendingCountdown.value != null) {
@@ -348,6 +447,7 @@ class SessionManager private constructor(private val context: Context) {
     }
 
     fun recordBlockedAttempt(packageName: String) {
+        blockedAppCounts[packageName] = (blockedAppCounts[packageName] ?: 0) + 1
         scope.launch {
             preferenceManager.incrementBlockedCount()
             _sessionState.update { current ->

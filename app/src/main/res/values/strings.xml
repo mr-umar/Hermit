@@ -479,4 +479,24 @@
     <string name="onboarding_uninstall_protection_active_title">Protection is Active</string>
     <string name="onboarding_uninstall_protection_active_desc">Great job! Hermit is now protected against impulsive uninstallation. You can deactivate it from Settings with a 15-second delay whenever needed.</string>
     <string name="onboarding_uninstall_protection_change_mind">Activate now instead</string>
+
+    <!-- Session Completion Summary (NFC End) -->
+    <string name="session_summary_title">Session Completed!</string>
+    <string name="session_summary_nfc_subtitle">Unlocked via physical NFC tag</string>
+    <string name="session_summary_duration_prefix">You completed a session of</string>
+    <string name="session_summary_profile_label">Profile: %1$s</string>
+    <string name="session_summary_unlocks_label">Phone Unlocks</string>
+    <string name="session_summary_unlocks_zero">You unlocked your phone 0 times\nPure focus!</string>
+    <string name="session_summary_unlocks_desc">You unlocked your phone %1$d times</string>
+    <string name="session_summary_blocked_label">Distractions Prevented</string>
+    <string name="session_summary_blocked_zero">Zero distraction attempts</string>
+    <string name="session_summary_blocked_desc">Hermit prevented %1$d distraction attempts</string>
+    <string name="session_summary_apps_title">Apps checked during session</string>
+    <string name="session_summary_app_viewed">You checked this app %1$d times</string>
+    <string name="session_summary_app_viewed_once">You checked this app 1 time</string>
+    <string name="session_summary_btn_dismiss">Done</string>
+    <string name="session_summary_sec_format">%1$d seconds</string>
+    <string name="session_summary_min_format">%1$d minutes</string>
+    <string name="session_summary_hours_format">%1$d hours</string>
+    <string name="session_summary_hours_min_format">%1$d h %2$d min</string>
 </resources>

@@ -208,7 +208,10 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             if (outcome == TagScanOutcome.STOPPED) {
                 triggerHapticFeedback()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ZenLauncherActivity, getString(R.string.toast_scan_stopped), Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@ZenLauncherActivity, xyz.umarmohammad.hermit.ui.MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                    startActivity(intent)
                     finish()
                 }
             }

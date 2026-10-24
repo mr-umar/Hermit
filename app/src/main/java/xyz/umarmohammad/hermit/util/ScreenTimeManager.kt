@@ -375,4 +375,80 @@ object ScreenTimeManager {
         val totalScreenTime = hourlyMap.values.sum()
         return DayHourlyUsage(hourlyMap, totalScreenTime)
     }
+
+    data class SessionStatsAnalysis(
+        val unlockCount: Int,
+        val topAppViews: List<Pair<String, Int>>
+    )
+
+    fun resolveAppName(context: Context, packageName: String): String {
+        return try {
+            val pm = context.packageManager
+            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getApplicationInfo(packageName, 0)
+            }
+            pm.getApplicationLabel(info).toString()
+        } catch (_: Exception) {
+            packageName.substringAfterLast(".").replaceFirstChar { it.uppercase() }
+        }
+    }
+
+    fun getSessionStatsAnalysis(context: Context, startTime: Long, endTime: Long): SessionStatsAnalysis {
+        if (!hasUsagePermission(context)) {
+            return SessionStatsAnalysis(0, emptyList())
+        }
+
+        val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            ?: return SessionStatsAnalysis(0, emptyList())
+
+        val queryEnd = minOf(endTime, System.currentTimeMillis())
+        if (queryEnd <= startTime) {
+            return SessionStatsAnalysis(0, emptyList())
+        }
+
+        val events = try {
+            usm.queryEvents(startTime, queryEnd)
+        } catch (_: Exception) {
+            null
+        } ?: return SessionStatsAnalysis(0, emptyList())
+
+        val appOpenCounts = mutableMapOf<String, Int>()
+        var unlocks = 0
+
+        val systemExempt = setOf(
+            "android",
+            "com.android.systemui",
+            "xyz.umarmohammad.hermit",
+            context.packageName
+        )
+
+        val event = UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            when (event.eventType) {
+                UsageEvents.Event.KEYGUARD_HIDDEN,
+                UsageEvents.Event.SCREEN_INTERACTIVE -> {
+                    unlocks++
+                }
+                UsageEvents.Event.ACTIVITY_RESUMED,
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                    val pkg = event.packageName
+                    if (!pkg.isNullOrBlank() && !systemExempt.contains(pkg)) {
+                        appOpenCounts[pkg] = (appOpenCounts[pkg] ?: 0) + 1
+                    }
+                }
+            }
+        }
+
+        val topApps = appOpenCounts.entries
+            .sortedByDescending { it.value }
+            .take(5)
+            .map { it.key to it.value }
+
+        return SessionStatsAnalysis(unlocks, topApps)
+    }
 }
+

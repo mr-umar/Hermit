@@ -499,4 +499,19 @@
     <string name="session_summary_min_format">%1$d minutos</string>
     <string name="session_summary_hours_format">%1$d horas</string>
     <string name="session_summary_hours_min_format">%1$d h %2$d min</string>
+
+    <!-- Required Permissions Check -->
+    <string name="perms_revoked_title">Permisos requeridos</string>
+    <string name="perms_revoked_subtitle">Uno o más permisos necesarios han sido revocados o desactivados. Hermit los necesita para poder funcionar y bloquear distracciones.</string>
+    <string name="perms_revoked_status_granted">Concedido</string>
+    <string name="perms_revoked_status_missing">Requerido</string>
+    <string name="perms_revoked_btn_grant">Reactivar</string>
+    <string name="perms_revoked_accessibility_title">Servicio de Accesibilidad</string>
+    <string name="perms_revoked_accessibility_desc">Detecta y bloquea aplicaciones distractoras durante las sesiones de enfoque.</string>
+    <string name="perms_revoked_overlay_title">Mostrar sobre otras apps</string>
+    <string name="perms_revoked_overlay_desc">Muestra la pantalla de bloqueo sobre las aplicaciones restringidas.</string>
+    <string name="perms_revoked_usage_title">Acceso de uso</string>
+    <string name="perms_revoked_usage_desc">Mide el tiempo de pantalla y genera estadísticas de tus sesiones.</string>
+    <string name="perms_revoked_battery_title">Optimización de batería</string>
+    <string name="perms_revoked_battery_desc">Evita que el sistema detenga o cierre las sesiones de enfoque en segundo plano.</string>
 </resources>

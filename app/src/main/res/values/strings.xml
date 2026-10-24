@@ -499,4 +499,19 @@
     <string name="session_summary_min_format">%1$d minutes</string>
     <string name="session_summary_hours_format">%1$d hours</string>
     <string name="session_summary_hours_min_format">%1$d h %2$d min</string>
+
+    <!-- Required Permissions Check -->
+    <string name="perms_revoked_title">Permissions Required</string>
+    <string name="perms_revoked_subtitle">One or more essential permissions have been disabled or revoked. Hermit needs them to enforce focus sessions and block distractions.</string>
+    <string name="perms_revoked_status_granted">Granted</string>
+    <string name="perms_revoked_status_missing">Required</string>
+    <string name="perms_revoked_btn_grant">Enable</string>
+    <string name="perms_revoked_accessibility_title">Accessibility Service</string>
+    <string name="perms_revoked_accessibility_desc">Detects and blocks distracting applications during active sessions.</string>
+    <string name="perms_revoked_overlay_title">Display Over Other Apps</string>
+    <string name="perms_revoked_overlay_desc">Displays the blocking screen over restricted apps.</string>
+    <string name="perms_revoked_usage_title">Usage Access</string>
+    <string name="perms_revoked_usage_desc">Tracks screen time and calculates session statistics.</string>
+    <string name="perms_revoked_battery_title">Battery Exemption</string>
+    <string name="perms_revoked_battery_desc">Prevents system power savers from terminating background focus sessions.</string>
 </resources>

@@ -60,6 +60,7 @@
       border: 1.5px solid var(--color-primary);
       opacity: 0.4;
       animation: nfcPulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      pointer-events: none;
     }
     .nfc-pulse-ring:nth-child(2) {
       inset: -20px;
@@ -84,6 +85,8 @@
       font-weight: 600;
       letter-spacing: 0.02em;
       margin-bottom: 1.25rem;
+      position: relative;
+      z-index: 2;
     }
     .scan-badge::before {
       content: "";
@@ -100,12 +103,16 @@
       margin-bottom: 0.85rem;
       line-height: 1.2;
       letter-spacing: -0.02em;
+      position: relative;
+      z-index: 2;
     }
     .scan-subtitle {
       font-size: 1.05rem;
       color: var(--color-text-secondary);
       line-height: 1.55;
       margin-bottom: 1.75rem;
+      position: relative;
+      z-index: 2;
     }
     .scan-actions {
       display: flex;
@@ -113,6 +120,8 @@
       gap: 0.85rem;
       max-width: 420px;
       margin: 0 auto;
+      position: relative;
+      z-index: 10;
     }
     @media (min-width: 480px) {
       .scan-actions {
@@ -240,10 +249,9 @@
   <main id="main-content" class="container">
     <section class="scan-hero">
       <div class="scan-tag-card">
-        <div class="nfc-pulse-ring"></div>
-        <div class="nfc-pulse-ring"></div>
-
         <div class="nfc-emblem-wrap">
+          <div class="nfc-pulse-ring"></div>
+          <div class="nfc-pulse-ring"></div>
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/>
             <path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/>

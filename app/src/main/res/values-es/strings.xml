@@ -353,7 +353,7 @@
     <string name="settings_about_license_title">Licencia</string>
     <string name="settings_about_license_val">GNU AGPLv3 (libre y código abierto)</string>
     <string name="settings_about_version_title">Versión</string>
-    <string name="settings_about_version_val">Hermit 1.0.0 (Build 1)</string>
+    <string name="settings_about_version_val">Hermit 1.1.0 (Build 2)</string>
 
     <!-- Uninstall & Tamper Protection -->
     <string name="settings_section_security">Seguridad y Fricción</string>

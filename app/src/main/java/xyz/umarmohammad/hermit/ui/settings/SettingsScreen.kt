@@ -577,10 +577,10 @@ fun SettingsScreen(
                                 preferenceManager.clearAll()
                             }
                             showResetDialog = false
-                            Toast.makeText(context, "Hermit reset to factory state", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.settings_reset_success), Toast.LENGTH_SHORT).show()
                         }
                     ) {
-                        Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.settings_btn_reset_confirm), color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {

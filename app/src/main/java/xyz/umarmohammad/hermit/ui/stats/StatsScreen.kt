@@ -286,7 +286,7 @@ fun StatsScreen(sessionRepository: SessionRepository) {
                     item {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = stringResource(R.string.profiles_title),
+                            text = stringResource(R.string.stats_recent_sessions_header),
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -294,6 +294,17 @@ fun StatsScreen(sessionRepository: SessionRepository) {
 
                     items(allSessions.take(5), key = { it.id }) { session ->
                         SessionHistoryCard(session = session, dateFormat = dateFormat)
+                    }
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        GlassCard {
+                            EmptyStateView(
+                                icon = Icons.Default.HourglassBottom,
+                                title = stringResource(R.string.stats_empty_sessions_title),
+                                description = stringResource(R.string.stats_empty_sessions_desc)
+                            )
+                        }
                     }
                 }
 

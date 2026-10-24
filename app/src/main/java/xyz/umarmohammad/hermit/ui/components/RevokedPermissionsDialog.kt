@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -189,7 +190,8 @@ private fun PermissionItemRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .heightIn(min = 48.dp)
+            .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -246,6 +248,7 @@ private fun PermissionItemRow(
         } else {
             OutlinedButton(
                 onClick = onGrant,
+                modifier = Modifier.heightIn(min = 44.dp),
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.dp, Acento),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Acento),

@@ -303,7 +303,7 @@ fun ReadTagScreen(
                                 }
                             }
                         ) {
-                            Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.read_tag_action_erase), color = MaterialTheme.colorScheme.error)
                         }
                     },
                     dismissButton = {

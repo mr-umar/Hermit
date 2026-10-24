@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -122,6 +123,7 @@ fun WriteTagScreen(
     var writtenTagUid by remember { mutableStateOf<String?>(null) }
     var testWarningMessage by remember { mutableStateOf<String?>(null) }
     var showRenameSuccessDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     // Real write operation with pre-flight check and readback
     val performWrite = { targetTag: Tag ->
@@ -162,10 +164,10 @@ fun WriteTagScreen(
                 launch(Dispatchers.Main) {
                     stage = WriteStage.ERROR
                     errorMessage = when (err?.message) {
-                        "READ_ONLY" -> "This tag is locked or read-only."
-                        "VERIFICATION_FAILED" -> "Data verification failed after write. Please try again."
-                        "UNSUPPORTED_TAG_TECHNOLOGY" -> "Tag format is unsupported. Standard NDEF tags are required."
-                        else -> err?.localizedMessage ?: "Failed to write tag. Make sure it stays in range."
+                        "READ_ONLY" -> context.getString(R.string.write_tag_error_readonly)
+                        "VERIFICATION_FAILED" -> context.getString(R.string.write_tag_error_verification)
+                        "UNSUPPORTED_TAG_TECHNOLOGY" -> context.getString(R.string.write_tag_error_unsupported)
+                        else -> err?.localizedMessage ?: context.getString(R.string.write_tag_error_lost)
                     }
                     onTagHandled()
                 }
@@ -182,7 +184,7 @@ fun WriteTagScreen(
                 val info = NfcTagManager.inspectTag(activePhysicalTag)
                 if (!info.isWritable) {
                     stage = WriteStage.ERROR
-                    errorMessage = "This tag is locked or read-only."
+                    errorMessage = context.getString(R.string.write_tag_error_readonly)
                     onTagHandled()
                     return@LaunchedEffect
                 }

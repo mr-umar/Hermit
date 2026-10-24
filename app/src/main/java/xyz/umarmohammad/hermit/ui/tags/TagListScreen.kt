@@ -272,7 +272,7 @@ private fun TagCardItem(
                 } else {
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 },
-                modifier = Modifier.size(46.dp)
+                modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -320,7 +320,7 @@ private fun TagCardItem(
             IconButton(onClick = onEdit) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.action_edit),
+                    contentDescription = "${stringResource(R.string.action_edit)}: ${tag.name}",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -330,10 +330,12 @@ private fun TagCardItem(
                 onCheckedChange = { onToggleDisabled() }
             )
 
+            Spacer(modifier = Modifier.width(4.dp))
+
             IconButton(onClick = onDelete) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.action_delete),
+                    contentDescription = "${stringResource(R.string.action_delete)}: ${tag.name}",
                     tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 )
             }

@@ -518,4 +518,13 @@
     <string name="perms_revoked_usage_desc">Tracks screen time and calculates session statistics.</string>
     <string name="perms_revoked_battery_title">Battery Exemption</string>
     <string name="perms_revoked_battery_desc">Prevents system power savers from terminating background focus sessions.</string>
+
+    <!-- UX & Accessibility Polish Strings -->
+    <string name="stats_recent_sessions_header">Recent Sessions</string>
+    <string name="stats_empty_sessions_title">No Sessions Recorded</string>
+    <string name="stats_empty_sessions_desc">Start your first focus session or tap an NFC tag to begin tracking your mindful time.</string>
+    <string name="settings_reset_success">Hermit has been reset to factory state</string>
+    <string name="settings_btn_reset_confirm">Reset All</string>
+    <string name="profile_name_required_error">Profile name is required</string>
+    <string name="write_tag_error_verification">Data verification failed after write. Please try again.</string>
 </resources>

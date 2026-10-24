@@ -32,6 +32,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,6 +105,7 @@ fun AppleListRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .then(
                 if (onClick != null) {
                     Modifier
@@ -209,10 +213,16 @@ fun AppleToggleRow(
     icon: ImageVector? = null,
     iconTint: Color = Acento
 ) {
+    val haptic = LocalHapticFeedback.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
+            .heightIn(min = 48.dp)
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onCheckedChange(!checked)
+            }
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -261,7 +271,10 @@ fun AppleToggleRow(
 
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onCheckedChange(it)
+            },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Fondo,
                 checkedTrackColor = Acento,
@@ -350,6 +363,7 @@ fun AppleTabBar(
             .fillMaxWidth()
             .background(Superficie)
             .border(width = 0.5.dp, color = BorderDark)
+            .navigationBarsPadding()
     ) {
         Row(
             modifier = Modifier
@@ -372,6 +386,7 @@ fun AppleTabItem(
     label: String,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -388,10 +403,14 @@ fun AppleTabItem(
 
     Column(
         modifier = modifier
+            .heightIn(min = 48.dp)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = onClick
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onClick()
+                }
             )
             .graphicsLayer {
                 scaleX = scale

@@ -245,7 +245,7 @@ private fun ProfileCardItem(
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Strict Mode",
+                            contentDescription = stringResource(R.string.profile_strict_mode),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )
@@ -296,14 +296,14 @@ private fun ProfileCardItem(
             IconButton(onClick = onEdit) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.action_edit),
+                    contentDescription = "${stringResource(R.string.action_edit)}: ${profile.name}",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.action_delete),
+                    contentDescription = "${stringResource(R.string.action_delete)}: ${profile.name}",
                     tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 )
             }

@@ -518,4 +518,13 @@
     <string name="perms_revoked_usage_desc">Mide el tiempo de pantalla y genera estadísticas de tus sesiones.</string>
     <string name="perms_revoked_battery_title">Optimización de batería</string>
     <string name="perms_revoked_battery_desc">Evita que el sistema detenga o cierre las sesiones de enfoque en segundo plano.</string>
+
+    <!-- UX & Accessibility Polish Strings -->
+    <string name="stats_recent_sessions_header">Sesiones recientes</string>
+    <string name="stats_empty_sessions_title">Sin sesiones registradas</string>
+    <string name="stats_empty_sessions_desc">Inicia tu primera sesión de enfoque o acerca una etiqueta NFC para empezar a construir tu historial de concentración.</string>
+    <string name="settings_reset_success">Hermit se ha restablecido a los valores de fábrica</string>
+    <string name="settings_btn_reset_confirm">Restablecer todo</string>
+    <string name="profile_name_required_error">El nombre del perfil es obligatorio</string>
+    <string name="write_tag_error_verification">Error al verificar los datos tras la escritura. Inténtalo de nuevo.</string>
 </resources>

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -97,6 +98,7 @@ fun ProfileEditScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
+    var nameError by remember { mutableStateOf(false) }
     var description by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf("work") }
     // Duration in minutes, from 1 minute to 12 hours (720 min)
@@ -146,7 +148,9 @@ fun ProfileEditScreen(
             Surface(
                 color = MaterialTheme.colorScheme.background,
                 tonalElevation = 8.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
             ) {
                 Box(
                     modifier = Modifier
@@ -155,7 +159,10 @@ fun ProfileEditScreen(
                 ) {
                     TactileButton(
                         onClick = {
-                            if (name.isBlank()) return@TactileButton
+                            if (name.isBlank()) {
+                                nameError = true
+                                return@TactileButton
+                            }
 
                             val isNfcMode = hasPhysicalTags && (activationType == "NFC")
                             val finalExitBehavior = if (isNfcMode) {
@@ -234,8 +241,15 @@ fun ProfileEditScreen(
             // Profile Name
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = {
+                    name = it
+                    if (nameError && it.isNotBlank()) nameError = false
+                },
                 label = { Text(stringResource(R.string.profile_name_label)) },
+                isError = nameError,
+                supportingText = if (nameError) {
+                    { Text(stringResource(R.string.profile_name_required_error)) }
+                } else null,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 singleLine = true
@@ -272,7 +286,7 @@ fun ProfileEditScreen(
                         shape = CircleShape,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier
-                            .size(46.dp)
+                            .size(48.dp)
                             .clickable { selectedIcon = iconKey }
                     ) {
                         Box(contentAlignment = Alignment.Center) {

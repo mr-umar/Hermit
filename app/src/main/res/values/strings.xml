@@ -115,7 +115,7 @@
 
     <!-- NFC Tag Post-Write Verification & Testing -->
     <string name="write_tag_test_prompt_title">Test Your Tag</string>
-    <string name="write_tag_test_prompt_desc">To make sure it works, tap the tag against the back of your phone now.</string>
+    <string name="write_tag_test_prompt_desc">Move the tag away and tap it again.</string>
     <string name="write_tag_test_prompt_safe_note">This test is safe: it will not start or stop any focus sessions.</string>
     <string name="write_tag_test_success_title">Tag Perfectly Configured!</string>
     <string name="write_tag_test_success_desc">The tag responds properly and is ready to anchor your focus.</string>

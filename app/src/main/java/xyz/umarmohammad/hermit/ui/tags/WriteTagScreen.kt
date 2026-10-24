@@ -474,33 +474,6 @@ fun WriteTagScreen(
                                 textAlign = TextAlign.Center
                             )
 
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Safe note callout: does not start/stop session
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(SuperficieSubtle)
-                                    .border(0.75.dp, Acento.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-                                    .padding(16.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Security,
-                                        contentDescription = null,
-                                        tint = Acento,
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(
-                                        text = stringResource(R.string.write_tag_test_prompt_safe_note),
-                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp, lineHeight = 18.sp),
-                                        color = Texto
-                                    )
-                                }
-                            }
-
                             if (testWarningMessage != null) {
                                 Spacer(modifier = Modifier.height(14.dp))
                                 Box(

@@ -115,7 +115,7 @@
 
     <!-- NFC Tag Post-Write Verification & Testing -->
     <string name="write_tag_test_prompt_title">Comprueba tu etiqueta</string>
-    <string name="write_tag_test_prompt_desc">Para comprobar que funcione, acerca ahora la etiqueta a la parte trasera de tu teléfono.</string>
+    <string name="write_tag_test_prompt_desc">Aleja la etiqueta y vuelve a acercarla.</string>
     <string name="write_tag_test_prompt_safe_note">Esta comprobación es segura: no activará ni desactivará ninguna sesión de concentración.</string>
     <string name="write_tag_test_success_title">¡Etiqueta configurada correctamente!</string>
     <string name="write_tag_test_success_desc">La etiqueta responde correctamente y está lista para anclar tu concentración.</string>

@@ -150,20 +150,26 @@ object NfcTagManager {
         }
     }
 
-    /**
-     * Safely writes the Hermit configuration to a physical NFC tag.
-     * Uses a Web URI record as Record 1 (so uninstalled devices navigate to the web landing page
-     * rather than Google Play Store) and a custom MIME record as Record 2.
-     */
     fun writeTag(tag: Tag, payload: HermitTagPayload): Result<HermitTagPayload> {
         val payloadBytes = HermitTagPayload.serialize(payload)
 
-        // Record 1: Web URI record routing non-Hermit devices directly to the website scan page
-        val uriRecord = NdefRecord.createUri(WEB_SCAN_URL)
-        // Record 2: Custom MIME type record carrying the structured Hermit focus payload
+        // Include tag metadata in web fallback URI for seamless handover if opened in browser
+        val tagScanUrl = buildString {
+            append(WEB_SCAN_URL)
+            append("?id=").append(payload.id)
+            append("&act=").append(payload.action)
+            if (!payload.profileId.isNullOrBlank()) {
+                append("&pid=").append(payload.profileId)
+            }
+        }
+        // Record 1 (index 0): Custom MIME type record carrying the structured Hermit focus payload.
+        // Android NFC Tag Dispatch inspects index 0; placing MIME first ensures instant matching with
+        // Hermit's NDEF_DISCOVERED filter with highest priority, bypassing browsers completely.
         val mimeRecord = NdefRecord.createMime(HermitTagPayload.MIME_TYPE, payloadBytes)
+        // Record 2 (index 1): Web URI fallback with tag parameters for uninstalled devices
+        val uriRecord = NdefRecord.createUri(tagScanUrl)
 
-        val message = NdefMessage(arrayOf(uriRecord, mimeRecord))
+        val message = NdefMessage(arrayOf(mimeRecord, uriRecord))
         val messageSize = message.byteArrayLength
 
         val ndef = Ndef.get(tag)
@@ -265,6 +271,21 @@ object NfcTagManager {
         }
         if (tag != null) {
             return readHermitPayload(tag)
+        }
+
+        // Fallback: extract from intent data URI query params if redirected from scan.html / VIEW intent
+        val uri = intent.data
+        if (uri != null && (uri.scheme == "hermit" || uri.host == "hermit.umarmohammad.xyz")) {
+            val id = uri.getQueryParameter("id")
+            if (!id.isNullOrBlank()) {
+                val act = uri.getQueryParameter("act") ?: "TOGGLE"
+                val pid = uri.getQueryParameter("pid")
+                return HermitTagPayload(
+                    id = id,
+                    action = act,
+                    profileId = pid
+                )
+            }
         }
 
         return null

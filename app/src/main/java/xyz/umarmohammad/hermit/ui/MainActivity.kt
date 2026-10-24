@@ -209,7 +209,15 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
 
     private fun handleIncomingNfcIntent(intent: Intent?) {
         if (intent == null) return
-        val payload = NfcTagManager.extractHermitPayload(intent) ?: return
+        val fallbackPayload = if (intent.data?.scheme == "hermit" || intent.data?.host == "hermit.umarmohammad.xyz") {
+            xyz.umarmohammad.hermit.nfc.HermitTagPayload(
+                id = intent.data?.getQueryParameter("id") ?: "web-scan-tap",
+                action = intent.data?.getQueryParameter("act") ?: "TOGGLE",
+                profileId = intent.data?.getQueryParameter("pid")
+            )
+        } else null
+
+        val payload = NfcTagManager.extractHermitPayload(intent) ?: fallbackPayload ?: return
         val uid = NfcTagManager.extractTagUid(intent)
         val app = application as HermitApplication
         lifecycleScope.launch {

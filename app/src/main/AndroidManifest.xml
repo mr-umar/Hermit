@@ -73,6 +73,27 @@
                     android:pathPrefix="/scan" />
             </intent-filter>
 
+            <!-- Web URI VIEW intent filter so system dispatches physical tag web links directly to Hermit -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="hermit.umarmohammad.xyz"
+                    android:pathPrefix="/scan" />
+            </intent-filter>
+
+            <!-- Custom URI scheme to allow instant handover from scan.html in browser -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="hermit"
+                    android:host="scan" />
+            </intent-filter>
+
             <!-- Fallback tech & tag discovered filters -->
             <intent-filter>
                 <action android:name="android.nfc.action.TECH_DISCOVERED" />

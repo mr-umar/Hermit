@@ -132,6 +132,29 @@
         flex: 1;
       }
     }
+    .installed-banner {
+      background: rgba(165, 176, 146, 0.12);
+      border: 1.5px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    }
+    .installed-banner p {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: 0.75rem;
+    }
+    .btn-open-hermit {
+      width: 100%;
+      background: var(--color-primary);
+      color: #121411;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(165, 176, 146, 0.35);
+    }
     .explanation-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -272,6 +295,18 @@
           This physical tag is configured as a mindful focus anchor for the Hermit app.
         </p>
 
+        <div id="installed-app-banner" class="installed-banner" style="display: none;">
+          <p data-i18n="scan.already_installed_hint">¿Ya tienes la app Hermit instalada?</p>
+          <a id="open-app-btn" href="intent://scan#Intent;scheme=hermit;package=xyz.umarmohammad.hermit;end" class="btn btn-primary btn-open-hermit">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            <span data-i18n="btn.open_app">Abrir en Hermit</span>
+          </a>
+        </div>
+
         <div class="scan-actions">
           <a href="https://github.com/mr-umar/Hermit/releases/latest/download/Hermit-v1.0.0.apk" class="btn btn-primary" download="Hermit-v1.0.0.apk">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -410,6 +445,8 @@
         "badge.detected": "Etiqueta NFC detectada",
         "scan.title": "Has escaneado una etiqueta de Hermit",
         "scan.subtitle": "Esta etiqueta física está configurada como un ancla de concentración consciente para la app Hermit.",
+        "scan.already_installed_hint": "¿Ya tienes la app Hermit instalada?",
+        "btn.open_app": "Abrir en Hermit",
         "btn.download": "Descargar APK gratis",
         "btn.learn_more": "Conocer Hermit",
         "card1.title": "¿Por qué ves esta página?",
@@ -437,6 +474,8 @@
         "badge.detected": "NFC Tag Detected",
         "scan.title": "You scanned a Hermit tag",
         "scan.subtitle": "This physical tag is configured as a mindful focus anchor for the Hermit app.",
+        "scan.already_installed_hint": "Already have the Hermit app installed?",
+        "btn.open_app": "Open in Hermit",
         "btn.download": "Download APK Free",
         "btn.learn_more": "Learn about Hermit",
         "card1.title": "Why are you seeing this page?",
@@ -527,6 +566,29 @@
       });
 
       document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+      // Smart handover: if scanned/opened on Android, prepare Intent URI and auto-launch if installed
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const searchParams = window.location.search || '';
+      const intentUrl = `intent://scan${searchParams}#Intent;scheme=hermit;package=xyz.umarmohammad.hermit;end`;
+      
+      const openAppBtn = document.getElementById('open-app-btn');
+      if (openAppBtn) {
+        openAppBtn.href = intentUrl;
+      }
+
+      if (isAndroid) {
+        const banner = document.getElementById('installed-app-banner');
+        if (banner) {
+          banner.style.display = 'block';
+        }
+
+        // Attempt direct handover to Hermit app once per tab session
+        if (!sessionStorage.getItem('hermit_handover_attempted')) {
+          sessionStorage.setItem('hermit_handover_attempted', '1');
+          window.location.href = intentUrl;
+        }
+      }
     });
   </script>
 </body>

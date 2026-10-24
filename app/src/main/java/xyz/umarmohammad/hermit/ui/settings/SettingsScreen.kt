@@ -26,6 +26,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
@@ -52,11 +53,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -82,9 +84,12 @@ import xyz.umarmohammad.hermit.util.DeviceProtectionManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
@@ -129,6 +134,9 @@ fun SettingsScreen(
     val isAccessibilityRunning by HermitAccessibilityService.isServiceRunning.collectAsState()
 
     var showResetDialog by remember { mutableStateOf(false) }
+    var languageDropdownExpanded by remember { mutableStateOf(false) }
+    var themeDropdownExpanded by remember { mutableStateOf(false) }
+    var paletteDropdownExpanded by remember { mutableStateOf(false) }
 
     // Check NFC status
     val nfcAdapter = remember { NfcAdapter.getDefaultAdapter(context) }
@@ -188,186 +196,191 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // General Section: Language & Theme
+            // General Section: Language, Theme & Palette
             SectionHeading(title = stringResource(R.string.settings_section_general))
 
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.Language, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = stringResource(R.string.settings_language),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
+            val locales = listOf(
+                "system" to stringResource(R.string.settings_language_system),
+                "en" to stringResource(R.string.settings_language_en),
+                "es" to stringResource(R.string.settings_language_es)
+            )
+            val selectedLocaleLabel = locales.find { it.first == currentLocale }?.second
+                ?: stringResource(R.string.settings_language_system)
 
-                    val locales = listOf(
-                        "system" to stringResource(R.string.settings_language_system),
-                        "en" to stringResource(R.string.settings_language_en),
-                        "es" to stringResource(R.string.settings_language_es)
+            val themes = listOf(
+                "system" to stringResource(R.string.settings_theme_system),
+                "light" to stringResource(R.string.settings_theme_light),
+                "dark" to stringResource(R.string.settings_theme_dark)
+            )
+            val selectedThemeLabel = themes.find { it.first == currentTheme }?.second
+                ?: stringResource(R.string.settings_theme_system)
+
+            val palettes = listOf(
+                Triple("forest", stringResource(R.string.palette_forest), listOf(ForestDarkAcento, ForestLightAcento)),
+                Triple("ocean", stringResource(R.string.palette_ocean), listOf(OceanDarkAcento, OceanLightAcento)),
+                Triple("dune", stringResource(R.string.palette_dune), listOf(DuneDarkAcento, DuneLightAcento))
+            )
+            val selectedPalette = palettes.find { it.first == currentPalette.lowercase() }
+                ?: palettes.first()
+
+            AppleGroupedCard(modifier = Modifier.fillMaxWidth()) {
+                // Language Dropdown
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    SettingDropdownRow(
+                        title = stringResource(R.string.settings_language),
+                        selectedValue = selectedLocaleLabel,
+                        icon = Icons.Default.Language,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        onClick = { languageDropdownExpanded = true }
                     )
-
-                    locales.forEach { (code, label) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    coroutineScope.launch {
-                                        preferenceManager.setAppLocale(code)
-                                    }
-                                    val targetTag = if (code == "system") "" else code
-                                    val appLocale = LocaleListCompat.forLanguageTags(targetTag)
-                                    AppCompatDelegate.setApplicationLocales(appLocale)
-                                }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (currentLocale == code),
-                                onClick = {
-                                    coroutineScope.launch {
-                                        preferenceManager.setAppLocale(code)
-                                    }
-                                    val targetTag = if (code == "system") "" else code
-                                    val appLocale = LocaleListCompat.forLanguageTags(targetTag)
-                                    AppCompatDelegate.setApplicationLocales(appLocale)
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = stringResource(R.string.settings_theme),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    val themes = listOf(
-                        "system" to stringResource(R.string.settings_theme_system),
-                        "light" to stringResource(R.string.settings_theme_light),
-                        "dark" to stringResource(R.string.settings_theme_dark)
-                    )
-
-                    themes.forEach { (themeCode, label) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    coroutineScope.launch {
-                                        preferenceManager.setThemeMode(themeCode)
-                                    }
-                                }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (currentTheme == themeCode),
-                                onClick = {
-                                    coroutineScope.launch {
-                                        preferenceManager.setThemeMode(themeCode)
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = stringResource(R.string.settings_theme_palette),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    val palettes = listOf(
-                        Triple(
-                            "forest",
-                            stringResource(R.string.palette_forest),
-                            stringResource(R.string.palette_forest_desc)
-                        ) to listOf(ForestDarkAcento, ForestLightAcento),
-                        Triple(
-                            "ocean",
-                            stringResource(R.string.palette_ocean),
-                            stringResource(R.string.palette_ocean_desc)
-                        ) to listOf(OceanDarkAcento, OceanLightAcento),
-                        Triple(
-                            "dune",
-                            stringResource(R.string.palette_dune),
-                            stringResource(R.string.palette_dune_desc)
-                        ) to listOf(DuneDarkAcento, DuneLightAcento)
-                    )
-
-                    palettes.forEach { (info, colors) ->
-                        val (code, name, desc) = info
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    coroutineScope.launch {
-                                        preferenceManager.setThemePalette(code)
-                                    }
-                                }
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (currentPalette.lowercase() == code),
-                                onClick = {
-                                    coroutineScope.launch {
-                                        preferenceManager.setThemePalette(code)
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = name,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                                )
-                                Text(
-                                    text = desc,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                colors.forEach { color ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(16.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(color)
+                    DropdownMenu(
+                        expanded = languageDropdownExpanded,
+                        onDismissRequest = { languageDropdownExpanded = false }
+                    ) {
+                        locales.forEach { (code, label) ->
+                            val isSelected = (currentLocale == code)
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                        ),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                     )
+                                },
+                                trailingIcon = {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    languageDropdownExpanded = false
+                                    coroutineScope.launch {
+                                        preferenceManager.setAppLocale(code)
+                                    }
+                                    val targetTag = if (code == "system") "" else code
+                                    val appLocale = LocaleListCompat.forLanguageTags(targetTag)
+                                    AppCompatDelegate.setApplicationLocales(appLocale)
                                 }
-                            }
+                            )
+                        }
+                    }
+                }
+
+                AppleDivider(startIndent = true)
+
+                // Theme Dropdown
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    SettingDropdownRow(
+                        title = stringResource(R.string.settings_theme),
+                        selectedValue = selectedThemeLabel,
+                        icon = Icons.Default.DarkMode,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        onClick = { themeDropdownExpanded = true }
+                    )
+                    DropdownMenu(
+                        expanded = themeDropdownExpanded,
+                        onDismissRequest = { themeDropdownExpanded = false }
+                    ) {
+                        themes.forEach { (themeCode, label) ->
+                            val isSelected = (currentTheme == themeCode)
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                        ),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    themeDropdownExpanded = false
+                                    coroutineScope.launch {
+                                        preferenceManager.setThemeMode(themeCode)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                AppleDivider(startIndent = true)
+
+                // Color Palette Dropdown
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    SettingDropdownRow(
+                        title = stringResource(R.string.settings_theme_palette),
+                        selectedValue = selectedPalette.second,
+                        icon = Icons.Default.Palette,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        colorPreview = selectedPalette.third,
+                        onClick = { paletteDropdownExpanded = true }
+                    )
+                    DropdownMenu(
+                        expanded = paletteDropdownExpanded,
+                        onDismissRequest = { paletteDropdownExpanded = false }
+                    ) {
+                        palettes.forEach { (code, name, colors) ->
+                            val isSelected = (currentPalette.lowercase() == code)
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            colors.forEach { color ->
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(12.dp)
+                                                        .clip(RoundedCornerShape(6.dp))
+                                                        .background(color)
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            text = name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                            ),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                },
+                                trailingIcon = {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    paletteDropdownExpanded = false
+                                    coroutineScope.launch {
+                                        preferenceManager.setThemePalette(code)
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -1220,6 +1233,82 @@ private fun UpdatesSection(
                     Text(stringResource(R.string.action_cancel))
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun SettingDropdownRow(
+    title: String,
+    selectedValue: String,
+    icon: ImageVector,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
+    colorPreview: List<Color>? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(iconTint.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(17.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.5.sp
+            ),
+            color = Texto,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+
+        if (colorPreview != null) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                colorPreview.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(color)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(6.dp))
+        }
+
+        Text(
+            text = selectedValue,
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.5.sp),
+            color = Secundario,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = null,
+            tint = Secundario.copy(alpha = 0.7f),
+            modifier = Modifier.size(20.dp)
         )
     }
 }

@@ -221,37 +221,11 @@ fun ZenLauncherScreen(
                         color = Secundario
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Zen status pill badge
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Acento.copy(alpha = 0.12f),
-                        border = androidx.compose.foundation.BorderStroke(0.75.dp, Acento.copy(alpha = 0.35f))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(7.dp)
-                                    .background(Acento, CircleShape)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.zen_launcher_active_badge, profileName),
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = Acento
-                            )
-                        }
-                    }
-
                     if (remainingSeconds != null && remainingSeconds > 0) {
                         val hours = remainingSeconds / 3600
                         val mins = (remainingSeconds % 3600) / 60
                         val remainingText = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = stringResource(R.string.zen_launcher_remaining_label, remainingText),
                             style = MaterialTheme.typography.labelSmall,

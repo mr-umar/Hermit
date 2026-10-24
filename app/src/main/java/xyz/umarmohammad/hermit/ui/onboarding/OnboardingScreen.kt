@@ -937,8 +937,21 @@ private fun StepUninstallProtection(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Row(verticalAlignment = Alignment.Top) {
-                            Text(text = "🛡️", fontSize = 20.sp)
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Acento.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = Acento,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
                             Column {
                                 Text(
                                     text = stringResource(R.string.onboarding_uninstall_protection_feature_commit_title),
@@ -958,8 +971,21 @@ private fun StepUninstallProtection(
                         AppleDivider()
 
                         Row(verticalAlignment = Alignment.Top) {
-                            Text(text = "⏱️", fontSize = 20.sp)
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Acento.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.HourglassBottom,
+                                    contentDescription = null,
+                                    tint = Acento,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
                             Column {
                                 Text(
                                     text = stringResource(R.string.onboarding_uninstall_protection_feature_safe_title),

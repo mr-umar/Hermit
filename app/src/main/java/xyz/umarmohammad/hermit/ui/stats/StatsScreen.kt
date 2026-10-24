@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -337,10 +338,12 @@ private fun DigitalWellbeingDashboardCard(
     }
     val startOfDay = cal.timeInMillis
 
-    // Calculate today's focus seconds
-    val todayFocusMillis = allSessions
-        .filter { it.startedAt >= startOfDay }
-        .sumOf { (it.endedAt ?: System.currentTimeMillis()) - it.startedAt }
+    val now = System.currentTimeMillis()
+    // Calculate today's focus seconds based on actual elapsed overlap today
+    val todayFocusMillis = allSessions.sumOf { s ->
+        val sEnd = s.endedAt ?: now
+        maxOf(0L, minOf(sEnd, now) - maxOf(s.startedAt, startOfDay))
+    }
 
     val focusRatio = if (todayScreenTimeMillis > 0) {
         ((todayFocusMillis.toFloat() / todayScreenTimeMillis.toFloat()) * 100).toInt().coerceIn(0, 100)
@@ -350,7 +353,15 @@ private fun DigitalWellbeingDashboardCard(
 
     val screenHours = todayScreenTimeMillis / 3600000L
     val screenMins = (todayScreenTimeMillis % 3600000L) / 60000L
-    val screenTimeStr = if (screenHours > 0) "${screenHours}h ${screenMins}m" else "${screenMins}m"
+    val screenTimeStr = if (screenHours > 0) {
+        "${screenHours}h ${screenMins}m"
+    } else if (screenMins > 0) {
+        "${screenMins}m"
+    } else if (todayScreenTimeMillis >= 10_000L) {
+        "< 1m"
+    } else {
+        "0m"
+    }
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -720,14 +731,23 @@ private fun FocusCalendarCard(
                                 set(Calendar.MILLISECOND, 0)
                             }
                             val dayStartMillis = dayCal.timeInMillis
-                            val dayEndMillis = dayStartMillis + 24 * 3600_000L - 1L
+                            val dayEndCal = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, year)
+                                set(Calendar.MONTH, month)
+                                set(Calendar.DAY_OF_MONTH, dayNum)
+                                set(Calendar.HOUR_OF_DAY, 23)
+                                set(Calendar.MINUTE, 59)
+                                set(Calendar.SECOND, 59)
+                                set(Calendar.MILLISECOND, 999)
+                            }
+                            val dayEndMillis = dayEndCal.timeInMillis
 
                             val isToday = (dayCal.get(Calendar.YEAR) == currentYear &&
                                     dayCal.get(Calendar.DAY_OF_YEAR) == currentDayOfYear)
                             val isFuture = dayStartMillis > System.currentTimeMillis()
 
                             val daySessions = allSessions.filter { s ->
-                                val sEnd = s.endedAt ?: (s.startedAt + (s.plannedDurationMinutes ?: 25) * 60_000L)
+                                val sEnd = s.endedAt ?: System.currentTimeMillis()
                                 maxOf(0L, minOf(sEnd, dayEndMillis) - maxOf(s.startedAt, dayStartMillis)) > 0L
                             }
                             val hasFocusSessions = daySessions.isNotEmpty()
@@ -810,7 +830,8 @@ private data class HourlySlotData(
     val label: String,
     val sessions: List<FocusSessionRecord>,
     val phoneMinutes: Int,
-    val isFuture: Boolean,
+    val phoneMillis: Long = 0L,
+    val isCurrentHour: Boolean = false,
     val hStart: Long,
     val hEnd: Long
 )
@@ -835,7 +856,7 @@ private fun DayDetailDialog(
 
     val totalFocusMillis = remember(dayInfo) {
         dayInfo.sessions.sumOf { s ->
-            val sEnd = s.endedAt ?: (s.startedAt + (s.plannedDurationMinutes ?: 25) * 60_000L)
+            val sEnd = s.endedAt ?: System.currentTimeMillis()
             maxOf(0L, minOf(sEnd, dayInfo.dayEndMillis) - maxOf(s.startedAt, dayInfo.dayStartMillis))
         }
     }
@@ -959,8 +980,17 @@ private fun DayDetailDialog(
                             Spacer(modifier = Modifier.height(6.dp))
                             val sh = totalScreenTimeMin / 60
                             val sm = totalScreenTimeMin % 60
+                            val screenUsageStr = if (sh > 0) {
+                                "${sh}h ${sm}m"
+                            } else if (sm > 0) {
+                                "${sm}m"
+                            } else if (totalScreenTimeMillis >= 10_000L) {
+                                "< 1m"
+                            } else {
+                                "0m"
+                            }
                             Text(
-                                text = if (sh > 0) "${sh}h ${sm}m" else "${sm}m",
+                                text = screenUsageStr,
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1030,30 +1060,61 @@ private fun DayDetailDialog(
                     }
                 } else {
                     val currentNow = System.currentTimeMillis()
+                    val nowCal = Calendar.getInstance().apply { timeInMillis = currentNow }
+                    val isToday = (dayInfo.year == nowCal.get(Calendar.YEAR) &&
+                            dayInfo.month == nowCal.get(Calendar.MONTH) &&
+                            dayInfo.dayNum == nowCal.get(Calendar.DAY_OF_MONTH))
+                    val currentHour = nowCal.get(Calendar.HOUR_OF_DAY)
+
                     val hourlyData = remember(hourlyUsage, dayInfo, showOnlyActive) {
-                        (0..23).mapNotNull { hour ->
-                            val hStart = dayInfo.dayStartMillis + hour * 3600_000L
-                            val hEnd = hStart + 3600_000L
-                            val isFuture = hStart > currentNow
+                        val lastActiveScreenHour = hourlyUsage?.hourlyScreenTimeMillis?.filter { it.value > 0 }?.keys?.maxOrNull() ?: -1
+                        val lastActiveSessionHour = dayInfo.sessions.maxOfOrNull { s ->
+                            val sEnd = s.endedAt ?: s.startedAt
+                            val c = Calendar.getInstance().apply { timeInMillis = sEnd }
+                            c.get(Calendar.HOUR_OF_DAY)
+                        } ?: -1
+                        val lastActiveHour = maxOf(lastActiveScreenHour, lastActiveSessionHour)
+
+                        // If today: strictly from 00:00 up to the current hour (0..currentHour). No future hours!
+                        // If past day: from 00:00 up to the last hour with activity (or 0 if idle).
+                        val endHour = if (isToday) {
+                            currentHour
+                        } else {
+                            if (lastActiveHour >= 0) lastActiveHour else 0
+                        }
+
+                        val slotCal = Calendar.getInstance().apply {
+                            timeInMillis = dayInfo.dayStartMillis
+                        }
+
+                        (0..endHour).mapNotNull { hour ->
+                            slotCal.set(Calendar.HOUR_OF_DAY, hour)
+                            slotCal.set(Calendar.MINUTE, 0)
+                            slotCal.set(Calendar.SECOND, 0)
+                            slotCal.set(Calendar.MILLISECOND, 0)
+                            val hStart = slotCal.timeInMillis
+                            slotCal.add(Calendar.HOUR_OF_DAY, 1)
+                            val hEnd = slotCal.timeInMillis
 
                             val sessionsInHour = dayInfo.sessions.filter { s ->
-                                val sEnd = s.endedAt ?: (s.startedAt + (s.plannedDurationMinutes ?: 25) * 60_000L)
+                                val sEnd = s.endedAt ?: currentNow
                                 maxOf(0L, minOf(sEnd, hEnd) - maxOf(s.startedAt, hStart)) > 0L
                             }
 
                             val phoneMillis = hourlyUsage?.hourlyScreenTimeMillis?.get(hour) ?: 0L
                             val phoneMin = (phoneMillis / 60_000L).toInt()
 
-                            val hasActivity = sessionsInHour.isNotEmpty() || phoneMin > 0
+                            val hasActivity = sessionsInHour.isNotEmpty() || phoneMillis >= 10_000L
                             if (showOnlyActive && !hasActivity) {
                                 null
                             } else {
                                 HourlySlotData(
                                     hour = hour,
-                                    label = String.format("%02d:00 - %02d:00", hour, (hour + 1) % 24),
+                                    label = String.format(Locale.getDefault(), "%02d:00 - %02d:00", hour, (hour + 1) % 24),
                                     sessions = sessionsInHour,
                                     phoneMinutes = phoneMin,
-                                    isFuture = isFuture,
+                                    phoneMillis = phoneMillis,
+                                    isCurrentHour = isToday && (hour == currentHour),
                                     hStart = hStart,
                                     hEnd = hEnd
                                 )
@@ -1098,7 +1159,14 @@ private fun HourlySlotCard(slot: HourlySlotData) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+        color = if (slot.isCurrentHour) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+        },
+        border = if (slot.isCurrentHour) {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+        } else null
     ) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             // Time range row
@@ -1107,11 +1175,30 @@ private fun HourlySlotCard(slot: HourlySlotData) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = slot.label,
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = slot.label,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (slot.isCurrentHour) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = stringResource(R.string.stats_slot_in_progress),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 9.sp
+                                ),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
+                }
 
                 if (slot.sessions.isNotEmpty()) {
                     Surface(
@@ -1133,7 +1220,7 @@ private fun HourlySlotCard(slot: HourlySlotData) {
             // Hermit focus sessions in this hour
             if (slot.sessions.isNotEmpty()) {
                 slot.sessions.forEach { session ->
-                    val sEnd = session.endedAt ?: (session.startedAt + (session.plannedDurationMinutes ?: 25) * 60_000L)
+                    val sEnd = session.endedAt ?: System.currentTimeMillis()
                     val durationMin = ((maxOf(0L, minOf(sEnd, slot.hEnd) - maxOf(session.startedAt, slot.hStart))) / 60_000L)
                         .toInt().coerceAtLeast(1)
 
@@ -1160,7 +1247,13 @@ private fun HourlySlotCard(slot: HourlySlotData) {
             }
 
             // Screen time in this hour
-            if (slot.phoneMinutes > 0) {
+            if (slot.phoneMillis >= 10_000L) {
+                val usageText = if (slot.phoneMinutes > 0) {
+                    stringResource(R.string.stats_slot_screen_time, slot.phoneMinutes)
+                } else {
+                    stringResource(R.string.stats_slot_screen_time_less_than_minute)
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1175,7 +1268,7 @@ private fun HourlySlotCard(slot: HourlySlotData) {
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = stringResource(R.string.stats_slot_screen_time, slot.phoneMinutes),
+                        text = usageText,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1183,9 +1276,13 @@ private fun HourlySlotCard(slot: HourlySlotData) {
             }
 
             // If neither
-            if (slot.sessions.isEmpty() && slot.phoneMinutes == 0) {
+            if (slot.sessions.isEmpty() && slot.phoneMillis < 10_000L) {
                 Text(
-                    text = if (slot.isFuture) "Aún no transcurrido" else stringResource(R.string.stats_slot_idle),
+                    text = if (slot.isCurrentHour) {
+                        stringResource(R.string.stats_slot_current_no_activity_yet)
+                    } else {
+                        stringResource(R.string.stats_slot_idle)
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )

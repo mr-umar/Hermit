@@ -167,11 +167,14 @@
     <string name="stats_day_detail_sessions_count">%1$d focus sessions</string>
     <string name="stats_day_detail_no_sessions">No focus sessions</string>
     <string name="stats_day_hourly_title">Hourly Timeline</string>
-    <string name="stats_day_filter_all">All 24 hours</string>
-    <string name="stats_day_filter_active">Active hours only</string>
+    <string name="stats_day_filter_all">All</string>
+    <string name="stats_day_filter_active">Active only</string>
     <string name="stats_slot_hermit_session">Hermit: %1$s (%2$d min)</string>
     <string name="stats_slot_screen_time">Screen time: %1$d min</string>
+    <string name="stats_slot_screen_time_less_than_minute">Screen time: &lt; 1 min</string>
     <string name="stats_slot_idle">Phone idle / no active sessions</string>
+    <string name="stats_slot_in_progress">Now</string>
+    <string name="stats_slot_current_no_activity_yet">Current hour (no activity recorded yet)</string>
     <string name="stats_calendar_three_months_limit">Calendar is limited to the last 3 months</string>
 
     <!-- Settings & Diagnostics -->

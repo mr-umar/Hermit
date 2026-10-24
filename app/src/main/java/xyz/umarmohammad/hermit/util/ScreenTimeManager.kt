@@ -296,15 +296,27 @@ object ScreenTimeManager {
 
         val hourlyMap = mutableMapOf<Int, Long>()
 
+        val hourBounds = (0..23).map { hour ->
+            val c = Calendar.getInstance().apply {
+                timeInMillis = dayStartMillis
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val hStart = c.timeInMillis
+            c.add(Calendar.HOUR_OF_DAY, 1)
+            val hEnd = c.timeInMillis
+            Triple(hour, hStart, hEnd)
+        }
+
         fun addUsageInterval(pkg: String, start: Long, end: Long) {
             if (pkg.isBlank() || nonSystemExempt.contains(pkg)) return
             val validStart = maxOf(start, dayStartMillis)
             val validEnd = minOf(end, queryEnd)
             if (validEnd <= validStart) return
 
-            for (hour in 0..23) {
-                val hourStart = dayStartMillis + hour * 3600_000L
-                val hourEnd = hourStart + 3600_000L
+            for ((hour, hourStart, hourEnd) in hourBounds) {
                 val overlap = maxOf(0L, minOf(validEnd, hourEnd) - maxOf(validStart, hourStart))
                 if (overlap > 0) {
                     hourlyMap[hour] = (hourlyMap[hour] ?: 0L) + overlap

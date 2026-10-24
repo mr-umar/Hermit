@@ -280,12 +280,12 @@
     <string name="onboarding_unlock_nfc_only">Solo desbloqueo físico con NFC (no se puede cancelar desde la app, máx. 24 h)</string>
     <string name="onboarding_unlock_time_only">Por tiempo o app (hasta 24 h)</string>
     <string name="onboarding_monk_banner_title">Modo Zen (Santuario Absoluto)</string>
-    <string name="onboarding_monk_banner_desc">Solo teléfono, cámara, mapas, WhatsApp y música. Requiere obligatoriamente etiqueta NFC para salir.</string>
+    <string name="onboarding_monk_banner_desc">Teléfono, cámara y música en un launcher minimalista sin distracciones.</string>
     <string name="onboarding_btn_enter">Entrar a Hermit</string>
 
     <!-- Zen Mode Validation -->
     <string name="zen_mode_title">Modo Zen</string>
-    <string name="zen_mode_desc">Bloquea todas las aplicaciones excepto teléfono, cámara, mapas, WhatsApp y música. Requiere una etiqueta física NFC para desbloquear.</string>
+    <string name="zen_mode_desc">Bloquea las aplicaciones y sustituye la pantalla de inicio por un launcher minimalista.</string>
     <string name="zen_mode_requires_tag_title">El Modo Zen requiere una etiqueta física</string>
     <string name="zen_mode_requires_tag_desc">El Modo Zen crea un santuario absoluto y no se puede cancelar desde la pantalla. Para garantizar que nunca te quedes bloqueado sin una llave física, es obligatorio tener registrada al menos una etiqueta NFC antes de activar este modo.</string>
     <string name="zen_mode_btn_setup_tag">Configurar etiqueta NFC</string>

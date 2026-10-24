@@ -280,12 +280,12 @@
     <string name="onboarding_unlock_nfc_only">Physical NFC tag unlock only (cannot cancel in app, max 24h)</string>
     <string name="onboarding_unlock_time_only">Timer or app unlock (up to 24h)</string>
     <string name="onboarding_monk_banner_title">Zen Mode (Absolute Sanctuary)</string>
-    <string name="onboarding_monk_banner_desc">Only Phone, Camera, Maps, WhatsApp, and Music. Physical NFC unlock strictly required.</string>
+    <string name="onboarding_monk_banner_desc">Phone, camera, and music in a distraction-free minimalist launcher.</string>
     <string name="onboarding_btn_enter">Enter Hermit</string>
 
     <!-- Zen Mode Validation -->
     <string name="zen_mode_title">Zen Mode</string>
-    <string name="zen_mode_desc">Blocks all applications except phone, camera, maps, WhatsApp, and music. Requires a physical NFC tag to unlock.</string>
+    <string name="zen_mode_desc">Blocks distracting apps and replaces the home screen with a minimalist launcher.</string>
     <string name="zen_mode_requires_tag_title">Zen Mode Requires a Physical Tag</string>
     <string name="zen_mode_requires_tag_desc">Zen Mode creates an absolute sanctuary and cannot be bypassed from the screen. To prevent getting locked out without an exit key, you must register at least one NFC tag before enabling this mode.</string>
     <string name="zen_mode_btn_setup_tag">Set Up NFC Tag</string>

@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,8 +42,6 @@ import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -829,6 +827,7 @@ private data class HourlySlotData(
     val hour: Int,
     val label: String,
     val sessions: List<FocusSessionRecord>,
+    val focusMinutes: Int,
     val phoneMinutes: Int,
     val phoneMillis: Long = 0L,
     val isCurrentHour: Boolean = false,
@@ -844,7 +843,6 @@ private fun DayDetailDialog(
     val context = LocalContext.current
     var hourlyUsage by remember(dayInfo) { mutableStateOf<ScreenTimeManager.DayHourlyUsage?>(null) }
     var isLoadingUsage by remember(dayInfo) { mutableStateOf(true) }
-    var showOnlyActive by remember { mutableStateOf(false) }
 
     LaunchedEffect(dayInfo) {
         isLoadingUsage = true
@@ -1005,42 +1003,23 @@ private fun DayDetailDialog(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Timeline Section Header & Filter Toggle
+                // Timeline Section Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Timeline,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.stats_day_hourly_title),
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        FilterChip(
-                            selected = !showOnlyActive,
-                            onClick = { showOnlyActive = false },
-                            label = { Text(stringResource(R.string.stats_day_filter_all), fontSize = 11.sp) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.height(30.dp)
-                        )
-                        FilterChip(
-                            selected = showOnlyActive,
-                            onClick = { showOnlyActive = true },
-                            label = { Text(stringResource(R.string.stats_day_filter_active), fontSize = 11.sp) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.height(30.dp)
-                        )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -1066,7 +1045,7 @@ private fun DayDetailDialog(
                             dayInfo.dayNum == nowCal.get(Calendar.DAY_OF_MONTH))
                     val currentHour = nowCal.get(Calendar.HOUR_OF_DAY)
 
-                    val hourlyData = remember(hourlyUsage, dayInfo, showOnlyActive) {
+                    val hourlyData = remember(hourlyUsage, dayInfo) {
                         val lastActiveScreenHour = hourlyUsage?.hourlyScreenTimeMillis?.filter { it.value > 0 }?.keys?.maxOrNull() ?: -1
                         val lastActiveSessionHour = dayInfo.sessions.maxOfOrNull { s ->
                             val sEnd = s.endedAt ?: s.startedAt
@@ -1087,7 +1066,7 @@ private fun DayDetailDialog(
                             timeInMillis = dayInfo.dayStartMillis
                         }
 
-                        (0..endHour).mapNotNull { hour ->
+                        (0..endHour).map { hour ->
                             slotCal.set(Calendar.HOUR_OF_DAY, hour)
                             slotCal.set(Calendar.MINUTE, 0)
                             slotCal.set(Calendar.SECOND, 0)
@@ -1101,51 +1080,119 @@ private fun DayDetailDialog(
                                 maxOf(0L, minOf(sEnd, hEnd) - maxOf(s.startedAt, hStart)) > 0L
                             }
 
+                            val focusMin = sessionsInHour.sumOf { s ->
+                                val sEnd = s.endedAt ?: currentNow
+                                ((maxOf(0L, minOf(sEnd, hEnd) - maxOf(s.startedAt, hStart))) / 60_000L).toInt()
+                            }.coerceIn(0, 60)
+
                             val phoneMillis = hourlyUsage?.hourlyScreenTimeMillis?.get(hour) ?: 0L
                             val phoneMin = (phoneMillis / 60_000L).toInt()
 
-                            val hasActivity = sessionsInHour.isNotEmpty() || phoneMillis >= 10_000L
-                            if (showOnlyActive && !hasActivity) {
-                                null
-                            } else {
-                                HourlySlotData(
-                                    hour = hour,
-                                    label = String.format(Locale.getDefault(), "%02d:00 - %02d:00", hour, (hour + 1) % 24),
-                                    sessions = sessionsInHour,
-                                    phoneMinutes = phoneMin,
-                                    phoneMillis = phoneMillis,
-                                    isCurrentHour = isToday && (hour == currentHour),
-                                    hStart = hStart,
-                                    hEnd = hEnd
+                            HourlySlotData(
+                                hour = hour,
+                                label = String.format(Locale.getDefault(), "%02d:00 - %02d:00", hour, (hour + 1) % 24),
+                                sessions = sessionsInHour,
+                                focusMinutes = focusMin,
+                                phoneMinutes = phoneMin,
+                                phoneMillis = phoneMillis,
+                                isCurrentHour = isToday && (hour == currentHour),
+                                hStart = hStart,
+                                hEnd = hEnd
+                            )
+                        }
+                    }
+
+                    // Mini Day Activity Visual Bar Chart
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(44.dp),
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                hourlyData.forEach { slot ->
+                                    val focusH = (slot.focusMinutes.toFloat() / 60f).coerceIn(0f, 1f)
+                                    val phoneH = ((slot.phoneMillis.toFloat() / 60_000f) / 60f).coerceIn(0f, 1f)
+                                    val totalH = (focusH + phoneH).coerceIn(0f, 1f)
+
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight(),
+                                        verticalArrangement = Arrangement.Bottom,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        if (totalH > 0f) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight(totalH)
+                                                    .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                                                    .background(if (focusH > 0f) Acento else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.75f))
+                                            )
+                                        } else {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(2.dp)
+                                                    .background(
+                                                        if (slot.isCurrentHour) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "00:00",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                                if (hourlyData.size > 2) {
+                                    val midSlot = hourlyData[hourlyData.size / 2]
+                                    Text(
+                                        text = String.format(Locale.getDefault(), "%02d:00", midSlot.hour),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                val lastSlot = hourlyData.lastOrNull()
+                                if (lastSlot != null) {
+                                    Text(
+                                        text = String.format(Locale.getDefault(), "%02d:00", (lastSlot.hour + 1) % 24),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
 
-                    if (hourlyData.isEmpty() && showOnlyActive) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.stats_slot_idle),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 380.dp)
-                                .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            hourlyData.forEach { slot ->
-                                HourlySlotCard(slot = slot)
-                            }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 340.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        hourlyData.forEach { slot ->
+                            HourlySlotCard(slot = slot)
                         }
                     }
                 }
@@ -1156,20 +1203,26 @@ private fun DayDetailDialog(
 
 @Composable
 private fun HourlySlotCard(slot: HourlySlotData) {
+    val hasActivity = slot.sessions.isNotEmpty() || slot.phoneMillis >= 10_000L
+    val focusRatio = (slot.focusMinutes.toFloat() / 60f).coerceIn(0f, 1f)
+    val phoneRatio = ((slot.phoneMillis.toFloat() / 60_000f) / 60f).coerceIn(0f, 1f - focusRatio)
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         color = if (slot.isCurrentHour) {
             MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+        } else if (hasActivity) {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         } else {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f)
         },
         border = if (slot.isCurrentHour) {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+            BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
         } else null
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            // Time range row
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)) {
+            // Header Row: Time range on left, tags on right
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1178,8 +1231,8 @@ private fun HourlySlotCard(slot: HourlySlotData) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = slot.label,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = if (slot.isCurrentHour) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                     if (slot.isCurrentHour) {
                         Spacer(modifier = Modifier.width(6.dp))
@@ -1194,89 +1247,118 @@ private fun HourlySlotCard(slot: HourlySlotData) {
                                     fontSize = 9.sp
                                 ),
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
                 }
 
-                if (slot.sessions.isNotEmpty()) {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                    ) {
-                        Text(
-                            text = "Hermit",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Hermit focus sessions in this hour
-            if (slot.sessions.isNotEmpty()) {
-                slot.sessions.forEach { session ->
-                    val sEnd = session.endedAt ?: System.currentTimeMillis()
-                    val durationMin = ((maxOf(0L, minOf(sEnd, slot.hEnd) - maxOf(session.startedAt, slot.hStart))) / 60_000L)
-                        .toInt().coerceAtLeast(1)
-
+                if (hasActivity) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.HourglassBottom,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.stats_slot_hermit_session, session.profileName, durationMin),
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        if (slot.focusMinutes > 0) {
+                            Text(
+                                text = "${slot.focusMinutes}m foco",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        if (slot.phoneMillis >= 10_000L) {
+                            val screenMinStr = if (slot.phoneMinutes > 0) "${slot.phoneMinutes}m" else "< 1m"
+                            Text(
+                                text = "$screenMinStr pantalla",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
 
-            // Screen time in this hour
-            if (slot.phoneMillis >= 10_000L) {
-                val usageText = if (slot.phoneMinutes > 0) {
-                    stringResource(R.string.stats_slot_screen_time, slot.phoneMinutes)
-                } else {
-                    stringResource(R.string.stats_slot_screen_time_less_than_minute)
-                }
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhoneAndroid,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(14.dp)
+            // Visual Segmented Timeline Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            ) {
+                if (focusRatio > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(focusRatio, fill = true)
+                            .background(Acento)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = usageText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                }
+                if (phoneRatio > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(phoneRatio, fill = true)
+                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f))
                     )
+                }
+                val emptyRatio = (1f - focusRatio - phoneRatio).coerceAtLeast(0f)
+                if (emptyRatio > 0f) {
+                    Spacer(modifier = Modifier.weight(emptyRatio, fill = true))
                 }
             }
 
-            // If neither
-            if (slot.sessions.isEmpty() && slot.phoneMillis < 10_000L) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Activity details chips
+            if (hasActivity) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    slot.sessions.forEach { session ->
+                        val sEnd = session.endedAt ?: System.currentTimeMillis()
+                        val durationMin = ((maxOf(0L, minOf(sEnd, slot.hEnd) - maxOf(session.startedAt, slot.hStart))) / 60_000L)
+                            .toInt().coerceAtLeast(1)
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.HourglassBottom,
+                                contentDescription = null,
+                                tint = Acento,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "${session.profileName} • ${durationMin} min",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    if (slot.phoneMillis >= 10_000L) {
+                        val usageText = if (slot.phoneMinutes > 0) {
+                            stringResource(R.string.stats_slot_screen_time, slot.phoneMinutes)
+                        } else {
+                            stringResource(R.string.stats_slot_screen_time_less_than_minute)
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.PhoneAndroid,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = usageText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            } else {
                 Text(
                     text = if (slot.isCurrentHour) {
                         stringResource(R.string.stats_slot_current_no_activity_yet)

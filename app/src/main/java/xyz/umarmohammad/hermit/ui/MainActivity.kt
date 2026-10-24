@@ -507,11 +507,15 @@ fun MainAppScaffold(
             composable(Screen.Profiles.route) {
                 ProfilesScreen(
                     profileRepository = profileRepo,
+                    tagRepository = tagRepo,
                     onEditProfile = { profileId ->
                         navController.navigate("profile_edit/$profileId")
                     },
                     onCreateProfile = {
                         navController.navigate("profile_edit/new")
+                    },
+                    onAddTagClick = {
+                        navController.navigate("write_tag")
                     }
                 )
             }

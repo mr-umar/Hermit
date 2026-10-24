@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.data.model.FocusProfile
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
+import xyz.umarmohammad.hermit.data.repository.TagRepository
 import xyz.umarmohammad.hermit.ui.components.EmptyStateView
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
@@ -75,13 +76,25 @@ fun getProfileIcon(iconName: String): ImageVector {
 @Composable
 fun ProfilesScreen(
     profileRepository: ProfileRepository,
+    tagRepository: TagRepository? = null,
     onEditProfile: (String) -> Unit,
-    onCreateProfile: () -> Unit
+    onCreateProfile: () -> Unit,
+    onAddTagClick: () -> Unit = {}
 ) {
     val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
+    val tags by tagRepository?.allTags?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
+    val hasTags = tags.isNotEmpty()
     val coroutineScope = rememberCoroutineScope()
     var profileToDelete by remember { mutableStateOf<FocusProfile?>(null) }
     var showFrictionDialog by remember { mutableStateOf(false) }
+
+    val handleCreateClick = {
+        if (hasTags) {
+            onCreateProfile()
+        } else {
+            showFrictionDialog = true
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -89,7 +102,7 @@ fun ProfilesScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showFrictionDialog = true },
+                onClick = handleCreateClick,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
@@ -104,7 +117,7 @@ fun ProfilesScreen(
                 title = stringResource(R.string.home_no_profiles_title),
                 description = stringResource(R.string.home_no_profiles_desc),
                 actionButtonText = stringResource(R.string.home_btn_create_first_profile),
-                onActionClick = { showFrictionDialog = true },
+                onActionClick = handleCreateClick,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -127,7 +140,7 @@ fun ProfilesScreen(
             }
         }
 
-        // Physical Friction Guidance Dialog before creating profile
+        // Physical Friction Guidance Dialog before creating profile (only shown if no tags exist)
         if (showFrictionDialog) {
             AlertDialog(
                 onDismissRequest = { showFrictionDialog = false },
@@ -137,15 +150,20 @@ fun ProfilesScreen(
                     TextButton(
                         onClick = {
                             showFrictionDialog = false
+                            onAddTagClick()
+                        }
+                    ) {
+                        Text(stringResource(R.string.profile_friction_dialog_setup_tag))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showFrictionDialog = false
                             onCreateProfile()
                         }
                     ) {
                         Text(stringResource(R.string.profile_friction_dialog_continue))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showFrictionDialog = false }) {
-                        Text(stringResource(R.string.action_cancel))
                     }
                 }
             )

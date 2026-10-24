@@ -313,8 +313,8 @@
     <!-- Profile Friction Guidance Dialog -->
     <string name="profile_friction_dialog_title">Physical Friction &amp; Focus</string>
     <string name="profile_friction_dialog_desc">To break unconscious phone habits, physical friction using an NFC tag is the most effective approach. If you don\'t have a physical tag yet, you can still use this profile with scheduled timers or manual duration in the app.</string>
-    <string name="profile_friction_dialog_continue">Continue Creating</string>
-    <string name="profile_friction_dialog_setup_tag">Configure a Tag First</string>
+    <string name="profile_friction_dialog_continue">Continue without tag</string>
+    <string name="profile_friction_dialog_setup_tag">Add a tag first</string>
 
     <!-- Tag Without Specific Profile (Active Profile Toggle) -->
     <string name="write_tag_profile_none">No specific profile (Toggle active focus)</string>

@@ -313,8 +313,8 @@
     <!-- Profile Friction Guidance Dialog -->
     <string name="profile_friction_dialog_title">Fricción física y enfoque consciente</string>
     <string name="profile_friction_dialog_desc">Para romper el piloto automático del móvil, la fricción física con una etiqueta NFC es la técnica más efectiva. Si aún no tienes una etiqueta, puedes usar este perfil con temporizador programado o por minutos dentro de la app.</string>
-    <string name="profile_friction_dialog_continue">Continuar creando</string>
-    <string name="profile_friction_dialog_setup_tag">Configurar etiqueta primero</string>
+    <string name="profile_friction_dialog_continue">Continuar sin etiqueta</string>
+    <string name="profile_friction_dialog_setup_tag">Añadir una etiqueta primero</string>
 
     <!-- Tag Without Specific Profile (Active Profile Toggle) -->
     <string name="write_tag_profile_none">Sin perfil específico (Alternar perfil activo)</string>

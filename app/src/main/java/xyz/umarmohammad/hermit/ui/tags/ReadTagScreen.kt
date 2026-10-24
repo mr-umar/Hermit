@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,12 +60,14 @@ fun ReadTagScreen(
 ) {
     var scannedInfo by remember { mutableStateOf<NfcCapabilityInfo?>(null) }
     var isImported by remember { mutableStateOf(false) }
+    var customTagName by remember { mutableStateOf("") }
 
     LaunchedEffect(activePhysicalTag) {
         if (activePhysicalTag != null) {
             val info = NfcTagManager.inspectTag(activePhysicalTag)
             scannedInfo = info
             isImported = false
+            customTagName = info.existingPayload?.name ?: "Etiqueta física"
             onTagHandled()
         }
     }
@@ -192,13 +196,22 @@ fun ReadTagScreen(
 
                     if (!isImported) {
                         Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = customTagName,
+                            onValueChange = { customTagName = it },
+                            label = { Text(stringResource(R.string.tag_detail_name)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                         TactileButton(
                             onClick = {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     val record = NfcTagRecord(
                                         id = payload.id,
                                         tagPhysicalUid = info.tagUidHex,
-                                        name = payload.name ?: "Imported Tag",
+                                        name = customTagName.trim().ifBlank { payload.name ?: "Etiqueta física" },
                                         action = payload.getResolvedAction(),
                                         targetProfileId = payload.profileId,
                                         lastScannedAt = System.currentTimeMillis()
@@ -209,6 +222,7 @@ fun ReadTagScreen(
                                     }
                                 }
                             },
+                            enabled = customTagName.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(stringResource(R.string.read_tag_action_import))

@@ -121,6 +121,7 @@ fun WriteTagScreen(
     var writtenTagId by remember { mutableStateOf<String?>(null) }
     var writtenTagUid by remember { mutableStateOf<String?>(null) }
     var testWarningMessage by remember { mutableStateOf<String?>(null) }
+    var showRenameSuccessDialog by remember { mutableStateOf(false) }
 
     // Real write operation with pre-flight check and readback
     val performWrite = { targetTag: Tag ->
@@ -589,7 +590,8 @@ fun WriteTagScreen(
                                     title = stringResource(R.string.tag_detail_name),
                                     value = tagName,
                                     icon = Icons.Default.Nfc,
-                                    iconTint = Acento
+                                    iconTint = Acento,
+                                    onClick = { showRenameSuccessDialog = true }
                                 )
 
                                 AppleDivider(startIndent = true)
@@ -741,6 +743,57 @@ fun WriteTagScreen(
                                 onTagHandled()
                             }
                         ) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                )
+            }
+
+            if (showRenameSuccessDialog && writtenTagId != null) {
+                var tempName by remember { mutableStateOf(tagName) }
+                AlertDialog(
+                    onDismissRequest = { showRenameSuccessDialog = false },
+                    title = { Text(stringResource(R.string.tag_edit_title)) },
+                    text = {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.tag_edit_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            OutlinedTextField(
+                                value = tempName,
+                                onValueChange = { tempName = it },
+                                label = { Text(stringResource(R.string.tag_detail_name)) },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val trimmed = tempName.trim()
+                                if (trimmed.isNotBlank()) {
+                                    tagName = trimmed
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val currentRecord = tagRepository.getTagById(writtenTagId!!)
+                                        if (currentRecord != null) {
+                                            tagRepository.updateTag(currentRecord.copy(name = trimmed))
+                                        }
+                                    }
+                                }
+                                showRenameSuccessDialog = false
+                            },
+                            enabled = tempName.isNotBlank()
+                        ) {
+                            Text(stringResource(R.string.action_save))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showRenameSuccessDialog = false }) {
                             Text(stringResource(R.string.action_cancel))
                         }
                     }

@@ -358,6 +358,8 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
+    <string name="tag_edit_title">Edit Tag Name</string>
+    <string name="tag_edit_desc">Enter a new name for this NFC tag.</string>
     <string name="action_close">Close</string>
     <string name="action_retry">Retry</string>
     <string name="action_confirm">Confirm</string>

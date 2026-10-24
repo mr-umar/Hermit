@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.AlertDialog
@@ -27,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -69,6 +71,7 @@ fun TagListScreen(
 ) {
     val tags by tagRepository.allTags.collectAsState(initial = emptyList())
     var tagToDelete by remember { mutableStateOf<NfcTagRecord?>(null) }
+    var tagToEdit by remember { mutableStateOf<NfcTagRecord?>(null) }
 
     Scaffold(
         topBar = {
@@ -139,6 +142,7 @@ fun TagListScreen(
                     items(tags, key = { it.id }) { tag ->
                         TagCardItem(
                             tag = tag,
+                            onEdit = { tagToEdit = tag },
                             onToggleDisabled = {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     tagRepository.updateTag(tag.copy(isDisabled = !tag.isDisabled))
@@ -192,18 +196,71 @@ fun TagListScreen(
                 }
             )
         }
+
+        // Edit Tag Dialog
+        tagToEdit?.let { target ->
+            var editedName by remember(target) { mutableStateOf(target.name) }
+            AlertDialog(
+                onDismissRequest = { tagToEdit = null },
+                title = { Text(stringResource(R.string.tag_edit_title)) },
+                text = {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.tag_edit_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        OutlinedTextField(
+                            value = editedName,
+                            onValueChange = { editedName = it },
+                            label = { Text(stringResource(R.string.tag_detail_name)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val trimmed = editedName.trim()
+                            if (trimmed.isNotBlank()) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    tagRepository.updateTag(target.copy(name = trimmed))
+                                }
+                            }
+                            tagToEdit = null
+                        },
+                        enabled = editedName.isNotBlank()
+                    ) {
+                        Text(stringResource(R.string.action_save))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { tagToEdit = null }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
 private fun TagCardItem(
     tag: NfcTagRecord,
+    onEdit: () -> Unit,
     onToggleDisabled: () -> Unit,
     onDelete: () -> Unit
 ) {
     val dateFormat = remember { SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()) }
 
-    GlassCard(modifier = Modifier.fillMaxWidth()) {
+    GlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEdit() }
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -257,6 +314,14 @@ private fun TagCardItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.action_edit),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 

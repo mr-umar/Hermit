@@ -358,6 +358,8 @@
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
     <string name="action_edit">Editar</string>
+    <string name="tag_edit_title">Editar nombre de la etiqueta</string>
+    <string name="tag_edit_desc">Introduce un nuevo nombre para esta etiqueta NFC.</string>
     <string name="action_close">Cerrar</string>
     <string name="action_retry">Reintentar</string>
     <string name="action_confirm">Confirmar</string>

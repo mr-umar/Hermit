@@ -412,6 +412,10 @@
     <string name="zen_launcher_remaining_label">Remaining: %1$s</string>
     <string name="zen_launcher_nfc_prompt">Tap your NFC tag to exit</string>
     <string name="zen_launcher_nfc_subprompt">Physical NFC deactivation required</string>
+    <string name="zen_launcher_exit_dialog_title">Physical Tag Required to Exit</string>
+    <string name="zen_launcher_exit_dialog_desc">You cannot exit Zen Mode without an NFC tag. If you lost or don\'t have the tag with you, you must wait for the 12-hour safety timer to expire.</string>
+    <string name="zen_launcher_exit_dialog_remaining_label">Safety timer remaining</string>
+    <string name="zen_launcher_exit_dialog_btn">Understood</string>
     <string name="block_screen_no_emergency">Emergency exit unavailable. Unlock exclusively via NFC tag or timer completion.</string>
     <string name="onboarding_nfc_setup_header">Add Physical NFC Tag</string>
     <string name="onboarding_nfc_setup_scan_hint">Hold your NFC tag to the back of the phone to pair</string>

@@ -412,6 +412,10 @@
     <string name="zen_launcher_remaining_label">Restante: %1$s</string>
     <string name="zen_launcher_nfc_prompt">Acerca tu etiqueta NFC para salir</string>
     <string name="zen_launcher_nfc_subprompt">Desactivación física obligatoria</string>
+    <string name="zen_launcher_exit_dialog_title">Salida con etiqueta requerida</string>
+    <string name="zen_launcher_exit_dialog_desc">Sin una etiqueta NFC no puedes salir del Modo Zen. Si has perdido o no tienes la etiqueta a mano, deberás esperar a que expire el límite de seguridad de 12 horas.</string>
+    <string name="zen_launcher_exit_dialog_remaining_label">Límite de seguridad restante</string>
+    <string name="zen_launcher_exit_dialog_btn">Entendido</string>
     <string name="block_screen_no_emergency">Salida de emergencia no disponible. Desbloqueo exclusivo mediante etiqueta NFC o fin del temporizador.</string>
     <string name="onboarding_nfc_setup_header">Añadir etiqueta física NFC</string>
     <string name="onboarding_nfc_setup_scan_hint">Acerca tu etiqueta NFC a la parte trasera del teléfono para vincularla</string>

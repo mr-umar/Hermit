@@ -90,6 +90,7 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                     isNfcExit = isNfcExit,
                     profileName = state.activeProfile?.name ?: "Zen",
                     remainingSeconds = state.remainingSeconds,
+                    elapsedSeconds = state.elapsedSeconds,
                     apps = appsList,
                     onLaunchApp = { pkg -> launchTargetApp(pkg) },
                     onOpenHermit = { openHermitApp() },

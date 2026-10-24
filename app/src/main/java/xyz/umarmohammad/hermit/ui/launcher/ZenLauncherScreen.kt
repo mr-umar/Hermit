@@ -32,11 +32,13 @@ import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -87,6 +89,7 @@ fun ZenLauncherScreen(
     isNfcExit: Boolean = true,
     profileName: String,
     remainingSeconds: Long?,
+    elapsedSeconds: Long = 0L,
     apps: List<ZenLauncherAppItem>,
     onLaunchApp: (String) -> Unit,
     onOpenHermit: () -> Unit,
@@ -94,6 +97,7 @@ fun ZenLauncherScreen(
 ) {
     var currentTimeString by remember { mutableStateOf("") }
     var currentDateString by remember { mutableStateOf("") }
+    var showExitInfoDialog by remember { mutableStateOf(false) }
 
     // Live clock ticker
     LaunchedEffect(Unit) {
@@ -297,6 +301,9 @@ fun ZenLauncherScreen(
                         .clip(RoundedCornerShape(18.dp))
                         .background(Superficie)
                         .border(0.75.dp, BorderDark, RoundedCornerShape(18.dp))
+                        .clickable(enabled = isNfcExit) {
+                            showExitInfoDialog = true
+                        }
                         .padding(horizontal = 18.dp, vertical = 14.dp)
                 ) {
                     if (isNfcExit) {
@@ -325,18 +332,12 @@ fun ZenLauncherScreen(
 
                             Spacer(modifier = Modifier.width(14.dp))
 
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.zen_launcher_nfc_prompt),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                                    color = Texto
-                                )
-                                Text(
-                                    text = stringResource(R.string.zen_launcher_nfc_subprompt),
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-                                    color = Secundario
-                                )
-                            }
+                            Text(
+                                text = stringResource(R.string.zen_launcher_nfc_prompt),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = Texto,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     } else {
                         Row(
@@ -376,6 +377,83 @@ fun ZenLauncherScreen(
                     }
                 }
             }
+        }
+
+        if (showExitInfoDialog) {
+            val effectiveRemainingSec = remainingSeconds ?: (12 * 3600L - elapsedSeconds).coerceAtLeast(0L)
+            val safeHours = effectiveRemainingSec / 3600
+            val safeMinutes = (effectiveRemainingSec % 3600) / 60
+            val safeSeconds = effectiveRemainingSec % 60
+            val formattedSafetyTime = if (safeHours > 0) {
+                "%02d:%02d:%02d".format(safeHours, safeMinutes, safeSeconds)
+            } else {
+                "%02d:%02d".format(safeMinutes, safeSeconds)
+            }
+
+            AlertDialog(
+                onDismissRequest = { showExitInfoDialog = false },
+                containerColor = Superficie,
+                titleContentColor = Texto,
+                textContentColor = Texto,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Nfc,
+                        contentDescription = null,
+                        tint = Acento,
+                        modifier = Modifier.size(32.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.zen_launcher_exit_dialog_title),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = stringResource(R.string.zen_launcher_exit_dialog_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Texto.copy(alpha = 0.9f)
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = SuperficieSubtle,
+                            border = androidx.compose.foundation.BorderStroke(0.75.dp, BorderDark),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.zen_launcher_exit_dialog_remaining_label),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Secundario
+                                )
+                                Text(
+                                    text = formattedSafetyTime,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Acento
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showExitInfoDialog = false }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.zen_launcher_exit_dialog_btn),
+                            color = Acento,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            )
         }
     }
 }

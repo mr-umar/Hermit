@@ -16,19 +16,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -38,12 +49,18 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import xyz.umarmohammad.hermit.ui.components.TactileButton
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -252,7 +269,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     private fun showOutcomeToast(outcome: TagScanOutcome) {
         runOnUiThread {
             when (outcome) {
-                TagScanOutcome.STARTED -> Toast.makeText(this, getString(R.string.toast_scan_started), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.STARTED -> Toast.makeText(this, getString(R.string.countdown_starting_title), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.STOPPED -> Toast.makeText(this, getString(R.string.toast_scan_stopped), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.SWITCHED -> Toast.makeText(this, getString(R.string.toast_scan_switched), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.DISABLED_TAG -> Toast.makeText(this, getString(R.string.toast_scan_disabled), Toast.LENGTH_SHORT).show()
@@ -469,5 +486,89 @@ fun MainAppScaffold(
                 )
             }
         }
+
+        val pendingCountdown by app.sessionManager.pendingCountdown.collectAsState()
+
+        // 5-second countdown dialog before starting session (NFC scan or manual start)
+        pendingCountdown?.let { countdown ->
+            Dialog(
+                onDismissRequest = { app.sessionManager.cancelCountdown() },
+                properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 6.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(96.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                progress = { countdown.secondsRemaining / 5f },
+                                modifier = Modifier.size(96.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 5.dp,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            Text(
+                                text = "${countdown.secondsRemaining}",
+                                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Text(
+                            text = stringResource(R.string.countdown_starting_title),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = stringResource(R.string.countdown_starting_desc, countdown.secondsRemaining),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = countdown.profile.name,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        TactileButton(
+                            onClick = { app.sessionManager.cancelCountdown() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.countdown_btn_cancel))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+

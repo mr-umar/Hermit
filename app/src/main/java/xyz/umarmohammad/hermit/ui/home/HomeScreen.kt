@@ -108,25 +108,6 @@ fun HomeScreen(
     var selectedQuickProfile by remember { mutableStateOf<FocusProfile?>(null) }
     var profileDropdownOpen by remember { mutableStateOf(false) }
 
-    var pendingCountdownProfile by remember { mutableStateOf<FocusProfile?>(null) }
-    var countdownSeconds by remember { mutableIntStateOf(5) }
-
-    LaunchedEffect(pendingCountdownProfile) {
-        val target = pendingCountdownProfile
-        if (target != null) {
-            countdownSeconds = 5
-            while (countdownSeconds > 0) {
-                delay(1000L)
-                countdownSeconds--
-            }
-            val toStart = pendingCountdownProfile
-            pendingCountdownProfile = null
-            if (toStart != null) {
-                sessionManager.startFocus(toStart.id, "MANUAL_QUICK_START")
-            }
-        }
-    }
-
     val randomGreetingRes = remember {
         listOf(
             R.string.home_greeting_1,
@@ -235,8 +216,7 @@ fun HomeScreen(
                         },
                         onStartFocus = {
                             selectedQuickProfile?.let { prof ->
-                                countdownSeconds = 5
-                                pendingCountdownProfile = prof
+                                sessionManager.startCountdown(prof, "MANUAL_QUICK_START")
                             }
                         },
                         onNavigateToProfiles = onNavigateToProfiles
@@ -347,87 +327,6 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(28.dp))
-        }
-
-        // 5-second countdown dialog allowing user to cancel start
-        pendingCountdownProfile?.let { prof ->
-            Dialog(
-                onDismissRequest = { pendingCountdownProfile = null },
-                properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 6.dp,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(96.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                progress = { countdownSeconds / 5f },
-                                modifier = Modifier.size(96.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 5.dp,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            Text(
-                                text = "$countdownSeconds",
-                                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(18.dp))
-
-                        Text(
-                            text = stringResource(R.string.countdown_starting_title),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = stringResource(R.string.countdown_starting_desc, countdownSeconds),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = prof.name,
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        TactileButton(
-                            onClick = { pendingCountdownProfile = null },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.countdown_btn_cancel))
-                        }
-                    }
-                }
-            }
         }
     }
 }

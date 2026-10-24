@@ -35,6 +35,12 @@ data class FocusSessionState(
     val blockedAttemptsCount: Int = 0
 )
 
+data class PendingCountdown(
+    val profile: FocusProfile,
+    val secondsRemaining: Int = 5,
+    val source: String = "MANUAL_QUICK_START"
+)
+
 enum class TagScanOutcome {
     STARTED,
     STOPPED,
@@ -57,7 +63,35 @@ class SessionManager private constructor(private val context: Context) {
     private val _sessionState = MutableStateFlow(FocusSessionState())
     val sessionState: StateFlow<FocusSessionState> = _sessionState.asStateFlow()
 
+    private val _pendingCountdown = MutableStateFlow<PendingCountdown?>(null)
+    val pendingCountdown: StateFlow<PendingCountdown?> = _pendingCountdown.asStateFlow()
+
+    private var countdownJob: Job? = null
     private var timerJob: Job? = null
+
+    fun startCountdown(profile: FocusProfile, source: String = "MANUAL_QUICK_START") {
+        if (_sessionState.value.isActive) return
+
+        countdownJob?.cancel()
+        countdownJob = scope.launch {
+            for (sec in 5 downTo 1) {
+                _pendingCountdown.value = PendingCountdown(profile, sec, source)
+                delay(1000L)
+            }
+            val target = _pendingCountdown.value?.profile
+            _pendingCountdown.value = null
+            countdownJob = null
+            if (target != null) {
+                startFocus(target.id, source)
+            }
+        }
+    }
+
+    fun cancelCountdown() {
+        countdownJob?.cancel()
+        countdownJob = null
+        _pendingCountdown.value = null
+    }
 
     init {
         scope.launch {
@@ -146,6 +180,7 @@ class SessionManager private constructor(private val context: Context) {
     }
 
     fun startFocus(profileId: String, reason: String = "MANUAL_START") {
+        cancelCountdown()
         scope.launch {
             val rawProfile = profileRepository.getProfileById(profileId) ?: return@launch
             val registeredTags = tagRepository.allTags.first()
@@ -285,13 +320,22 @@ class SessionManager private constructor(private val context: Context) {
         return if (current.isActive) {
             endFocus("NFC_TAG_TOGGLED")
             TagScanOutcome.STOPPED
+        } else if (_pendingCountdown.value != null) {
+            cancelCountdown()
+            TagScanOutcome.STOPPED
         } else {
-            val profileToStart = preferenceManager.selectedQuickProfileId.first()
+            val profileToStartId = registeredTag?.targetProfileId
+                ?: preferenceManager.selectedQuickProfileId.first()
                 ?: profileRepository.allProfiles.first().firstOrNull()?.id
 
-            if (profileToStart != null) {
-                startFocus(profileToStart, "NFC_TAG_TOGGLED")
-                TagScanOutcome.STARTED
+            if (profileToStartId != null) {
+                val profile = profileRepository.getProfileById(profileToStartId)
+                if (profile != null) {
+                    startCountdown(profile, "NFC_TAG_TOGGLED")
+                    TagScanOutcome.STARTED
+                } else {
+                    TagScanOutcome.UNKNOWN_PROFILE
+                }
             } else {
                 TagScanOutcome.UNKNOWN_PROFILE
             }

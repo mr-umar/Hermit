@@ -9,6 +9,9 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,20 +20,31 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -41,6 +55,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +73,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -94,6 +111,7 @@ fun StatsScreen(sessionRepository: SessionRepository) {
     var hasUsagePermission by remember { mutableStateOf(checkUsageStatsPermission(context)) }
     var todayScreenTimeMillis by remember { mutableLongStateOf(0L) }
     var topApps by remember { mutableStateOf<List<TopAppUsage>>(emptyList()) }
+    var selectedDay by remember { mutableStateOf<CalendarDayInfo?>(null) }
 
     // Load usage stats if permission is granted
     LaunchedEffect(hasUsagePermission) {
@@ -245,7 +263,7 @@ fun StatsScreen(sessionRepository: SessionRepository) {
                     }
                 }
 
-                // Recent Focus History Heading
+                // Interactive 3-Month Focus & Screen Time Calendar Heading
                 item {
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
@@ -255,17 +273,26 @@ fun StatsScreen(sessionRepository: SessionRepository) {
                     )
                 }
 
-                if (allSessions.isEmpty()) {
+                item {
+                    FocusCalendarCard(
+                        allSessions = allSessions,
+                        onDayClick = { dayInfo ->
+                            selectedDay = dayInfo
+                        }
+                    )
+                }
+
+                if (allSessions.isNotEmpty()) {
                     item {
-                        EmptyStateView(
-                            icon = Icons.Default.Timeline,
-                            title = stringResource(R.string.stats_title),
-                            description = stringResource(R.string.stats_empty),
-                            modifier = Modifier.padding(vertical = 24.dp)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.profiles_title),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                } else {
-                    items(allSessions, key = { it.id }) { session ->
+
+                    items(allSessions.take(5), key = { it.id }) { session ->
                         SessionHistoryCard(session = session, dateFormat = dateFormat)
                     }
                 }
@@ -274,6 +301,13 @@ fun StatsScreen(sessionRepository: SessionRepository) {
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
+        }
+
+        selectedDay?.let { day ->
+            DayDetailDialog(
+                dayInfo = day,
+                onDismiss = { selectedDay = null }
+            )
         }
     }
 }
@@ -520,4 +554,631 @@ private fun SessionHistoryCard(session: FocusSessionRecord, dateFormat: SimpleDa
 
 private fun checkUsageStatsPermission(context: Context): Boolean {
     return ScreenTimeManager.hasUsagePermission(context)
+}
+
+data class CalendarDayInfo(
+    val dayStartMillis: Long,
+    val dayEndMillis: Long,
+    val dayNum: Int,
+    val month: Int,
+    val year: Int,
+    val dateFormatted: String,
+    val sessions: List<FocusSessionRecord>
+)
+
+@Composable
+private fun FocusCalendarCard(
+    allSessions: List<FocusSessionRecord>,
+    onDayClick: (CalendarDayInfo) -> Unit
+) {
+    var monthOffset by remember { mutableIntStateOf(0) } // 0 = current, -1 = 1 month ago, -2 = 2 months ago
+
+    val currentCal = remember { Calendar.getInstance() }
+    val currentYear = currentCal.get(Calendar.YEAR)
+    val currentDayOfYear = currentCal.get(Calendar.DAY_OF_YEAR)
+
+    val targetCal = remember(monthOffset) {
+        Calendar.getInstance().apply {
+            add(Calendar.MONTH, monthOffset)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+    }
+
+    val year = targetCal.get(Calendar.YEAR)
+    val month = targetCal.get(Calendar.MONTH)
+    val daysInMonth = targetCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val leadingEmptyCells = (targetCal.get(Calendar.DAY_OF_WEEK) + 5) % 7 // Monday = 0
+
+    val monthTitle = remember(targetCal) {
+        val sdf = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        sdf.format(targetCal.time).replaceFirstChar { it.uppercase() }
+    }
+
+    val weekDayLabels = remember {
+        val loc = Locale.getDefault()
+        if (loc.language == "es") {
+            listOf("L", "M", "X", "J", "V", "S", "D")
+        } else {
+            listOf("M", "T", "W", "T", "F", "S", "S")
+        }
+    }
+
+    GlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Header with month title and navigation buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = monthTitle,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            if (monthOffset > -2) monthOffset--
+                        },
+                        enabled = monthOffset > -2
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = stringResource(R.string.stats_calendar_prev_month),
+                            tint = if (monthOffset > -2) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            if (monthOffset < 0) monthOffset++
+                        },
+                        enabled = monthOffset < 0
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.stats_calendar_next_month),
+                            tint = if (monthOffset < 0) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.stats_calendar_subtitle),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Week days header (L, M, X, J, V, S, D)
+            Row(modifier = Modifier.fillMaxWidth()) {
+                weekDayLabels.forEach { label ->
+                    Text(
+                        text = label,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Month Grid
+            val totalCells = leadingEmptyCells + daysInMonth
+            val totalRows = (totalCells + 6) / 7
+
+            for (rowIndex in 0 until totalRows) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 3.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    for (colIndex in 0 until 7) {
+                        val cellIndex = rowIndex * 7 + colIndex
+                        if (cellIndex < leadingEmptyCells || cellIndex >= totalCells) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        } else {
+                            val dayNum = cellIndex - leadingEmptyCells + 1
+                            val dayCal = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, year)
+                                set(Calendar.MONTH, month)
+                                set(Calendar.DAY_OF_MONTH, dayNum)
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            val dayStartMillis = dayCal.timeInMillis
+                            val dayEndMillis = dayStartMillis + 24 * 3600_000L - 1L
+
+                            val isToday = (dayCal.get(Calendar.YEAR) == currentYear &&
+                                    dayCal.get(Calendar.DAY_OF_YEAR) == currentDayOfYear)
+                            val isFuture = dayStartMillis > System.currentTimeMillis()
+
+                            val daySessions = allSessions.filter { s ->
+                                val sEnd = s.endedAt ?: (s.startedAt + (s.plannedDurationMinutes ?: 25) * 60_000L)
+                                maxOf(0L, minOf(sEnd, dayEndMillis) - maxOf(s.startedAt, dayStartMillis)) > 0L
+                            }
+                            val hasFocusSessions = daySessions.isNotEmpty()
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .then(
+                                        if (isToday) {
+                                            Modifier.border(
+                                                1.5.dp,
+                                                MaterialTheme.colorScheme.primary,
+                                                RoundedCornerShape(10.dp)
+                                            )
+                                        } else Modifier
+                                    )
+                                    .then(
+                                        if (!isFuture) {
+                                            Modifier.clickable {
+                                                val sdf = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale.getDefault())
+                                                val dateFormatted = sdf.format(dayCal.time).replaceFirstChar { it.uppercase() }
+                                                onDayClick(
+                                                    CalendarDayInfo(
+                                                        dayStartMillis = dayStartMillis,
+                                                        dayEndMillis = dayEndMillis,
+                                                        dayNum = dayNum,
+                                                        month = month,
+                                                        year = year,
+                                                        dateFormatted = dateFormatted,
+                                                        sessions = daySessions
+                                                    )
+                                                )
+                                            }
+                                        } else Modifier
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = dayNum.toString(),
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = if (isToday || hasFocusSessions) FontWeight.Bold else FontWeight.Normal
+                                        ),
+                                        color = when {
+                                            isFuture -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                            isToday -> MaterialTheme.colorScheme.primary
+                                            hasFocusSessions -> MaterialTheme.colorScheme.onBackground
+                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+
+                                    if (hasFocusSessions) {
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .size(4.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary)
+                                        )
+                                    } else {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private data class HourlySlotData(
+    val hour: Int,
+    val label: String,
+    val sessions: List<FocusSessionRecord>,
+    val phoneMinutes: Int,
+    val isFuture: Boolean,
+    val hStart: Long,
+    val hEnd: Long
+)
+
+@Composable
+private fun DayDetailDialog(
+    dayInfo: CalendarDayInfo,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    var hourlyUsage by remember(dayInfo) { mutableStateOf<ScreenTimeManager.DayHourlyUsage?>(null) }
+    var isLoadingUsage by remember(dayInfo) { mutableStateOf(true) }
+    var showOnlyActive by remember { mutableStateOf(false) }
+
+    LaunchedEffect(dayInfo) {
+        isLoadingUsage = true
+        hourlyUsage = withContext(Dispatchers.IO) {
+            ScreenTimeManager.getDayHourlyUsage(context, dayInfo.dayStartMillis, dayInfo.dayEndMillis)
+        }
+        isLoadingUsage = false
+    }
+
+    val totalFocusMillis = remember(dayInfo) {
+        dayInfo.sessions.sumOf { s ->
+            val sEnd = s.endedAt ?: (s.startedAt + (s.plannedDurationMinutes ?: 25) * 60_000L)
+            maxOf(0L, minOf(sEnd, dayInfo.dayEndMillis) - maxOf(s.startedAt, dayInfo.dayStartMillis))
+        }
+    }
+    val totalFocusMin = (totalFocusMillis / 60_000L).toInt()
+
+    val totalScreenTimeMillis = hourlyUsage?.totalScreenTimeMillis ?: 0L
+    val totalScreenTimeMin = (totalScreenTimeMillis / 60_000L).toInt()
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.94f)
+                .padding(vertical = 24.dp),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                // Header with title and close button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.stats_day_detail_title),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = dayInfo.dateFormatted,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.action_cancel),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Summary Row Cards (Hermit vs Screen time)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Hermit Focus
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.HourglassBottom,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.stats_total_time),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            val h = totalFocusMin / 60
+                            val m = totalFocusMin % 60
+                            Text(
+                                text = if (h > 0) "${h}h ${m}m" else "${m}m",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(R.string.stats_day_detail_sessions_count, dayInfo.sessions.size),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Mobile Screen Time
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.PhoneAndroid,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.stats_screen_time_title),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            val sh = totalScreenTimeMin / 60
+                            val sm = totalScreenTimeMin % 60
+                            Text(
+                                text = if (sh > 0) "${sh}h ${sm}m" else "${sm}m",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (isLoadingUsage) "..." else stringResource(R.string.stats_screen_time_title),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Timeline Section Header & Filter Toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.stats_day_hourly_title),
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(
+                            selected = !showOnlyActive,
+                            onClick = { showOnlyActive = false },
+                            label = { Text(stringResource(R.string.stats_day_filter_all), fontSize = 11.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                selectedLabelColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(30.dp)
+                        )
+                        FilterChip(
+                            selected = showOnlyActive,
+                            onClick = { showOnlyActive = true },
+                            label = { Text(stringResource(R.string.stats_day_filter_active), fontSize = 11.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                selectedLabelColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(30.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (isLoadingUsage) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp),
+                            strokeWidth = 2.5.dp
+                        )
+                    }
+                } else {
+                    val currentNow = System.currentTimeMillis()
+                    val hourlyData = remember(hourlyUsage, dayInfo, showOnlyActive) {
+                        (0..23).mapNotNull { hour ->
+                            val hStart = dayInfo.dayStartMillis + hour * 3600_000L
+                            val hEnd = hStart + 3600_000L
+                            val isFuture = hStart > currentNow
+
+                            val sessionsInHour = dayInfo.sessions.filter { s ->
+                                val sEnd = s.endedAt ?: (s.startedAt + (s.plannedDurationMinutes ?: 25) * 60_000L)
+                                maxOf(0L, minOf(sEnd, hEnd) - maxOf(s.startedAt, hStart)) > 0L
+                            }
+
+                            val phoneMillis = hourlyUsage?.hourlyScreenTimeMillis?.get(hour) ?: 0L
+                            val phoneMin = (phoneMillis / 60_000L).toInt()
+
+                            val hasActivity = sessionsInHour.isNotEmpty() || phoneMin > 0
+                            if (showOnlyActive && !hasActivity) {
+                                null
+                            } else {
+                                HourlySlotData(
+                                    hour = hour,
+                                    label = String.format("%02d:00 - %02d:00", hour, (hour + 1) % 24),
+                                    sessions = sessionsInHour,
+                                    phoneMinutes = phoneMin,
+                                    isFuture = isFuture,
+                                    hStart = hStart,
+                                    hEnd = hEnd
+                                )
+                            }
+                        }
+                    }
+
+                    if (hourlyData.isEmpty() && showOnlyActive) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.stats_slot_idle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 380.dp)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            hourlyData.forEach { slot ->
+                                HourlySlotCard(slot = slot)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HourlySlotCard(slot: HourlySlotData) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            // Time range row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = slot.label,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                if (slot.sessions.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = "Hermit",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Hermit focus sessions in this hour
+            if (slot.sessions.isNotEmpty()) {
+                slot.sessions.forEach { session ->
+                    val sEnd = session.endedAt ?: (session.startedAt + (session.plannedDurationMinutes ?: 25) * 60_000L)
+                    val durationMin = ((maxOf(0L, minOf(sEnd, slot.hEnd) - maxOf(session.startedAt, slot.hStart))) / 60_000L)
+                        .toInt().coerceAtLeast(1)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.HourglassBottom,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.stats_slot_hermit_session, session.profileName, durationMin),
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            // Screen time in this hour
+            if (slot.phoneMinutes > 0) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhoneAndroid,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.stats_slot_screen_time, slot.phoneMinutes),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // If neither
+            if (slot.sessions.isEmpty() && slot.phoneMinutes == 0) {
+                Text(
+                    text = if (slot.isFuture) "Aún no transcurrido" else stringResource(R.string.stats_slot_idle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
+        }
+    }
 }

@@ -160,6 +160,19 @@
     <string name="stats_empty">No focus sessions recorded yet. Start your first session by tapping a tag!</string>
     <string name="stats_duration_format">%1$dh %2$dm</string>
     <string name="stats_duration_min">%1$dm</string>
+    <string name="stats_calendar_subtitle">Last 3 months of focus and device activity</string>
+    <string name="stats_calendar_prev_month">Previous month</string>
+    <string name="stats_calendar_next_month">Next month</string>
+    <string name="stats_day_detail_title">Activity Breakdown</string>
+    <string name="stats_day_detail_sessions_count">%1$d focus sessions</string>
+    <string name="stats_day_detail_no_sessions">No focus sessions</string>
+    <string name="stats_day_hourly_title">Hourly Timeline</string>
+    <string name="stats_day_filter_all">All 24 hours</string>
+    <string name="stats_day_filter_active">Active hours only</string>
+    <string name="stats_slot_hermit_session">Hermit: %1$s (%2$d min)</string>
+    <string name="stats_slot_screen_time">Screen time: %1$d min</string>
+    <string name="stats_slot_idle">Phone idle / no active sessions</string>
+    <string name="stats_calendar_three_months_limit">Calendar is limited to the last 3 months</string>
 
     <!-- Settings & Diagnostics -->
     <string name="settings_title">Settings</string>

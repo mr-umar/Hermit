@@ -251,4 +251,128 @@ object ScreenTimeManager {
             topPackages = topApps
         )
     }
+
+    data class DayHourlyUsage(
+        val hourlyScreenTimeMillis: Map<Int, Long>,
+        val totalScreenTimeMillis: Long
+    )
+
+    fun getDayHourlyUsage(context: Context, dayStartMillis: Long, dayEndMillis: Long): DayHourlyUsage {
+        if (!hasUsagePermission(context)) {
+            return DayHourlyUsage(emptyMap(), 0L)
+        }
+
+        val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            ?: return DayHourlyUsage(emptyMap(), 0L)
+
+        val queryEnd = minOf(dayEndMillis, System.currentTimeMillis())
+        if (queryEnd <= dayStartMillis) {
+            return DayHourlyUsage(emptyMap(), 0L)
+        }
+
+        val events = try {
+            usm.queryEvents(dayStartMillis, queryEnd)
+        } catch (_: Exception) {
+            null
+        }
+
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+        val imePackages = try {
+            imm?.enabledInputMethodList?.mapNotNull { it.packageName }?.toSet() ?: emptySet()
+        } catch (_: Exception) {
+            emptySet()
+        }
+
+        val systemExempt = setOf(
+            "android",
+            "com.android.systemui",
+            "com.google.android.packageinstaller",
+            "com.android.packageinstaller",
+            "com.google.android.permissioncontroller",
+            "com.android.permissioncontroller",
+            "com.android.settings"
+        )
+        val nonSystemExempt = systemExempt + imePackages
+
+        val hourlyMap = mutableMapOf<Int, Long>()
+
+        fun addUsageInterval(pkg: String, start: Long, end: Long) {
+            if (pkg.isBlank() || nonSystemExempt.contains(pkg)) return
+            val validStart = maxOf(start, dayStartMillis)
+            val validEnd = minOf(end, queryEnd)
+            if (validEnd <= validStart) return
+
+            for (hour in 0..23) {
+                val hourStart = dayStartMillis + hour * 3600_000L
+                val hourEnd = hourStart + 3600_000L
+                val overlap = maxOf(0L, minOf(validEnd, hourEnd) - maxOf(validStart, hourStart))
+                if (overlap > 0) {
+                    hourlyMap[hour] = (hourlyMap[hour] ?: 0L) + overlap
+                }
+            }
+        }
+
+        if (events != null && events.hasNextEvent()) {
+            var currentForegroundApp: String? = null
+            var currentForegroundStartTime: Long = 0L
+            var isScreenOn: Boolean = true
+
+            val event = UsageEvents.Event()
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                val pkg = event.packageName
+                val timestamp = event.timeStamp
+
+                when (event.eventType) {
+                    UsageEvents.Event.ACTIVITY_RESUMED,
+                    UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                        if (pkg.isNullOrBlank()) continue
+                        if (isScreenOn && currentForegroundApp != null && timestamp > currentForegroundStartTime) {
+                            addUsageInterval(currentForegroundApp!!, currentForegroundStartTime, timestamp)
+                        }
+                        currentForegroundApp = pkg
+                        currentForegroundStartTime = maxOf(timestamp, dayStartMillis)
+                    }
+
+                    UsageEvents.Event.ACTIVITY_PAUSED,
+                    UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                        if (pkg.isNullOrBlank()) continue
+                        if (currentForegroundApp == pkg) {
+                            if (isScreenOn && timestamp > currentForegroundStartTime) {
+                                addUsageInterval(pkg, currentForegroundStartTime, timestamp)
+                            }
+                            currentForegroundApp = null
+                            currentForegroundStartTime = 0L
+                        } else if (currentForegroundApp == null && timestamp > dayStartMillis) {
+                            addUsageInterval(pkg, dayStartMillis, timestamp)
+                        }
+                    }
+
+                    UsageEvents.Event.SCREEN_INTERACTIVE,
+                    UsageEvents.Event.KEYGUARD_HIDDEN -> {
+                        isScreenOn = true
+                        currentForegroundStartTime = timestamp
+                    }
+
+                    UsageEvents.Event.SCREEN_NON_INTERACTIVE,
+                    UsageEvents.Event.KEYGUARD_SHOWN,
+                    26 /* DEVICE_SHUTDOWN */ -> {
+                        if (isScreenOn && currentForegroundApp != null && timestamp > currentForegroundStartTime) {
+                            addUsageInterval(currentForegroundApp!!, currentForegroundStartTime, timestamp)
+                        }
+                        isScreenOn = false
+                        currentForegroundApp = null
+                        currentForegroundStartTime = 0L
+                    }
+                }
+            }
+
+            if (isScreenOn && currentForegroundApp != null && queryEnd > currentForegroundStartTime) {
+                addUsageInterval(currentForegroundApp!!, currentForegroundStartTime, queryEnd)
+            }
+        }
+
+        val totalScreenTime = hourlyMap.values.sum()
+        return DayHourlyUsage(hourlyMap, totalScreenTime)
+    }
 }

@@ -160,6 +160,19 @@
     <string name="stats_empty">No hay sesiones registradas aún. ¡Inicia tu primera sesión acercando una etiqueta!</string>
     <string name="stats_duration_format">%1$dh %2$dm</string>
     <string name="stats_duration_min">%1$dm</string>
+    <string name="stats_calendar_subtitle">Últimos 3 meses de enfoque y actividad</string>
+    <string name="stats_calendar_prev_month">Mes anterior</string>
+    <string name="stats_calendar_next_month">Mes siguiente</string>
+    <string name="stats_day_detail_title">Detalle del día</string>
+    <string name="stats_day_detail_sessions_count">%1$d sesiones de enfoque</string>
+    <string name="stats_day_detail_no_sessions">Sin sesiones de enfoque</string>
+    <string name="stats_day_hourly_title">Franjas horarias</string>
+    <string name="stats_day_filter_all">Las 24 horas</string>
+    <string name="stats_day_filter_active">Solo horas activas</string>
+    <string name="stats_slot_hermit_session">Hermit: %1$s (%2$d min)</string>
+    <string name="stats_slot_screen_time">Uso del móvil: %1$d min</string>
+    <string name="stats_slot_idle">Móvil en reposo / sin sesiones</string>
+    <string name="stats_calendar_three_months_limit">Solo se pueden consultar los últimos 3 meses</string>
 
     <!-- Settings & Diagnostics -->
     <string name="settings_title">Ajustes</string>

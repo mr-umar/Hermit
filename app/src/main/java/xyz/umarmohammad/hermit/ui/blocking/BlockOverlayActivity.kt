@@ -14,14 +14,20 @@ import android.os.VibratorManager
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import xyz.umarmohammad.hermit.HermitApplication
 import xyz.umarmohammad.hermit.nfc.NfcTagManager
 import xyz.umarmohammad.hermit.session.SessionManager
 import xyz.umarmohammad.hermit.session.TagScanOutcome
@@ -71,21 +77,69 @@ class BlockOverlayActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         }
 
         setContent {
-            HermitTheme(darkTheme = true) {
-                val state by sessionManager.sessionState.collectAsState()
+            val app = application as HermitApplication
+            val prefManager = app.preferenceManager
+            val themeMode by prefManager.themeMode.collectAsState(initial = "system")
+            val themePalette by prefManager.themePalette.collectAsState(initial = "forest")
+            val localeCode by prefManager.appLocale.collectAsState(initial = "system")
 
-                val isEmergencyAllowed = !state.startedWithNfc
+            val isDark = when (themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> isSystemInDarkTheme()
+            }
 
-                BlockOverlayScreen(
-                    blockedAppName = blockedAppName,
-                    blockedAppIcon = blockedAppIcon,
-                    profileName = state.activeProfile?.name ?: profileName,
-                    remainingSeconds = state.remainingSeconds,
-                    strictCountdownRemaining = strictCountdownRemaining,
-                    allowEmergencyExit = isEmergencyAllowed,
-                    onGoHome = { navigateToHome() },
-                    onEmergencyExit = { handleEmergencyExit(state.activeProfile?.strictMode == true) }
-                )
+            val baseContext = LocalContext.current
+            val baseConfig = LocalConfiguration.current
+
+            val localizedContext = remember(baseContext, localeCode) {
+                if (localeCode == "en" || localeCode == "es") {
+                    val locale = java.util.Locale(localeCode)
+                    val config = android.content.res.Configuration(baseContext.resources.configuration)
+                    config.setLocale(locale)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        config.setLocales(android.os.LocaleList(locale))
+                    }
+                    baseContext.createConfigurationContext(config)
+                } else {
+                    baseContext
+                }
+            }
+
+            val localizedConfig = remember(baseConfig, localeCode) {
+                if (localeCode == "en" || localeCode == "es") {
+                    val locale = java.util.Locale(localeCode)
+                    android.content.res.Configuration(baseConfig).apply {
+                        setLocale(locale)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            setLocales(android.os.LocaleList(locale))
+                        }
+                    }
+                } else {
+                    baseConfig
+                }
+            }
+
+            CompositionLocalProvider(
+                LocalContext provides localizedContext,
+                LocalConfiguration provides localizedConfig
+            ) {
+                HermitTheme(darkTheme = isDark, palette = themePalette) {
+                    val state by sessionManager.sessionState.collectAsState()
+
+                    val isEmergencyAllowed = !state.startedWithNfc
+
+                    BlockOverlayScreen(
+                        blockedAppName = blockedAppName,
+                        blockedAppIcon = blockedAppIcon,
+                        profileName = state.activeProfile?.name ?: profileName,
+                        remainingSeconds = state.remainingSeconds,
+                        strictCountdownRemaining = strictCountdownRemaining,
+                        allowEmergencyExit = isEmergencyAllowed,
+                        onGoHome = { navigateToHome() },
+                        onEmergencyExit = { handleEmergencyExit(state.activeProfile?.strictMode == true) }
+                    )
+                }
             }
         }
     }

@@ -134,17 +134,33 @@ fun HomeScreen(
         }
     }
 
+    val updateState by (context.applicationContext as HermitApplication).updateManager.updateState.collectAsState()
+    val hasUpdateAvailable = updateState is xyz.umarmohammad.hermit.updater.UpdateState.UpdateAvailable
+
     Scaffold(
         topBar = {
             HermitTopBar(
                 title = "Hermit",
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.nav_settings),
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = stringResource(R.string.nav_settings),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                            if (hasUpdateAvailable) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .align(Alignment.TopEnd)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
+                        }
                     }
                 }
             )

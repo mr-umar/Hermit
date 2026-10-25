@@ -19,13 +19,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -80,22 +85,70 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         }
 
         setContent {
-            HermitTheme(darkTheme = true) {
-                val state by sessionManager.sessionState.collectAsState()
-                val isZenActive = state.isActive && state.activeProfile?.isMonkMode == true
-                val isNfcExit = state.startedWithNfc
+            val app = application as HermitApplication
+            val prefManager = app.preferenceManager
+            val themeMode by prefManager.themeMode.collectAsState(initial = "system")
+            val themePalette by prefManager.themePalette.collectAsState(initial = "forest")
+            val localeCode by prefManager.appLocale.collectAsState(initial = "system")
 
-                ZenLauncherScreen(
-                    isZenActive = isZenActive,
-                    isNfcExit = isNfcExit,
-                    profileName = state.activeProfile?.name ?: "Zen",
-                    remainingSeconds = state.remainingSeconds,
-                    elapsedSeconds = state.elapsedSeconds,
-                    apps = appsList,
-                    onLaunchApp = { pkg -> launchTargetApp(pkg) },
-                    onOpenHermit = { openHermitApp() },
-                    onExitLauncher = { exitToSystemHome() }
-                )
+            val isDark = when (themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            val baseContext = LocalContext.current
+            val baseConfig = LocalConfiguration.current
+
+            val localizedContext = remember(baseContext, localeCode) {
+                if (localeCode == "en" || localeCode == "es") {
+                    val locale = java.util.Locale(localeCode)
+                    val config = android.content.res.Configuration(baseContext.resources.configuration)
+                    config.setLocale(locale)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        config.setLocales(android.os.LocaleList(locale))
+                    }
+                    baseContext.createConfigurationContext(config)
+                } else {
+                    baseContext
+                }
+            }
+
+            val localizedConfig = remember(baseConfig, localeCode) {
+                if (localeCode == "en" || localeCode == "es") {
+                    val locale = java.util.Locale(localeCode)
+                    android.content.res.Configuration(baseConfig).apply {
+                        setLocale(locale)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            setLocales(android.os.LocaleList(locale))
+                        }
+                    }
+                } else {
+                    baseConfig
+                }
+            }
+
+            CompositionLocalProvider(
+                LocalContext provides localizedContext,
+                LocalConfiguration provides localizedConfig
+            ) {
+                HermitTheme(darkTheme = isDark, palette = themePalette) {
+                    val state by sessionManager.sessionState.collectAsState()
+                    val isZenActive = state.isActive && state.activeProfile?.isMonkMode == true
+                    val isNfcExit = state.startedWithNfc
+
+                    ZenLauncherScreen(
+                        isZenActive = isZenActive,
+                        isNfcExit = isNfcExit,
+                        profileName = state.activeProfile?.name ?: "Zen",
+                        remainingSeconds = state.remainingSeconds,
+                        elapsedSeconds = state.elapsedSeconds,
+                        apps = appsList,
+                        onLaunchApp = { pkg -> launchTargetApp(pkg) },
+                        onOpenHermit = { openHermitApp() },
+                        onExitLauncher = { exitToSystemHome() }
+                    )
+                }
             }
         }
     }

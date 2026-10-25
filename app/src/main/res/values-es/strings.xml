@@ -154,6 +154,10 @@
     <!-- Statistics -->
     <string name="stats_title">Estadísticas de enfoque</string>
     <string name="stats_total_time">Tiempo total</string>
+    <string name="stats_focus_time_label">Tiempo de enfoque</string>
+    <string name="stats_usage_time_label">Tiempo de uso</string>
+    <string name="stats_sessions_count_simple">%1$d sesiones</string>
+    <string name="stats_session_single_simple">1 sesión</string>
     <string name="stats_completed_sessions">Sesiones completadas</string>
     <string name="stats_blocks_prevented">Distracciones evitadas</string>
     <string name="stats_recent_history">Historial de sesiones</string>
@@ -166,6 +170,9 @@
     <string name="stats_day_detail_title">Detalle del día</string>
     <string name="stats_day_detail_sessions_count">%1$d sesiones de enfoque</string>
     <string name="stats_day_detail_no_sessions">Sin sesiones de enfoque</string>
+    <string name="stats_day_sessions_header">Sesiones del día</string>
+    <string name="stats_session_ongoing">En curso</string>
+    <string name="stats_session_time_range">de %1$s a %2$s</string>
     <string name="stats_day_hourly_title">Franjas horarias</string>
     <string name="stats_day_filter_all">Todas</string>
     <string name="stats_day_filter_active">Solo activas</string>
@@ -249,6 +256,10 @@
     <string name="updates_error_missing_asset">No se encontró ningún archivo APK compatible en este lanzamiento.</string>
     <string name="updates_error_checksum_mismatch">Error de integridad: la suma SHA-256 del APK no coincide con la publicada.</string>
     <string name="updates_error_security_mismatch">Error de verificación de seguridad: %1$s</string>
+    <string name="updates_dialog_title">Actualización disponible</string>
+    <string name="updates_dialog_desc">Hay una nueva versión de Hermit disponible (%1$s). ¿Deseas ver las novedades y actualizar?</string>
+    <string name="updates_dialog_btn_view">Ver actualización</string>
+    <string name="updates_dialog_btn_later">Más tarde</string>
 
     <!-- First Run Onboarding -->
     <string name="onboarding_welcome_title">Bienvenido a Hermit</string>
@@ -339,7 +350,7 @@
     <string name="home_card_setup_nfc_desc">La fricción física es la clave del enfoque duradero. Levantarte a tocar una etiqueta rompe el piloto automático.</string>
 
     <!-- Digital Wellbeing Statistics -->
-    <string name="stats_screen_time_title">Bienestar Digital</string>
+    <string name="stats_screen_time_title">Tiempo de pantalla</string>
     <string name="stats_screen_time_today">Tiempo de pantalla hoy</string>
     <string name="stats_focus_ratio">Ratio de concentración</string>
     <string name="stats_focus_ratio_desc">El %1$d%% del tiempo de pantalla fue de enfoque consciente</string>
@@ -356,7 +367,7 @@
     <string name="settings_about_license_title">Licencia</string>
     <string name="settings_about_license_val">GNU AGPLv3 (libre y código abierto)</string>
     <string name="settings_about_version_title">Versión</string>
-    <string name="settings_about_version_val">Hermit 1.1.1 (Build 3)</string>
+    <string name="settings_about_version_val">Hermit 1.2.1 (Build 4)</string>
 
     <!-- Uninstall & Tamper Protection -->
     <string name="settings_section_security">Seguridad y Fricción</string>

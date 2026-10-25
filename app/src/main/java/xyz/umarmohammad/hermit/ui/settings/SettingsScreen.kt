@@ -768,7 +768,7 @@ private fun UpdatesSection(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val updateState by updateManager.updateState.collectAsState()
-    val autoCheckUpdates by preferenceManager.autoCheckUpdates.collectAsState(initial = false)
+    val autoCheckUpdates by preferenceManager.autoCheckUpdates.collectAsState(initial = true)
     val lastCheckTimestamp by preferenceManager.lastUpdateCheckTimestamp.collectAsState(initial = 0L)
 
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -1255,7 +1255,7 @@ private fun SettingDropdownRow(
     ) {
         Box(
             modifier = Modifier
-                .size(30.dp)
+                .size(32.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(iconTint.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center
@@ -1264,51 +1264,58 @@ private fun SettingDropdownRow(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(17.dp)
+                modifier = Modifier.size(18.dp)
             )
         }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Medium,
-                fontSize = 15.5.sp
-            ),
-            color = Texto,
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(
             modifier = Modifier.weight(1f)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-
-        if (colorPreview != null) {
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(2.dp))
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                colorPreview.forEach { color ->
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(color)
-                    )
+                if (colorPreview != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        colorPreview.forEach { color ->
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(color)
+                            )
+                        }
+                    }
                 }
+                Text(
+                    text = selectedValue,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.5.sp),
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-            Spacer(modifier = Modifier.width(6.dp))
         }
-
-        Text(
-            text = selectedValue,
-            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.5.sp),
-            color = Secundario,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Icon(
             imageVector = Icons.Default.ArrowDropDown,
             contentDescription = null,
-            tint = Secundario.copy(alpha = 0.7f),
-            modifier = Modifier.size(20.dp)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.size(22.dp)
         )
     }
 }

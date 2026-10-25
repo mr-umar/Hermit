@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -173,7 +174,9 @@ fun StatsScreen(sessionRepository: SessionRepository) {
                 item {
                     // Summary Metric Cards
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         val sec = totalSeconds ?: 0L
@@ -186,21 +189,27 @@ fun StatsScreen(sessionRepository: SessionRepository) {
                         }
 
                         StatMetricBox(
-                            label = stringResource(R.string.stats_total_time),
+                            label = stringResource(R.string.stats_focus_time_label),
                             value = durationText,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
                         )
 
                         StatMetricBox(
                             label = stringResource(R.string.stats_completed_sessions),
                             value = "$completedCount",
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
                         )
 
                         StatMetricBox(
                             label = stringResource(R.string.stats_blocks_prevented),
                             value = "${totalBlocked ?: 0}",
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
                         )
                     }
                 }
@@ -504,10 +513,18 @@ private fun DigitalWellbeingDashboardCard(
 
 @Composable
 private fun StatMetricBox(label: String, value: String, modifier: Modifier = Modifier) {
-    GlassCard(modifier = modifier, contentPadding = 12.dp) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
         ) {
             Text(
                 text = value,
@@ -522,6 +539,7 @@ private fun StatMetricBox(label: String, value: String, modifier: Modifier = Mod
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
+                minLines = 2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -913,18 +931,27 @@ private fun DayDetailDialog(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Summary Row Cards (Hermit vs Screen time)
+                // Summary Row Cards (Focus vs Screen time) - identical dimensions
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // Hermit Focus
                     Surface(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Default.HourglassBottom,
@@ -934,9 +961,11 @@ private fun DayDetailDialog(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = stringResource(R.string.stats_total_time),
+                                    text = stringResource(R.string.stats_focus_time_label),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                             Spacer(modifier = Modifier.height(6.dp))
@@ -947,8 +976,14 @@ private fun DayDetailDialog(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            val sessionCountText = if (dayInfo.sessions.size == 1) {
+                                stringResource(R.string.stats_session_single_simple)
+                            } else {
+                                stringResource(R.string.stats_sessions_count_simple, dayInfo.sessions.size)
+                            }
                             Text(
-                                text = stringResource(R.string.stats_day_detail_sessions_count, dayInfo.sessions.size),
+                                text = sessionCountText,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -957,11 +992,18 @@ private fun DayDetailDialog(
 
                     // Mobile Screen Time
                     Surface(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Default.PhoneAndroid,
@@ -973,7 +1015,9 @@ private fun DayDetailDialog(
                                 Text(
                                     text = stringResource(R.string.stats_screen_time_title),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                             Spacer(modifier = Modifier.height(6.dp))
@@ -993,8 +1037,9 @@ private fun DayDetailDialog(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = if (isLoadingUsage) "..." else stringResource(R.string.stats_screen_time_title),
+                                text = if (isLoadingUsage) "..." else stringResource(R.string.stats_usage_time_label),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1029,7 +1074,7 @@ private fun DayDetailDialog(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp),
+                            .height(140.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
@@ -1103,7 +1148,7 @@ private fun DayDetailDialog(
                         }
                     }
 
-                    // Mini Day Activity Visual Bar Chart
+                    // Horizontal Activity Bar Chart using Theme Color Scheme
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -1113,7 +1158,7 @@ private fun DayDetailDialog(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(44.dp),
+                                    .height(48.dp),
                                 horizontalArrangement = Arrangement.spacedBy(3.dp),
                                 verticalAlignment = Alignment.Bottom
                             ) {
@@ -1130,13 +1175,30 @@ private fun DayDetailDialog(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         if (totalH > 0f) {
-                                            Box(
+                                            Column(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .fillMaxHeight(totalH)
-                                                    .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
-                                                    .background(if (focusH > 0f) Acento else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.75f))
-                                            )
+                                                    .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp)),
+                                                verticalArrangement = Arrangement.Bottom
+                                            ) {
+                                                if (phoneH > 0f) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .weight(phoneH, fill = true)
+                                                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f))
+                                                    )
+                                                }
+                                                if (focusH > 0f) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .weight(focusH, fill = true)
+                                                            .background(MaterialTheme.colorScheme.primary)
+                                                    )
+                                                }
+                                            }
                                         } else {
                                             Box(
                                                 modifier = Modifier
@@ -1180,195 +1242,141 @@ private fun DayDetailDialog(
                                     )
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            // Theme-based legend
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = stringResource(R.string.stats_focus_time_label),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f))
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = stringResource(R.string.stats_screen_time_title),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    // If sessions exist, display them under the chart with duration and time range
+                    if (dayInfo.sessions.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 340.dp)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        hourlyData.forEach { slot ->
-                            HourlySlotCard(slot = slot)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+                        Text(
+                            text = stringResource(R.string.stats_day_sessions_header),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
-@Composable
-private fun HourlySlotCard(slot: HourlySlotData) {
-    val hasActivity = slot.sessions.isNotEmpty() || slot.phoneMillis >= 10_000L
-    val focusRatio = (slot.focusMinutes.toFloat() / 60f).coerceIn(0f, 1f)
-    val phoneRatio = ((slot.phoneMillis.toFloat() / 60_000f) / 60f).coerceIn(0f, 1f - focusRatio)
+                        Spacer(modifier = Modifier.height(8.dp))
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = if (slot.isCurrentHour) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-        } else if (hasActivity) {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f)
-        },
-        border = if (slot.isCurrentHour) {
-            BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
-        } else null
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)) {
-            // Header Row: Time range on left, tags on right
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = slot.label,
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = if (slot.isCurrentHour) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                    )
-                    if (slot.isCurrentHour) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.primary
+                        val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 240.dp)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                text = stringResource(R.string.stats_slot_in_progress),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 9.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
+                            dayInfo.sessions.forEach { session ->
+                                val sEnd = session.endedAt ?: System.currentTimeMillis()
+                                val durationMin = ((sEnd - session.startedAt) / 60_000L).coerceAtLeast(1L)
+                                val durationStr = if (durationMin >= 60) {
+                                    "${durationMin / 60}h ${durationMin % 60}m"
+                                } else {
+                                    "$durationMin min"
+                                }
+                                val startFormatted = timeFormat.format(Date(session.startedAt))
+                                val endFormatted = session.endedAt?.let { timeFormat.format(Date(it)) }
+                                    ?: stringResource(R.string.stats_session_ongoing)
+                                val timeRangeStr = stringResource(R.string.stats_session_time_range, startFormatted, endFormatted)
+
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.HourglassBottom,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(10.dp))
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = session.profileName.ifBlank { stringResource(R.string.stats_focus_time_label) },
+                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                Text(
+                                                    text = durationStr,
+                                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = timeRangeStr,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
-                if (hasActivity) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (slot.focusMinutes > 0) {
-                            Text(
-                                text = "${slot.focusMinutes}m foco",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        if (slot.phoneMillis >= 10_000L) {
-                            val screenMinStr = if (slot.phoneMinutes > 0) "${slot.phoneMinutes}m" else "< 1m"
-                            Text(
-                                text = "$screenMinStr pantalla",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Visual Segmented Timeline Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            ) {
-                if (focusRatio > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(focusRatio, fill = true)
-                            .background(Acento)
-                    )
-                }
-                if (phoneRatio > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(phoneRatio, fill = true)
-                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f))
-                    )
-                }
-                val emptyRatio = (1f - focusRatio - phoneRatio).coerceAtLeast(0f)
-                if (emptyRatio > 0f) {
-                    Spacer(modifier = Modifier.weight(emptyRatio, fill = true))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Activity details chips
-            if (hasActivity) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    slot.sessions.forEach { session ->
-                        val sEnd = session.endedAt ?: System.currentTimeMillis()
-                        val durationMin = ((maxOf(0L, minOf(sEnd, slot.hEnd) - maxOf(session.startedAt, slot.hStart))) / 60_000L)
-                            .toInt().coerceAtLeast(1)
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.HourglassBottom,
-                                contentDescription = null,
-                                tint = Acento,
-                                modifier = Modifier.size(13.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "${session.profileName} • ${durationMin} min",
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-
-                    if (slot.phoneMillis >= 10_000L) {
-                        val usageText = if (slot.phoneMinutes > 0) {
-                            stringResource(R.string.stats_slot_screen_time, slot.phoneMinutes)
-                        } else {
-                            stringResource(R.string.stats_slot_screen_time_less_than_minute)
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.PhoneAndroid,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(13.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = usageText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            } else {
-                Text(
-                    text = if (slot.isCurrentHour) {
-                        stringResource(R.string.stats_slot_current_no_activity_yet)
-                    } else {
-                        stringResource(R.string.stats_slot_idle)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
             }
         }
     }

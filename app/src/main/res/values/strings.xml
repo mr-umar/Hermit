@@ -154,6 +154,10 @@
     <!-- Statistics -->
     <string name="stats_title">Focus Statistics</string>
     <string name="stats_total_time">Total Focus</string>
+    <string name="stats_focus_time_label">Focus time</string>
+    <string name="stats_usage_time_label">Usage time</string>
+    <string name="stats_sessions_count_simple">%1$d sessions</string>
+    <string name="stats_session_single_simple">1 session</string>
     <string name="stats_completed_sessions">Completed Sessions</string>
     <string name="stats_blocks_prevented">Distractions Prevented</string>
     <string name="stats_recent_history">Session History</string>
@@ -166,6 +170,9 @@
     <string name="stats_day_detail_title">Activity Breakdown</string>
     <string name="stats_day_detail_sessions_count">%1$d focus sessions</string>
     <string name="stats_day_detail_no_sessions">No focus sessions</string>
+    <string name="stats_day_sessions_header">Day sessions</string>
+    <string name="stats_session_ongoing">Ongoing</string>
+    <string name="stats_session_time_range">from %1$s to %2$s</string>
     <string name="stats_day_hourly_title">Hourly Timeline</string>
     <string name="stats_day_filter_all">All</string>
     <string name="stats_day_filter_active">Active only</string>
@@ -249,6 +256,10 @@
     <string name="updates_error_missing_asset">No compatible APK asset was found for this release.</string>
     <string name="updates_error_checksum_mismatch">Integrity check failed: APK SHA-256 does not match the published checksum.</string>
     <string name="updates_error_security_mismatch">Security verification failed: %1$s</string>
+    <string name="updates_dialog_title">Update Available</string>
+    <string name="updates_dialog_desc">A new version of Hermit is available (%1$s). Would you like to view release details and update?</string>
+    <string name="updates_dialog_btn_view">View update</string>
+    <string name="updates_dialog_btn_later">Later</string>
 
     <!-- First Run Onboarding -->
     <string name="onboarding_welcome_title">Welcome to Hermit</string>
@@ -339,7 +350,7 @@
     <string name="home_card_setup_nfc_desc">Physical friction creates lasting habits. Tapping a real tag anchors your intention.</string>
 
     <!-- Digital Wellbeing Statistics -->
-    <string name="stats_screen_time_title">Digital Wellbeing</string>
+    <string name="stats_screen_time_title">Screen Time</string>
     <string name="stats_screen_time_today">Screen Time Today</string>
     <string name="stats_focus_ratio">Focus Ratio</string>
     <string name="stats_focus_ratio_desc">%1$d%% of screen time was intentional focus</string>
@@ -356,7 +367,7 @@
     <string name="settings_about_license_title">License</string>
     <string name="settings_about_license_val">GNU AGPLv3 (Free &amp; Open Source)</string>
     <string name="settings_about_version_title">Version</string>
-    <string name="settings_about_version_val">Hermit 1.1.1 (Build 3)</string>
+    <string name="settings_about_version_val">Hermit 1.2.1 (Build 4)</string>
 
     <!-- Uninstall & Tamper Protection -->
     <string name="settings_section_security">Security &amp; Friction</string>

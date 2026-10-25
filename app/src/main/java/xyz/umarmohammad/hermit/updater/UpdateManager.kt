@@ -65,11 +65,53 @@ class UpdateManager(
 
     private var downloadJob: Job? = null
 
+    companion object {
+        const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L // 24 hours
+        const val RETRY_COOLDOWN_MS = 60 * 60 * 1000L // 1 hour cooldown between failed attempts
+
+        /**
+         * Determines if an automatic update check should be performed on app open.
+         * Runs if enabled and at least 24 hours have passed OR it's a new calendar day
+         * (respecting retry cooldown).
+         */
+        fun shouldCheckForUpdates(
+            autoCheckEnabled: Boolean,
+            lastCheckedTimestamp: Long,
+            lastAttemptTimestamp: Long = 0L,
+            currentTime: Long = System.currentTimeMillis()
+        ): Boolean {
+            if (!autoCheckEnabled) return false
+            if (lastCheckedTimestamp <= 0L) {
+                return (currentTime - lastAttemptTimestamp) >= 60_000L
+            }
+
+            // Cooldown protection between rapid attempts
+            if ((currentTime - lastAttemptTimestamp) < RETRY_COOLDOWN_MS && (currentTime - lastCheckedTimestamp) < CHECK_INTERVAL_MS) {
+                return false
+            }
+
+            if (currentTime - lastCheckedTimestamp >= CHECK_INTERVAL_MS) {
+                return true
+            }
+
+            return !isSameCalendarDay(lastCheckedTimestamp, currentTime)
+        }
+
+        fun isSameCalendarDay(time1: Long, time2: Long): Boolean {
+            if (time1 <= 0L || time2 <= 0L) return false
+            val cal1 = java.util.Calendar.getInstance().apply { timeInMillis = time1 }
+            val cal2 = java.util.Calendar.getInstance().apply { timeInMillis = time2 }
+            return cal1.get(java.util.Calendar.YEAR) == cal2.get(java.util.Calendar.YEAR) &&
+                    cal1.get(java.util.Calendar.DAY_OF_YEAR) == cal2.get(java.util.Calendar.DAY_OF_YEAR)
+        }
+    }
+
     /**
      * Checks the public GitHub Releases API for the latest stable (non-draft, non-prerelease) release.
      * Uses SemVer numeric comparison to check if the release is newer than the installed app.
      */
     suspend fun checkForUpdates(manual: Boolean = true): Result<GitHubRelease?> = withContext(Dispatchers.IO) {
+        val previousState = _updateState.value
         _updateState.value = UpdateState.Checking
 
         val installedVersionName = getInstalledVersionName()
@@ -89,13 +131,21 @@ class UpdateManager(
 
             if (responseCode == 403) {
                 val errorMsg = "GitHub API rate limit reached. Please try again later or visit the repository directly."
-                _updateState.value = UpdateState.Error(UpdateError.RateLimitExceeded, errorMsg)
+                if (manual) {
+                    _updateState.value = UpdateState.Error(UpdateError.RateLimitExceeded, errorMsg)
+                } else {
+                    _updateState.value = if (previousState is UpdateState.Error || previousState is UpdateState.Checking) UpdateState.Idle else previousState
+                }
                 return@withContext Result.failure(Exception(errorMsg))
             }
 
             if (responseCode != 200) {
                 val errorMsg = "Server returned HTTP $responseCode while checking for updates."
-                _updateState.value = UpdateState.Error(UpdateError.NetworkUnavailable, errorMsg)
+                if (manual) {
+                    _updateState.value = UpdateState.Error(UpdateError.NetworkUnavailable, errorMsg)
+                } else {
+                    _updateState.value = if (previousState is UpdateState.Error || previousState is UpdateState.Checking) UpdateState.Idle else previousState
+                }
                 return@withContext Result.failure(Exception(errorMsg))
             }
 
@@ -111,10 +161,13 @@ class UpdateManager(
                 return@withContext Result.success(null)
             }
 
+            val cleanInstalled = installedVersionName.trim().removePrefix("v").removePrefix("V")
+            val cleanTag = latestRelease.tagName.trim().removePrefix("v").removePrefix("V")
+
             val isNewer = if (installedSemVer != null) {
                 latestRelease.parsedVersion.isNewerThan(installedSemVer)
             } else {
-                latestRelease.tagName != installedVersionName
+                cleanTag != cleanInstalled
             }
 
             if (isNewer) {
@@ -130,7 +183,11 @@ class UpdateManager(
             }
         } catch (e: Exception) {
             val errorMsg = e.localizedMessage ?: "Unable to connect to GitHub Releases."
-            _updateState.value = UpdateState.Error(UpdateError.NetworkUnavailable, errorMsg)
+            if (manual) {
+                _updateState.value = UpdateState.Error(UpdateError.NetworkUnavailable, errorMsg)
+            } else {
+                _updateState.value = if (previousState is UpdateState.Error || previousState is UpdateState.Checking) UpdateState.Idle else previousState
+            }
             Result.failure(e)
         }
     }

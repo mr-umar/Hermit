@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -56,7 +57,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import xyz.umarmohammad.hermit.ui.components.RevokedPermissionsDialog
@@ -132,18 +135,6 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
         handleIncomingNfcIntent(intent)
-
-        // Lightweight check for updates on launch (if enabled and > 6 hours since last check)
-        lifecycleScope.launch(Dispatchers.IO) {
-            val autoCheck = app.preferenceManager.autoCheckUpdates.first()
-            if (autoCheck) {
-                val lastChecked = app.preferenceManager.lastUpdateCheckTimestamp.first()
-                val now = System.currentTimeMillis()
-                if (now - lastChecked > 6 * 3600 * 1000L) {
-                    app.updateManager.checkForUpdates(manual = false)
-                }
-            }
-        }
 
         setContent {
             val prefManager = app.preferenceManager
@@ -253,6 +244,29 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                     NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
             null
         )
+        checkDailyUpdatesIfEligible()
+    }
+
+    private var lastUpdateAttemptTimestamp = 0L
+
+    private fun checkDailyUpdatesIfEligible() {
+        val app = application as HermitApplication
+        lifecycleScope.launch(Dispatchers.IO) {
+            val autoCheck = app.preferenceManager.autoCheckUpdates.first()
+            val lastChecked = app.preferenceManager.lastUpdateCheckTimestamp.first()
+            val now = System.currentTimeMillis()
+
+            if (xyz.umarmohammad.hermit.updater.UpdateManager.shouldCheckForUpdates(
+                    autoCheckEnabled = autoCheck,
+                    lastCheckedTimestamp = lastChecked,
+                    lastAttemptTimestamp = lastUpdateAttemptTimestamp,
+                    currentTime = now
+                )
+            ) {
+                lastUpdateAttemptTimestamp = now
+                app.updateManager.checkForUpdates(manual = false)
+            }
+        }
     }
 
     override fun onPause() {
@@ -755,6 +769,83 @@ fun MainAppScaffold(
                 summary = completedSessionSummary!!,
                 onDismiss = {
                     app.sessionManager.dismissCompletedSessionSummary()
+                }
+            )
+        }
+
+        // Automatic Update Available Prompt Dialog
+        val updateState by app.updateManager.updateState.collectAsState()
+        var dismissedUpdateTag by rememberSaveable { mutableStateOf<String?>(null) }
+        val availableUpdate = updateState as? xyz.umarmohammad.hermit.updater.UpdateState.UpdateAvailable
+
+        if (availableUpdate != null && dismissedUpdateTag != availableUpdate.release.tagName) {
+            AlertDialog(
+                onDismissRequest = {
+                    dismissedUpdateTag = availableUpdate.release.tagName
+                },
+                shape = RoundedCornerShape(24.dp),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.SystemUpdate,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.updates_dialog_title),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                text = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.updates_dialog_desc, availableUpdate.latestVersion),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        if (availableUpdate.release.body.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = availableUpdate.release.body.trim().lines().take(4).joinToString("\n"),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TactileButton(
+                        onClick = {
+                            dismissedUpdateTag = availableUpdate.release.tagName
+                            if (currentRoute != Screen.Settings.route) {
+                                navController.navigate(Screen.Settings.route)
+                            }
+                        }
+                    ) {
+                        Text(stringResource(R.string.updates_dialog_btn_view))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            dismissedUpdateTag = availableUpdate.release.tagName
+                        }
+                    ) {
+                        Text(stringResource(R.string.updates_dialog_btn_later))
+                    }
                 }
             )
         }

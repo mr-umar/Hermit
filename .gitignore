@@ -31,3 +31,4 @@ website/dist/
 website/.cache/
 release-dist/
 release-artifacts/
+SHA256SUMS.txt

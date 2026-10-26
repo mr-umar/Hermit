@@ -138,6 +138,10 @@ fun SettingsScreen(
     var themeDropdownExpanded by remember { mutableStateOf(false) }
     var paletteDropdownExpanded by remember { mutableStateOf(false) }
 
+    val sessionManager = remember { xyz.umarmohammad.hermit.session.SessionManager.getInstance(context) }
+    val sessionState by sessionManager.sessionState.collectAsState()
+    val isSessionActive = sessionState.isActive
+
     // Check NFC status
     val nfcAdapter = remember { NfcAdapter.getDefaultAdapter(context) }
     val nfcStatusText = when {
@@ -501,16 +505,30 @@ fun SettingsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showResetDialog = true }
+                            .clickable {
+                                if (isSessionActive) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.settings_cannot_reset_during_session),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    showResetDialog = true
+                                }
+                            }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(imageVector = Icons.Default.DeleteForever, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = null,
+                            tint = if (isSessionActive) MaterialTheme.colorScheme.error.copy(alpha = 0.4f) else MaterialTheme.colorScheme.error
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = stringResource(R.string.settings_reset_data),
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.error
+                            color = if (isSessionActive) MaterialTheme.colorScheme.error.copy(alpha = 0.4f) else MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -567,7 +585,7 @@ fun SettingsScreen(
 
                 AppleListRow(
                     title = stringResource(R.string.settings_about_version_title),
-                    value = stringResource(R.string.settings_about_version_val),
+                    subtitle = stringResource(R.string.settings_about_version_val),
                     icon = Icons.Default.Info,
                     showChevron = false
                 )
@@ -578,7 +596,10 @@ fun SettingsScreen(
 
         // Reset Data Confirmation Dialog
         if (showResetDialog) {
-            AlertDialog(
+            if (isSessionActive) {
+                showResetDialog = false
+            } else {
+                AlertDialog(
                 onDismissRequest = { showResetDialog = false },
                 title = { Text(stringResource(R.string.settings_reset_confirm_title)) },
                 text = { Text(stringResource(R.string.settings_reset_confirm_desc)) },
@@ -602,6 +623,7 @@ fun SettingsScreen(
                     }
                 }
             )
+            }
         }
 
         // Mindful Reflection Delay Dialog for Deactivating Device Admin
@@ -830,7 +852,6 @@ private fun UpdatesSection(
 
         AppleToggleRow(
             title = stringResource(R.string.updates_auto_check),
-            subtitle = stringResource(R.string.updates_auto_check_desc),
             checked = autoCheckUpdates,
             onCheckedChange = { checked ->
                 coroutineScope.launch(Dispatchers.IO) {

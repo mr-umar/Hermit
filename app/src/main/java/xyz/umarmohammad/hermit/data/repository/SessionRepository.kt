@@ -26,15 +26,35 @@ class SessionRepository(private val dao: SessionRecordDao) {
     suspend fun endSession(
         sessionId: String,
         endReason: String,
-        blockedAttempts: Int
+        blockedAttempts: Int,
+        fallbackProfileId: String? = null,
+        fallbackProfileName: String? = null,
+        fallbackStartedAt: Long? = null,
+        fallbackPlannedMinutes: Int? = null
     ) {
-        val session = dao.getSessionById(sessionId) ?: return
-        dao.updateSession(
-            session.copy(
-                endedAt = System.currentTimeMillis(),
-                endReason = endReason,
-                blockedAttemptsCount = blockedAttempts
+        val session = dao.getSessionById(sessionId)
+        val now = System.currentTimeMillis()
+        if (session != null) {
+            dao.updateSession(
+                session.copy(
+                    endedAt = now,
+                    endReason = endReason,
+                    blockedAttemptsCount = blockedAttempts
+                )
             )
-        )
+        } else if (fallbackProfileId != null) {
+            dao.insertSession(
+                FocusSessionRecord(
+                    id = sessionId,
+                    profileId = fallbackProfileId,
+                    profileName = fallbackProfileName ?: "Profile",
+                    startedAt = fallbackStartedAt ?: now,
+                    endedAt = now,
+                    plannedDurationMinutes = fallbackPlannedMinutes,
+                    endReason = endReason,
+                    blockedAttemptsCount = blockedAttempts
+                )
+            )
+        }
     }
 }

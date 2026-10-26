@@ -90,6 +90,7 @@ fun ZenLauncherScreen(
     profileName: String,
     remainingSeconds: Long?,
     elapsedSeconds: Long = 0L,
+    minDurationMinutes: Int? = null,
     apps: List<ZenLauncherAppItem>,
     onLaunchApp: (String) -> Unit,
     onOpenHermit: () -> Unit,
@@ -354,7 +355,15 @@ fun ZenLauncherScreen(
         }
 
         if (showExitInfoDialog) {
-            val effectiveRemainingSec = remainingSeconds ?: (12 * 3600L - elapsedSeconds).coerceAtLeast(0L)
+            val minDurationMin = minDurationMinutes ?: 0
+            val minDurationSec = minDurationMin * 60L
+            val isMinDurationActive = minDurationSec > 0 && elapsedSeconds < minDurationSec
+
+            val effectiveRemainingSec = if (isMinDurationActive) {
+                (minDurationSec - elapsedSeconds).coerceAtLeast(0L)
+            } else {
+                remainingSeconds ?: (12 * 3600L - elapsedSeconds).coerceAtLeast(0L)
+            }
             val safeHours = effectiveRemainingSec / 3600
             val safeMinutes = (effectiveRemainingSec % 3600) / 60
             val safeSeconds = effectiveRemainingSec % 60
@@ -387,7 +396,11 @@ fun ZenLauncherScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = stringResource(R.string.zen_launcher_exit_dialog_desc),
+                            text = if (isMinDurationActive) {
+                                stringResource(R.string.zen_launcher_exit_dialog_min_duration_desc)
+                            } else {
+                                stringResource(R.string.zen_launcher_exit_dialog_desc)
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = Texto.copy(alpha = 0.9f)
                         )
@@ -397,20 +410,28 @@ fun ZenLauncherScreen(
                             border = androidx.compose.foundation.BorderStroke(0.75.dp, BorderDark),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.zen_launcher_exit_dialog_remaining_label),
+                                    text = if (isMinDurationActive) {
+                                        stringResource(R.string.zen_launcher_exit_dialog_min_duration_remaining_label)
+                                    } else {
+                                        stringResource(R.string.zen_launcher_exit_dialog_remaining_label)
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Secundario
+                                    color = Secundario,
+                                    textAlign = TextAlign.Center
                                 )
                                 Text(
                                     text = formattedSafetyTime,
-                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = Acento
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }

@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -24,10 +25,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import xyz.umarmohammad.hermit.HermitApplication
+import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.nfc.NfcTagManager
 import xyz.umarmohammad.hermit.session.SessionManager
 import xyz.umarmohammad.hermit.session.TagScanOutcome
@@ -179,6 +183,18 @@ class BlockOverlayActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                     startActivity(intent)
                 }
                 finish()
+            } else if (outcome == TagScanOutcome.MIN_DURATION_NOT_MET) {
+                triggerHapticFeedback()
+                val remainingSec = sessionManager.getRemainingMinDurationSeconds()
+                val min = (remainingSec + 59) / 60
+                val timeStr = if (min > 1) "$min min" else "${remainingSec}s"
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@BlockOverlayActivity,
+                        getString(R.string.toast_min_duration_not_met, timeStr),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }

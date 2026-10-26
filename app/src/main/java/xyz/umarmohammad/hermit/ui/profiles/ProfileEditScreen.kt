@@ -52,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,6 +110,8 @@ fun ProfileEditScreen(
     var enableGrayscale by remember { mutableStateOf(false) }
     var blockWebSocial by remember { mutableStateOf(true) }
     var activationType by remember { mutableStateOf(if (hasPhysicalTags) "NFC" else "TIME") }
+    var hasMinDuration by remember { mutableStateOf(false) }
+    var minDurationMinutes by remember { mutableIntStateOf(15) }
 
     val icons = listOf("work", "school", "spa", "bedtime", "code", "book")
 
@@ -126,6 +129,8 @@ fun ProfileEditScreen(
                 enableGrayscale = existing.enableGrayscale
                 blockWebSocial = existing.blockWebSocial
                 activationType = if (hasPhysicalTags) existing.activationType else "TIME"
+                hasMinDuration = (existing.minDurationMinutes != null && existing.minDurationMinutes > 0)
+                minDurationMinutes = (existing.minDurationMinutes ?: 15).coerceIn(1, 60)
 
                 onSyncBlockedPackages(existing.blockedPackages)
                 onSyncZenPackages(existing.zenAllowedPackages)
@@ -208,6 +213,7 @@ fun ProfileEditScreen(
                                 isMonkMode = isMonkMode,
                                 blockWebSocial = blockWebSocial,
                                 activationType = if (hasPhysicalTags) activationType else "TIME",
+                                minDurationMinutes = if (isNfcMode && hasMinDuration) minDurationMinutes.coerceIn(1, 60) else null,
                                 zenAllowedPackages = effectiveZenPackages,
                                 enableDnd = enableDnd,
                                 enableGrayscale = enableGrayscale
@@ -332,6 +338,109 @@ fun ProfileEditScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Minimum Duration for NFC Profiles (User can enforce a minimum time up to 1 hour / 60 min)
+            if (hasPhysicalTags && activationType == "NFC") {
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.profile_min_duration_title),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.profile_min_duration_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Switch(
+                                checked = hasMinDuration,
+                                onCheckedChange = { hasMinDuration = it }
+                            )
+                        }
+
+                        if (hasMinDuration) {
+                            Spacer(modifier = Modifier.height(14.dp))
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                thickness = 0.5.dp
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.profile_min_duration_time_label),
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                                )
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+                                ) {
+                                    Text(
+                                        text = if (minDurationMinutes >= 60) "1h" else "${minDurationMinutes}m",
+                                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            val minPresets = listOf(10, 15, 20, 30, 45, 60)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                minPresets.forEach { preset ->
+                                    val isSelected = minDurationMinutes == preset
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable { minDurationMinutes = preset }
+                                    ) {
+                                        Text(
+                                            text = if (preset == 60) "1h" else "${preset}m",
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            ),
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.padding(vertical = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Slider(
+                                value = minDurationMinutes.toFloat(),
+                                onValueChange = { minDurationMinutes = kotlin.math.round(it).toInt().coerceIn(5, 60) },
+                                valueRange = 5f..60f,
+                                steps = 10
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
             }

@@ -24,6 +24,7 @@ data class FocusProfile(
     val isMonkMode: Boolean = false,
     val blockWebSocial: Boolean = true,
     val activationType: String = "BOTH", // "NFC", "TIME", or "BOTH"
+    val minDurationMinutes: Int? = null,
     val zenAllowedPackages: List<String> = emptyList(),
     val enableDnd: Boolean = false,
     val enableGrayscale: Boolean = false,

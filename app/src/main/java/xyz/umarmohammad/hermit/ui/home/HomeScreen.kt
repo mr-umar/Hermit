@@ -72,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.data.model.FocusProfile
+import xyz.umarmohammad.hermit.data.model.NfcTagRecord
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.data.repository.TagRepository
 import xyz.umarmohammad.hermit.service.HermitAccessibilityService
@@ -94,6 +95,9 @@ fun HomeScreen(
     sessionManager: SessionManager,
     profileRepository: ProfileRepository,
     tagRepository: TagRepository,
+    themePalette: String? = null,
+    cachedProfiles: List<FocusProfile>? = null,
+    cachedTags: List<NfcTagRecord>? = null,
     onNavigateToTags: () -> Unit,
     onNavigateToProfiles: () -> Unit,
     onNavigateToSettings: () -> Unit
@@ -101,9 +105,17 @@ fun HomeScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val sessionState by sessionManager.sessionState.collectAsState()
-    val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
-    val tags by tagRepository.allTags.collectAsState(initial = emptyList())
+    val profiles by profileRepository.allProfiles.collectAsState(initial = cachedProfiles ?: emptyList())
+    val tags by tagRepository.allTags.collectAsState(initial = cachedTags ?: emptyList())
     val isAccessibilityRunning by HermitAccessibilityService.isServiceRunning.collectAsState()
+
+    val app = context.applicationContext as? HermitApplication
+    val currentPalette by if (themePalette != null) {
+        remember(themePalette) { mutableStateOf(themePalette) }
+    } else {
+        app?.preferenceManager?.themePalette?.collectAsState(initial = "forest")
+            ?: remember { mutableStateOf("forest") }
+    }
 
     var selectedQuickProfile by remember { mutableStateOf<FocusProfile?>(null) }
     var profileDropdownOpen by remember { mutableStateOf(false) }
@@ -223,6 +235,7 @@ fun HomeScreen(
                         greetingRes = randomGreetingRes,
                         selectedProfile = selectedQuickProfile,
                         profiles = profiles,
+                        themePalette = currentPalette,
                         onSelectProfile = { prof ->
                             selectedQuickProfile = prof
                             coroutineScope.launch {
@@ -478,6 +491,10 @@ private fun ActiveFocusHero(
         }
 
         if (isNfcOnlyExit) {
+            val minDurationMin = sessionState.activeProfile?.minDurationMinutes ?: 0
+            val minDurationSec = minDurationMin * 60L
+            val isMinActive = minDurationSec > 0 && sessionState.elapsedSeconds < minDurationSec
+
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -495,8 +512,15 @@ private fun ActiveFocusHero(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
+                    val nfcPromptText = if (isMinActive) {
+                        val remSec = minDurationSec - sessionState.elapsedSeconds
+                        val remMin = (remSec + 59) / 60
+                        stringResource(R.string.home_min_duration_nfc_prompt, if (remMin > 1) "$remMin min" else "${remSec}s")
+                    } else {
+                        stringResource(R.string.zen_end_requires_nfc_desc)
+                    }
                     Text(
-                        text = stringResource(R.string.zen_end_requires_nfc_desc),
+                        text = nfcPromptText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -525,18 +549,25 @@ private fun IdleFocusHero(
     greetingRes: Int,
     selectedProfile: FocusProfile?,
     profiles: List<FocusProfile>,
+    themePalette: String = "forest",
     onSelectProfile: (FocusProfile) -> Unit,
     onStartFocus: () -> Unit,
     onNavigateToProfiles: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val monkDrawableRes = when (themePalette.lowercase()) {
+        "ocean" -> R.drawable.ic_hermit_monk_ocean
+        "dune" -> R.drawable.ic_hermit_monk_dune
+        else -> R.drawable.ic_hermit_monk
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_hermit_monk),
+            painter = painterResource(monkDrawableRes),
             contentDescription = null,
             tint = Color.Unspecified,
             modifier = Modifier.size(64.dp)

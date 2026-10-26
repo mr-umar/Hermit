@@ -69,7 +69,8 @@ enum class TagScanOutcome {
     IGNORED_DEBOUNCE,
     UNKNOWN_TAG,
     UNKNOWN_PROFILE,
-    DISABLED_TAG
+    DISABLED_TAG,
+    MIN_DURATION_NOT_MET
 }
 
 class SessionManager private constructor(private val context: Context) {
@@ -202,7 +203,15 @@ class SessionManager private constructor(private val context: Context) {
             val maxSafetySec = 12 * 3600L // 12 hours max safety limit
 
             if (elapsedSec >= maxSafetySec) {
-                sessionRepository.endSession(activeSessionId, "SAFETY_12H_TIMEOUT", blockedCount)
+                sessionRepository.endSession(
+                    sessionId = activeSessionId,
+                    endReason = "SAFETY_12H_TIMEOUT",
+                    blockedAttempts = blockedCount,
+                    fallbackProfileId = profile?.id,
+                    fallbackProfileName = profile?.name,
+                    fallbackStartedAt = startTime,
+                    fallbackPlannedMinutes = durationMin?.coerceAtMost(720)
+                )
                 preferenceManager.clearActiveSession()
                 _sessionState.value = FocusSessionState()
                 return
@@ -213,7 +222,15 @@ class SessionManager private constructor(private val context: Context) {
                 val totalDurationSec = durationMin.coerceAtMost(720) * 60L
                 if (elapsedSec >= totalDurationSec) {
                     // Session expired during sleep/reboot
-                    sessionRepository.endSession(activeSessionId, "TIMED_COMPLETION", blockedCount)
+                    sessionRepository.endSession(
+                        sessionId = activeSessionId,
+                        endReason = "TIMED_COMPLETION",
+                        blockedAttempts = blockedCount,
+                        fallbackProfileId = profile?.id,
+                        fallbackProfileName = profile?.name,
+                        fallbackStartedAt = startTime,
+                        fallbackPlannedMinutes = durationMin.coerceAtMost(720)
+                    )
                     preferenceManager.clearActiveSession()
                     _sessionState.value = FocusSessionState()
                     return
@@ -292,6 +309,7 @@ class SessionManager private constructor(private val context: Context) {
                 plannedDurationMinutes = plannedMinutes,
                 endReason = "ACTIVE"
             )
+            sessionRepository.startSession(session)
             val startedWithNfc = reason == "NFC_TAG_TOGGLED" || reason.startsWith("NFC")
             preferenceManager.setActiveSession(
                 sessionId = sessionId,
@@ -335,7 +353,11 @@ class SessionManager private constructor(private val context: Context) {
                 sessionRepository.endSession(
                     sessionId = current.sessionId,
                     endReason = endReason,
-                    blockedAttempts = current.blockedAttemptsCount
+                    blockedAttempts = current.blockedAttemptsCount,
+                    fallbackProfileId = current.activeProfile?.id,
+                    fallbackProfileName = current.activeProfile?.name,
+                    fallbackStartedAt = current.startedAt,
+                    fallbackPlannedMinutes = current.plannedDurationMinutes
                 )
             }
             xyz.umarmohammad.hermit.util.DndManager.restoreDnd(context)
@@ -390,6 +412,14 @@ class SessionManager private constructor(private val context: Context) {
         return if (current.isActive) {
             val now = System.currentTimeMillis()
             val durationSeconds = ((now - current.startedAt) / 1000).coerceAtLeast(0)
+
+            // Respect minimum focus duration if configured for the active profile (max 60 min)
+            val minDurationMinutes = current.activeProfile?.minDurationMinutes ?: 0
+            val minDurationSeconds = minDurationMinutes * 60L
+            if (minDurationSeconds > 0 && durationSeconds < minDurationSeconds) {
+                return TagScanOutcome.MIN_DURATION_NOT_MET
+            }
+
             val analysis = ScreenTimeManager.getSessionStatsAnalysis(context, current.startedAt, now)
             val effectiveUnlocks = maxOf(unlockCount, analysis.unlockCount)
 
@@ -496,5 +526,15 @@ class SessionManager private constructor(private val context: Context) {
                 }
             }
         }
+    }
+
+    fun getRemainingMinDurationSeconds(): Long {
+        val current = _sessionState.value
+        if (!current.isActive) return 0L
+        val minMinutes = current.activeProfile?.minDurationMinutes ?: return 0L
+        if (minMinutes <= 0) return 0L
+        val now = System.currentTimeMillis()
+        val elapsedSec = ((now - current.startedAt) / 1000).coerceAtLeast(0)
+        return (minMinutes * 60L - elapsedSec).coerceAtLeast(0)
     }
 }

@@ -1,5 +1,6 @@
 package xyz.umarmohammad.hermit.ui.tags
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,8 @@ import xyz.umarmohammad.hermit.data.model.FocusProfile
 import xyz.umarmohammad.hermit.data.model.NfcTagRecord
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.data.repository.TagRepository
+import androidx.compose.ui.platform.LocalContext
+import xyz.umarmohammad.hermit.session.SessionManager
 import xyz.umarmohammad.hermit.ui.components.EmptyStateView
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
@@ -64,10 +67,17 @@ import java.util.Locale
 fun TagListScreen(
     tagRepository: TagRepository,
     profileRepository: ProfileRepository? = null,
+    sessionManager: SessionManager? = null,
     onWriteTagClick: () -> Unit,
-    onReadTagClick: () -> Unit
+    onReadTagClick: () -> Unit,
+    cachedTags: List<NfcTagRecord>? = null
 ) {
-    val tags by tagRepository.allTags.collectAsState(initial = emptyList())
+    val context = LocalContext.current
+    val activeSessionManager = sessionManager ?: remember { SessionManager.getInstance(context) }
+    val sessionState by activeSessionManager.sessionState.collectAsState()
+    val isSessionActive = sessionState.isActive
+
+    val tags by tagRepository.allTags.collectAsState(initial = cachedTags)
     var tagToDelete by remember { mutableStateOf<NfcTagRecord?>(null) }
     var tagToEdit by remember { mutableStateOf<NfcTagRecord?>(null) }
 
@@ -102,8 +112,14 @@ fun TagListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
-            if (tags.isEmpty()) {
+            val currentTags = tags
+            if (currentTags == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                )
+            } else if (currentTags.isEmpty()) {
                 EmptyStateView(
                     icon = Icons.Default.Nfc,
                     title = stringResource(R.string.tags_empty_title),
@@ -118,16 +134,27 @@ fun TagListScreen(
                         .weight(1f)
                         .padding(horizontal = 16.dp)
                 ) {
-                    items(tags, key = { it.id }) { tag ->
+                    items(currentTags, key = { it.id }) { tag ->
                         TagCardItem(
                             tag = tag,
+                            isSessionActive = isSessionActive,
                             onEdit = { tagToEdit = tag },
                             onToggleDisabled = {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     tagRepository.updateTag(tag.copy(isDisabled = !tag.isDisabled))
                                 }
                             },
-                            onDelete = { tagToDelete = tag }
+                            onDelete = {
+                                if (isSessionActive) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.tags_cannot_delete_during_session),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    tagToDelete = tag
+                                }
+                            }
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                     }
@@ -137,43 +164,47 @@ fun TagListScreen(
 
         // Delete Dialog
         tagToDelete?.let { target ->
-            AlertDialog(
-                onDismissRequest = { tagToDelete = null },
-                title = { Text(stringResource(R.string.tag_delete)) },
-                text = { Text(stringResource(R.string.tag_delete_confirm_desc, target.name)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                tagRepository.deleteTag(target)
-                                val remainingTags = tagRepository.allTags.first()
-                                if (remainingTags.isEmpty() && profileRepository != null) {
-                                    val profiles = profileRepository.allProfiles.first()
-                                    for (p in profiles) {
-                                        if (p.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.NFC_ONLY || p.activationType == "NFC") {
-                                            profileRepository.saveProfile(
-                                                p.copy(
-                                                    exitBehavior = xyz.umarmohammad.hermit.data.model.ExitBehavior.ALLOW_EMERGENCY,
-                                                    activationType = "TIME",
-                                                    durationMinutes = if (p.durationMinutes == null || p.durationMinutes >= 720) 60 else p.durationMinutes
+            if (isSessionActive) {
+                tagToDelete = null
+            } else {
+                AlertDialog(
+                    onDismissRequest = { tagToDelete = null },
+                    title = { Text(stringResource(R.string.tag_delete)) },
+                    text = { Text(stringResource(R.string.tag_delete_confirm_desc, target.name)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    tagRepository.deleteTag(target)
+                                    val remainingTags = tagRepository.allTags.first()
+                                    if (remainingTags.isEmpty() && profileRepository != null) {
+                                        val profiles = profileRepository.allProfiles.first()
+                                        for (p in profiles) {
+                                            if (p.exitBehavior == xyz.umarmohammad.hermit.data.model.ExitBehavior.NFC_ONLY || p.activationType == "NFC") {
+                                                profileRepository.saveProfile(
+                                                    p.copy(
+                                                        exitBehavior = xyz.umarmohammad.hermit.data.model.ExitBehavior.ALLOW_EMERGENCY,
+                                                        activationType = "TIME",
+                                                        durationMinutes = if (p.durationMinutes == null || p.durationMinutes >= 720) 60 else p.durationMinutes
+                                                    )
                                                 )
-                                            )
+                                            }
                                         }
                                     }
                                 }
+                                tagToDelete = null
                             }
-                            tagToDelete = null
+                        ) {
+                            Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                         }
-                    ) {
-                        Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { tagToDelete = null }) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { tagToDelete = null }) {
-                        Text(stringResource(R.string.action_cancel))
-                    }
-                }
-            )
+                )
+            }
         }
 
         // Edit Tag Dialog
@@ -229,6 +260,7 @@ fun TagListScreen(
 @Composable
 private fun TagCardItem(
     tag: NfcTagRecord,
+    isSessionActive: Boolean = false,
     onEdit: () -> Unit,
     onToggleDisabled: () -> Unit,
     onDelete: () -> Unit
@@ -315,7 +347,11 @@ private fun TagCardItem(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "${stringResource(R.string.action_delete)}: ${tag.name}",
-                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    tint = if (isSessionActive) {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                    } else {
+                        MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    }
                 )
             }
         }

@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mr-umar/Hermit/releases"><img src="https://img.shields.io/badge/Versión-v1.2.1-A5B092?style=flat-square" alt="Versión v1.2.1"></a>
+  <a href="https://github.com/mr-umar/Hermit/releases"><img src="https://img.shields.io/badge/Versión-v1.2.2-A5B092?style=flat-square" alt="Versión v1.2.2"></a>
   <img src="https://img.shields.io/badge/Android-8.0%2B_(API_26%2B)-343432?style=flat-square" alt="Android 8.0+">
   <a href="LICENSE"><img src="https://img.shields.io/badge/Licencia-AGPLv3-343432?style=flat-square" alt="Licencia: AGPLv3"></a>
   <img src="https://img.shields.io/badge/Privacidad-100%25_local-343432?style=flat-square" alt="Privacidad">

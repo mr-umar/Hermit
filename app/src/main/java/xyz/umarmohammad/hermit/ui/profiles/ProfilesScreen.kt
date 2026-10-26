@@ -1,5 +1,6 @@
 package xyz.umarmohammad.hermit.ui.profiles
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,8 +56,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import xyz.umarmohammad.hermit.R
 import xyz.umarmohammad.hermit.data.model.FocusProfile
+import xyz.umarmohammad.hermit.data.model.NfcTagRecord
 import xyz.umarmohammad.hermit.data.repository.ProfileRepository
 import xyz.umarmohammad.hermit.data.repository.TagRepository
+import androidx.compose.ui.platform.LocalContext
+import xyz.umarmohammad.hermit.session.SessionManager
 import xyz.umarmohammad.hermit.ui.components.EmptyStateView
 import xyz.umarmohammad.hermit.ui.components.GlassCard
 import xyz.umarmohammad.hermit.ui.components.HermitTopBar
@@ -77,13 +81,21 @@ fun getProfileIcon(iconName: String): ImageVector {
 fun ProfilesScreen(
     profileRepository: ProfileRepository,
     tagRepository: TagRepository? = null,
+    sessionManager: SessionManager? = null,
     onEditProfile: (String) -> Unit,
     onCreateProfile: () -> Unit,
-    onAddTagClick: () -> Unit = {}
+    onAddTagClick: () -> Unit = {},
+    cachedProfiles: List<FocusProfile>? = null,
+    cachedTags: List<NfcTagRecord>? = null
 ) {
-    val profiles by profileRepository.allProfiles.collectAsState(initial = emptyList())
-    val tags by tagRepository?.allTags?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
-    val hasTags = tags.isNotEmpty()
+    val context = LocalContext.current
+    val activeSessionManager = sessionManager ?: remember { SessionManager.getInstance(context) }
+    val sessionState by activeSessionManager.sessionState.collectAsState()
+    val isSessionActive = sessionState.isActive
+
+    val profiles by profileRepository.allProfiles.collectAsState(initial = cachedProfiles)
+    val tags by tagRepository?.allTags?.collectAsState(initial = cachedTags) ?: remember { mutableStateOf(cachedTags ?: emptyList()) }
+    val hasTags = tags?.isNotEmpty() == true
     val coroutineScope = rememberCoroutineScope()
     var profileToDelete by remember { mutableStateOf<FocusProfile?>(null) }
     var showFrictionDialog by remember { mutableStateOf(false) }
@@ -111,7 +123,14 @@ fun ProfilesScreen(
             }
         }
     ) { innerPadding ->
-        if (profiles.isEmpty()) {
+        val currentProfiles = profiles
+        if (currentProfiles == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            )
+        } else if (currentProfiles.isEmpty()) {
             EmptyStateView(
                 icon = Icons.Default.AutoAwesome,
                 title = stringResource(R.string.home_no_profiles_title),
@@ -129,11 +148,22 @@ fun ProfilesScreen(
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp)
             ) {
-                items(profiles, key = { it.id }) { profile ->
+                items(currentProfiles, key = { it.id }) { profile ->
                     ProfileCardItem(
                         profile = profile,
+                        isSessionActive = isSessionActive,
                         onEdit = { onEditProfile(profile.id) },
-                        onDelete = { profileToDelete = profile }
+                        onDelete = {
+                            if (isSessionActive) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.profiles_cannot_delete_during_session),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                profileToDelete = profile
+                            }
+                        }
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
@@ -171,28 +201,32 @@ fun ProfilesScreen(
 
         // Delete Confirmation Dialog
         profileToDelete?.let { targetProfile ->
-            AlertDialog(
-                onDismissRequest = { profileToDelete = null },
-                title = { Text(stringResource(R.string.profiles_delete_confirm_title)) },
-                text = { Text(stringResource(R.string.profiles_delete_confirm_desc, targetProfile.name)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            coroutineScope.launch(Dispatchers.IO) {
-                                profileRepository.deleteProfile(targetProfile)
+            if (isSessionActive) {
+                profileToDelete = null
+            } else {
+                AlertDialog(
+                    onDismissRequest = { profileToDelete = null },
+                    title = { Text(stringResource(R.string.profiles_delete_confirm_title)) },
+                    text = { Text(stringResource(R.string.profiles_delete_confirm_desc, targetProfile.name)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    profileRepository.deleteProfile(targetProfile)
+                                }
+                                profileToDelete = null
                             }
-                            profileToDelete = null
+                        ) {
+                            Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                         }
-                    ) {
-                        Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { profileToDelete = null }) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { profileToDelete = null }) {
-                        Text(stringResource(R.string.action_cancel))
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }
@@ -200,6 +234,7 @@ fun ProfilesScreen(
 @Composable
 private fun ProfileCardItem(
     profile: FocusProfile,
+    isSessionActive: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -266,7 +301,11 @@ private fun ProfileCardItem(
 
                 Row {
                     val durationText = if (profile.activationType == "NFC") {
-                        "NFC (12h)"
+                        if (profile.minDurationMinutes != null && profile.minDurationMinutes > 0) {
+                            "NFC (mín. ${profile.minDurationMinutes}m)"
+                        } else {
+                            "NFC (12h)"
+                        }
                     } else if (profile.durationMinutes != null) {
                         val hours = profile.durationMinutes / 60
                         val mins = profile.durationMinutes % 60
@@ -304,7 +343,7 @@ private fun ProfileCardItem(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "${stringResource(R.string.action_delete)}: ${profile.name}",
-                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    tint = if (isSessionActive) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f) else MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 )
             }
         }

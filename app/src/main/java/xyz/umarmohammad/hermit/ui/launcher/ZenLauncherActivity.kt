@@ -143,6 +143,7 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                         profileName = state.activeProfile?.name ?: "Zen",
                         remainingSeconds = state.remainingSeconds,
                         elapsedSeconds = state.elapsedSeconds,
+                        minDurationMinutes = state.activeProfile?.minDurationMinutes,
                         apps = appsList,
                         onLaunchApp = { pkg -> launchTargetApp(pkg) },
                         onOpenHermit = { openHermitApp() },
@@ -267,6 +268,18 @@ class ZenLauncherActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                     }
                     startActivity(intent)
                     finish()
+                }
+            } else if (outcome == TagScanOutcome.MIN_DURATION_NOT_MET) {
+                triggerHapticFeedback()
+                val remainingSec = sessionManager.getRemainingMinDurationSeconds()
+                val min = (remainingSec + 59) / 60
+                val timeStr = if (min > 1) "$min min" else "${remainingSec}s"
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@ZenLauncherActivity,
+                        getString(R.string.toast_min_duration_not_met, timeStr),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

@@ -34,6 +34,7 @@
     <string name="profiles_edit">Editar perfil</string>
     <string name="profiles_delete_confirm_title">¿Eliminar perfil?</string>
     <string name="profiles_delete_confirm_desc">¿Seguro que deseas eliminar «%1$s»? Las etiquetas NFC asociadas quedarán desvinculadas.</string>
+    <string name="profiles_cannot_delete_during_session">No puedes eliminar perfiles durante una sesión de enfoque activa</string>
     <string name="profile_name_label">Nombre del perfil</string>
     <string name="profile_desc_label">Descripción (opcional)</string>
     <string name="profile_icon_label">Icono</string>
@@ -51,6 +52,13 @@
     <string name="profile_exit_nfc_only">Solo etiqueta NFC</string>
     <string name="profile_exit_allow_emergency">Permitir botón de emergencia</string>
     <string name="profile_exit_timed_only">Termina al expirar el tiempo</string>
+    <string name="profile_min_duration_title">Tiempo mínimo obligatorio</string>
+    <string name="profile_min_duration_desc">Aunque acerques la etiqueta NFC, la sesión no se detendrá hasta que se cumpla este tiempo mínimo (máximo 1 hora).</string>
+    <string name="profile_min_duration_time_label">Duración mínima requerida</string>
+    <string name="toast_min_duration_not_met">Tiempo mínimo no cumplido: faltan %1$s</string>
+    <string name="zen_launcher_exit_dialog_min_duration_desc">Este perfil tiene un tiempo mínimo obligatorio. Aunque tengas la etiqueta NFC, debes esperar a que termine este periodo para poder salir.</string>
+    <string name="zen_launcher_exit_dialog_min_duration_remaining_label">Tiempo mínimo restante</string>
+    <string name="home_min_duration_nfc_prompt">Tiempo mínimo activo: faltan %1$s antes de poder usar NFC</string>
 
     <!-- Default Profiles -->
     <string name="default_profile_deep_work">Trabajo profundo</string>
@@ -91,6 +99,7 @@
     <string name="tag_enable">Activar etiqueta</string>
     <string name="tag_delete">Eliminar registro de etiqueta</string>
     <string name="tag_delete_confirm_desc">¿Seguro que deseas eliminar el registro de «%1$s»?</string>
+    <string name="tags_cannot_delete_during_session">No puedes eliminar etiquetas durante una sesión de enfoque activa</string>
     <string name="tag_rewrite">Regrabar etiqueta física</string>
     <string name="tag_status_disabled">Desactivada</string>
 
@@ -223,6 +232,7 @@
     <string name="settings_reset_data">Borrar todos los datos</string>
     <string name="settings_reset_confirm_title">¿Restablecer Hermit?</string>
     <string name="settings_reset_confirm_desc">Esto eliminará permanentemente todos los perfiles, asignaciones de etiquetas NFC y estadísticas de sesión. Esta acción no se puede deshacer.</string>
+    <string name="settings_cannot_reset_during_session">No puedes restablecer los datos durante una sesión de enfoque activa</string>
     <string name="settings_version">Versión %1$s</string>
 
     <!-- Sección de actualizaciones -->
@@ -367,7 +377,7 @@
     <string name="settings_about_license_title">Licencia</string>
     <string name="settings_about_license_val">GNU AGPLv3 (libre y código abierto)</string>
     <string name="settings_about_version_title">Versión</string>
-    <string name="settings_about_version_val">Hermit 1.2.1 (Build 4)</string>
+    <string name="settings_about_version_val">Hermit 1.2.2 (Build 5)</string>
 
     <!-- Uninstall & Tamper Protection -->
     <string name="settings_section_security">Seguridad y Fricción</string>

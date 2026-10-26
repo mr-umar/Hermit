@@ -220,7 +220,8 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                             onTagHandled = { activePhysicalTag = null },
                             onSetNfcIntercept = { isNfcIntercepted = it },
                             pendingUnregisteredTag = pendingUnregisteredTag,
-                            onClearPendingUnregisteredTag = { pendingUnregisteredTag = null }
+                            onClearPendingUnregisteredTag = { pendingUnregisteredTag = null },
+                            themePalette = themePalette
                         )
 
                         if (requiredPermissionsStatus.hasRevokedPermissions) {
@@ -352,6 +353,13 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                 TagScanOutcome.SWITCHED -> Toast.makeText(this, getString(R.string.toast_scan_switched), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.DISABLED_TAG -> Toast.makeText(this, getString(R.string.toast_scan_disabled), Toast.LENGTH_SHORT).show()
                 TagScanOutcome.UNKNOWN_PROFILE -> Toast.makeText(this, getString(R.string.toast_scan_no_profile), Toast.LENGTH_SHORT).show()
+                TagScanOutcome.MIN_DURATION_NOT_MET -> {
+                    val app = application as HermitApplication
+                    val remainingSec = app.sessionManager.getRemainingMinDurationSeconds()
+                    val min = (remainingSec + 59) / 60
+                    val timeStr = if (min > 1) "$min min" else "${remainingSec}s"
+                    Toast.makeText(this, getString(R.string.toast_min_duration_not_met, timeStr), Toast.LENGTH_LONG).show()
+                }
                 else -> Unit
             }
         }
@@ -379,7 +387,8 @@ fun MainAppScaffold(
     onTagHandled: () -> Unit,
     onSetNfcIntercept: (Boolean) -> Unit,
     pendingUnregisteredTag: UnregisteredTagPrompt? = null,
-    onClearPendingUnregisteredTag: () -> Unit = {}
+    onClearPendingUnregisteredTag: () -> Unit = {},
+    themePalette: String? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -396,6 +405,9 @@ fun MainAppScaffold(
     val profileRepo = remember { ProfileRepository(app.database.focusProfileDao()) }
     val tagRepo = remember { TagRepository(app.database.nfcTagDao()) }
     val sessionRepo = remember { SessionRepository(app.database.sessionRecordDao()) }
+
+    val cachedProfiles by profileRepo.allProfiles.collectAsState(initial = null)
+    val cachedTags by tagRepo.allTags.collectAsState(initial = null)
 
     // Staged list of blocked packages for currently editing profile
     val stagedBlockedPackages = remember { mutableStateListOf<String>() }
@@ -495,6 +507,9 @@ fun MainAppScaffold(
                     sessionManager = app.sessionManager,
                     profileRepository = profileRepo,
                     tagRepository = tagRepo,
+                    themePalette = themePalette,
+                    cachedProfiles = cachedProfiles,
+                    cachedTags = cachedTags,
                     onNavigateToTags = {
                         navController.navigate(Screen.Tags.route) {
                             popUpTo(navController.graph.startDestinationId) {
@@ -522,6 +537,9 @@ fun MainAppScaffold(
                 ProfilesScreen(
                     profileRepository = profileRepo,
                     tagRepository = tagRepo,
+                    sessionManager = app.sessionManager,
+                    cachedProfiles = cachedProfiles,
+                    cachedTags = cachedTags,
                     onEditProfile = { profileId ->
                         navController.navigate("profile_edit/$profileId")
                     },
@@ -587,6 +605,9 @@ fun MainAppScaffold(
             composable(Screen.Tags.route) {
                 TagListScreen(
                     tagRepository = tagRepo,
+                    profileRepository = profileRepo,
+                    sessionManager = app.sessionManager,
+                    cachedTags = cachedTags,
                     onWriteTagClick = { navController.navigate("write_tag") },
                     onReadTagClick = { navController.navigate("read_tag") }
                 )

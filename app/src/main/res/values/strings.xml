@@ -34,6 +34,7 @@
     <string name="profiles_edit">Edit Profile</string>
     <string name="profiles_delete_confirm_title">Delete Profile?</string>
     <string name="profiles_delete_confirm_desc">Are you sure you want to delete \"%1$s\"? Associated NFC tags will become unlinked.</string>
+    <string name="profiles_cannot_delete_during_session">You cannot delete profiles while a focus session is active</string>
     <string name="profile_name_label">Profile Name</string>
     <string name="profile_desc_label">Description (optional)</string>
     <string name="profile_icon_label">Icon</string>
@@ -51,6 +52,13 @@
     <string name="profile_exit_nfc_only">NFC tag only</string>
     <string name="profile_exit_allow_emergency">Allow emergency button</string>
     <string name="profile_exit_timed_only">Ends when timer expires</string>
+    <string name="profile_min_duration_title">Mandatory Minimum Time</string>
+    <string name="profile_min_duration_desc">Even if you tap the NFC tag, the session will not end until this minimum time has passed (max 1 hour).</string>
+    <string name="profile_min_duration_time_label">Required minimum duration</string>
+    <string name="toast_min_duration_not_met">Minimum time not met: %1$s remaining</string>
+    <string name="zen_launcher_exit_dialog_min_duration_desc">This profile has a mandatory minimum time. Even with your NFC tag, you must wait until this period elapses to exit.</string>
+    <string name="zen_launcher_exit_dialog_min_duration_remaining_label">Remaining minimum time</string>
+    <string name="home_min_duration_nfc_prompt">Minimum time active: %1$s remaining before NFC can be used</string>
 
     <!-- Default Profiles -->
     <string name="default_profile_deep_work">Deep Work</string>
@@ -91,6 +99,7 @@
     <string name="tag_enable">Enable Tag</string>
     <string name="tag_delete">Delete Tag Record</string>
     <string name="tag_delete_confirm_desc">Are you sure you want to delete the record for \"%1$s\"?</string>
+    <string name="tags_cannot_delete_during_session">You cannot delete tags while a focus session is active</string>
     <string name="tag_rewrite">Rewrite Physical Tag</string>
     <string name="tag_status_disabled">Disabled</string>
 
@@ -223,6 +232,7 @@
     <string name="settings_reset_data">Clear All Data</string>
     <string name="settings_reset_confirm_title">Reset Hermit?</string>
     <string name="settings_reset_confirm_desc">This permanently deletes all profiles, NFC tag mappings, and session statistics. This action cannot be undone.</string>
+    <string name="settings_cannot_reset_during_session">You cannot clear data while a focus session is active</string>
     <string name="settings_version">Version %1$s</string>
 
     <!-- Updates Section -->
@@ -367,7 +377,7 @@
     <string name="settings_about_license_title">License</string>
     <string name="settings_about_license_val">GNU AGPLv3 (Free &amp; Open Source)</string>
     <string name="settings_about_version_title">Version</string>
-    <string name="settings_about_version_val">Hermit 1.2.1 (Build 4)</string>
+    <string name="settings_about_version_val">Hermit 1.2.2 (Build 5)</string>
 
     <!-- Uninstall & Tamper Protection -->
     <string name="settings_section_security">Security &amp; Friction</string>
